@@ -35,7 +35,9 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
+//TODO: Generate and edit genesis block hash.
 uint256 hashGenesisBlock("0x12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2");
+//TODO: Decide on difficulty BEFORE building and running.
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // Tutorcoin: starting difficulty is 1 / 2^12
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -1092,6 +1094,7 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     return nSubsidy + nFees;
 }
 
+//TODO: Edit these for timespan and difficulty spacing.
 static const int64 nTargetTimespan = 3.5 * 24 * 60 * 60; // Tutorcoin: 3.5 days
 static const int64 nTargetSpacing = 2.5 * 60; // Tutorcoin: 2.5 minutes
 static const int64 nInterval = nTargetTimespan / nTargetSpacing;
@@ -1111,6 +1114,7 @@ unsigned int ComputeMinWork(unsigned int nBase, int64 nTime)
     bnResult.SetCompact(nBase);
     while (nTime > 0 && bnResult < bnProofOfWorkLimit)
     {
+        //TODO: Check out with this, difficulty adjustment?
         // Maximum 400% adjustment...
         bnResult *= 4;
         // ... in best-case exactly 4-times-normal target time
@@ -2778,6 +2782,12 @@ bool InitBlockIndex() {
         //     CTxOut(nValue=50.00000000, scriptPubKey=040184710fa689ad5023690c80f3a4)
         //   vMerkleTree: 97ddfbbae6
 
+        //TODO: Genesis block stuffs.
+        //          Timestamp
+        //          Epoch value
+        //          Merkel hash
+        //          Network bits (maybe experiment with that?)
+        //          Nonce and genesis hash
         // Genesis block
         const char* pszTimestamp = "NY Times 05/Oct/2011 Steve Jobs, Apple’s Visionary, Dies at 56";
         CTransaction txNew;
@@ -2807,6 +2817,39 @@ bool InitBlockIndex() {
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
         assert(block.hashMerkleRoot == uint256("0x97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9"));
+
+        // Loop to generate new genesis hash and nonce if it doesn't match.
+        // TODO: change to false when hash has been generated
+        if (true && block.GetHash() != hashGenesisBlock)
+        {
+            printf("Searching for genesis block...\n");
+            // This will figure out a valid hash and Nonce if you're
+            // creating a different genesis block:
+            uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
+            uint256 thash;
+            char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
+
+            loop
+            {
+                scrypt_1024_1_1_256_sp(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
+                if (thash <= hashTarget)
+                    break;
+                if ((block.nNonce & 0xFFF) == 0)
+                {
+                    printf("nonce %08X: hash = %s (target = %s)\n", block.nNonce, thash.ToString().c_str(), hashTarget.ToString().c_str());
+                }
+                ++block.nNonce;
+                if (block.nNonce == 0)
+                {
+                    printf("NONCE WRAPPED, incrementing time.\n");
+                    ++block.nTime;
+                }
+            }
+            printf("block.nTime = %u\n", block.nTime);
+            printf("block.nNonce = %u\n", block.nNonce);
+            printf("block.nGetHash = %s\n", block.GetHash().ToString().c_str());
+        }
+
         block.print();
         assert(hash == hashGenesisBlock);
 
