@@ -1185,25 +1185,20 @@ void MapPort(bool)
 
 
 
-
-
+//TODO: Add dns seeds for host machines to keep network always up.
 // DNS seeds
 // Each pair gives a source name and a seed name.
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strMainNetDNSSeed[][2] = {
-    {"tutorcointools.com", "dnsseed.tutorcointools.com"},
-    {"tutorcoinpool.org", "dnsseed.tutorcoinpool.org"},
-    {"xurious.com", "dnsseed.ltc.xurious.com"},
-    {"koin-project.com", "dnsseed.koin-project.com"},
-    {"weminemnc.com", "dnsseed.weminemnc.com"},
+    //{"hostname", "ip-address"},
+    
+    // Work computer - Sandra
+    {"tga-pc387.rhi.hi.is", "130.208.71.103"},
     {NULL, NULL}
 };
 
 static const char *strTestNetDNSSeed[][2] = {
-    {"tutorcointools.com", "testnet-seed.tutorcointools.com"},
-    {"xurious.com", "testnet-seed.ltc.xurious.com"},
-    {"wemine-testnet.com", "dnsseed.wemine-testnet.com"},
     {NULL, NULL}
 };
 
@@ -1252,6 +1247,7 @@ void ThreadDNSAddressSeed()
 
 unsigned int pnSeed[] =
 {
+    /*
     0x6ab5368e, 0x63109859, 0x6c47bb25, 0x87d888c1, 0x1d9b2e48, 0x63a6c545, 0xf3ca1a48, 0x23b6b242,
     0x8a67c7c6, 0x70a6f1c0, 0xc585c96d, 0x5cc4fd36, 0x239be836, 0x6660dc36, 0x2664cb36, 0xa602cd36,
     0xb83dfc36, 0x70a2fe18, 0x2c589d55, 0xf969ec2e, 0x702ab643, 0x6a97e655, 0xad9751ce, 0x57e5025a,
@@ -1327,6 +1323,7 @@ unsigned int pnSeed[] =
     0x4544ed5e, 0xdc801956, 0x9d6b3ac6, 0x0a037786, 0xdcaafd62, 0xd65ee05a, 0x158b754c, 0x53427dd5,
     0xa32774bc, 0xa22af3a2, 0x0c1f7157, 0xa0b58429, 0x349f3156, 0x9cd6a34d, 0x67eb1c56, 0x20b5e597,
     0xd40f7162, 0xa4cb0379, 0x0e1efc53, 0xe5c8e554, 0x3ebf8052, 0x6ee00847, 0x99206883, 0xc851767d
+    */
 };
 
 void DumpAddresses()
