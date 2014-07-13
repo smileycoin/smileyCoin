@@ -37,6 +37,7 @@ static asio::io_service* rpc_io_service = NULL;
 static ssl::context* rpc_ssl_context = NULL;
 static boost::thread_group* rpc_worker_group = NULL;
 
+//TODO: change ports.
 static inline unsigned short GetDefaultRPCPort()
 {
     return GetBoolArg("-testnet", false) ? 19332 : 9332;
