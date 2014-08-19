@@ -1,15 +1,15 @@
-Tutorcoin integration/staging tree
+Smileycoin integration/staging tree
 ================================
 
-http://www.tutorcoin.org
+http://www.smileycoin.org
 
 Copyright (c) 2009-2014 Bitcoin Developers
-Copyright (c) 2011-2014 Tutorcoin Developers
+Copyright (c) 2011-2014 Smileycoin Developers
 
-What is Tutorcoin?
+What is Smileycoin?
 ----------------
 
-Tutorcoin is a lite version of Bitcoin using scrypt as a proof-of-work algorithm.
+Smileycoin is a lite version of Bitcoin using scrypt as a proof-of-work algorithm.
  - 2.5 minute block targets
  - subsidy halves in 840k blocks (~4 years)
  - ~84 million total coins
@@ -19,12 +19,12 @@ The rest is the same as Bitcoin.
  - 2016 blocks to retarget difficulty
 
 For more information, as well as an immediately useable, binary version of
-the Tutorcoin client sofware, see http://www.tutorcoin.org.
+the Smileycoin client sofware, see http://www.smileycoin.org.
 
 License
 -------
 
-Tutorcoin is released under the terms of the MIT license. See `COPYING` for more
+Smileycoin is released under the terms of the MIT license. See `COPYING` for more
 information or see http://opensource.org/licenses/MIT.
 
 Development process
@@ -33,7 +33,7 @@ Development process
 Developers work in their own trees, then submit pull requests when they think
 their feature or bug fix is ready.
 
-If it is a simple/trivial/non-controversial change, then one of the Tutorcoin
+If it is a simple/trivial/non-controversial change, then one of the Smileycoin
 development team members simply pulls it.
 
 If it is a *more complicated or potentially controversial* change, then the patch
@@ -47,7 +47,7 @@ controversial.
 
 The `master` branch is regularly built and tested, but is not guaranteed to be
 completely stable. [Tags](https://github.com/bitcoin/bitcoin/tags) are created
-regularly to indicate new official, stable release versions of Tutorcoin.
+regularly to indicate new official, stable release versions of Smileycoin.
 
 Testing
 -------
@@ -70,5 +70,5 @@ Unit tests for the GUI code are in `src/qt/test/`. To compile and run them:
 
     qmake BITCOIN_QT_TEST=1 -o Makefile.test bitcoin-qt.pro
     make -f Makefile.test
-    ./tutorcoin-qt_test
+    ./smileycoin-qt_test
 
