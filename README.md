@@ -1,7 +1,7 @@
 Smileycoin integration/staging tree
 ================================
 
-http://www.tutor-web info (fix this, can't remember the url)
+http://www.tutor-web.info/smileycoin
 
 Copyright (c) 2009-2014 Bitcoin Developers
 Copyright (c) 2011-2014 Litecoin Developers
@@ -18,7 +18,7 @@ Smileycoin is based on the Litecoin source, so using scrypt as a proof-of-work a
  - 2400 blocks to retarget difficulty
 
 For more information, as well as an immediately useable, binary version of
-the Smileycoin client sofware, see http://www.smileycoin.org.
+the Smileycoin client sofware, see http://www.tutor-web.info/smileycoin
 
 License
 -------
