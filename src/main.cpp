@@ -37,7 +37,6 @@ unsigned int nTransactionsUpdated = 0;
 map<uint256, CBlockIndex*> mapBlockIndex;
 //TODO: Generate and edit genesis block hash.
 uint256 hashGenesisBlock("0x12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2");
-//TODO: Decide on difficulty BEFORE building and running.
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // Smileycoin: starting difficulty is 1 / 2^12
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -1094,8 +1093,7 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     return nSubsidy + nFees;
 }
 
-//TODO: Edit these for timespan and difficulty spacing.
-static const int64 nTargetTimespan = 3.5 * 24 * 60 * 60; // Smileycoin: 3.5 days
+static const int64 nTargetTimespan = 5 * 24 * 60 * 60; // Smileycoin: 5 days
 static const int64 nTargetSpacing = 3 * 60; // Smileycoin: 3 minutes
 static const int64 nInterval = nTargetTimespan / nTargetSpacing;
 
@@ -1114,7 +1112,6 @@ unsigned int ComputeMinWork(unsigned int nBase, int64 nTime)
     bnResult.SetCompact(nBase);
     while (nTime > 0 && bnResult < bnProofOfWorkLimit)
     {
-        //TODO: Check this out, difficulty adjustment?
         // Maximum 400% adjustment...
         bnResult *= 4;
         // ... in best-case exactly 4-times-normal target time

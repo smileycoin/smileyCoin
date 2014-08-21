@@ -1186,6 +1186,7 @@ void MapPort(bool)
 
 
 //TODO: Add dns seeds for host machines to keep network always up.
+//      Will have to be a machine that's always on.
 // DNS seeds
 // Each pair gives a source name and a seed name.
 // The first name is used as information source for addrman.
