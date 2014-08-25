@@ -36,7 +36,7 @@ unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
 //TODO: Generate and edit genesis block hash.
-uint256 hashGenesisBlock("0x12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2");
+uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // Smileycoin: starting difficulty is 1 / 2^12
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -2747,7 +2747,7 @@ bool LoadBlockIndex()
         pchMessageStart[1] = 0xc1;
         pchMessageStart[2] = 0xb7;
         pchMessageStart[3] = 0xdc;
-        hashGenesisBlock = uint256("0xf5ae71e26c74beacc88382716aced69cddf3dffff24f384e1808905e0188f68f");
+        hashGenesisBlock = uint256("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
     }
 
     //
@@ -2801,12 +2801,12 @@ bool InitBlockIndex() {
         block.nVersion = 1;
         block.nTime    = 1408974288;
         block.nBits    = 0x1e0ffff0;
-        block.nNonce   = 2084524493;
+        block.nNonce   = 386703170;
 
         if (fTestNet)
         {
             block.nTime    = 1408974288;
-            block.nNonce   = 385270584;
+            block.nNonce   = 386703170;
         }
 
         //// debug print
@@ -2814,11 +2814,11 @@ bool InitBlockIndex() {
         printf("%s\n", hash.ToString().c_str());
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
-        assert(block.hashMerkleRoot == uint256("0x97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9"));
+        assert(block.hashMerkleRoot == uint256("0xe9441ec39c399c76ea734ea31827e1895a82c5a1f9b2c6252b5dacada768ec8b"));
 
         // Loop to generate new genesis hash and nonce if it doesn't match.
         // TODO: change to false when hash has been generated
-        if (true && block.GetHash() != hashGenesisBlock)
+        if (false && block.GetHash() != hashGenesisBlock)
         {
             printf("Searching for genesis block...\n");
             // This will figure out a valid hash and Nonce if you're
