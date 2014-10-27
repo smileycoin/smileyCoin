@@ -1194,8 +1194,6 @@ void MapPort(bool)
 static const char *strMainNetDNSSeed[][2] = {
     //{"hostname", "ip-address"},
     
-    // Work computer - Sandra
-    {"tga-pc387.rhi.hi.is", "130.208.71.103"},
     {NULL, NULL}
 };
 
