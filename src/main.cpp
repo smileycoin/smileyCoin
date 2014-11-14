@@ -1087,8 +1087,12 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
 {
     int64 nSubsidy = 10000 * COIN;
 
-    // Subsidy is cut in half every 1226400 blocks, which will occur approximately every 7 years
-    nSubsidy >>= (nHeight / 1226400); // Smileycoin: 1226400 blocks in ~7 years
+    if(nHeight <= 1000)
+        // Premine: First 1K blocks@24M SMLY will give 24 billion SMLY
+        nSubsidy= 24000000 * COIN;
+    else
+        // Subsidy is cut in half every 1226400 blocks, which will occur approximately every 7 years
+        nSubsidy >>= (nHeight / 1226400);
 
     return nSubsidy + nFees;
 }
