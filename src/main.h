@@ -624,7 +624,6 @@ public:
 
     static bool AllowFree(double dPriority)
     {
-        //TODO: figured out dPriority
         // Large (in bytes) low-priority (new, small-coin) transactions
         // need a fee.
         return dPriority > COIN * 480 / 250;

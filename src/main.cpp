@@ -35,7 +35,6 @@ CTxMemPool mempool;
 unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
-//TODO: Generate and edit genesis block hash.
 uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
 static CBigNum bnProofOfWorkLimit(~uint256(0) >> 20); // Smileycoin: starting difficulty is 1 / 2^12
 CBlockIndex* pindexGenesisBlock = NULL;
@@ -2783,14 +2782,7 @@ bool InitBlockIndex() {
         //     CTxOut(nValue=50.00000000, scriptPubKey=040184710fa689ad5023690c80f3a4)
         //   vMerkleTree: 97ddfbbae6
 
-        //TODO: Genesis block stuffs.
-        //          Timestamp
-        //          Epoch value
-        //          Merkel hash
-        //          Network bits (maybe experiment with that?)
-        //          Nonce and genesis hash
         // Genesis block
-        // Fix timestamp when epoch time is updated, need something from same day (19/Aug/2014).
         const char* pszTimestamp = "NY Times 18/Aug/2014 Bitcoin's Price Falls 12%, to Lowest Value Since May";
         CTransaction txNew;
         txNew.vin.resize(1);
@@ -2819,38 +2811,6 @@ bool InitBlockIndex() {
         printf("%s\n", hashGenesisBlock.ToString().c_str());
         printf("%s\n", block.hashMerkleRoot.ToString().c_str());
         assert(block.hashMerkleRoot == uint256("0xe9441ec39c399c76ea734ea31827e1895a82c5a1f9b2c6252b5dacada768ec8b"));
-
-        // Loop to generate new genesis hash and nonce if it doesn't match.
-        // TODO: change to false when hash has been generated
-        if (false && block.GetHash() != hashGenesisBlock)
-        {
-            printf("Searching for genesis block...\n");
-            // This will figure out a valid hash and Nonce if you're
-            // creating a different genesis block:
-            uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
-            uint256 thash;
-            char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
-
-            loop
-            {
-                scrypt_1024_1_1_256_sp(BEGIN(block.nVersion), BEGIN(thash), scratchpad);
-                if (thash <= hashTarget)
-                    break;
-                if ((block.nNonce & 0xFFF) == 0)
-                {
-                    printf("nonce %08X: hash = %s (target = %s)\n", block.nNonce, thash.ToString().c_str(), hashTarget.ToString().c_str());
-                }
-                ++block.nNonce;
-                if (block.nNonce == 0)
-                {
-                    printf("NONCE WRAPPED, incrementing time.\n");
-                    ++block.nTime;
-                }
-            }
-            printf("block.nTime = %u\n", block.nTime);
-            printf("block.nNonce = %u\n", block.nNonce);
-            printf("block.nGetHash = %s\n", block.GetHash().ToString().c_str());
-        }
 
         block.print();
         assert(hash == hashGenesisBlock);
