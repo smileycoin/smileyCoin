@@ -69,3 +69,11 @@ Unit tests for the GUI code are in `src/qt/test/`. To compile and run them:
     make -f Makefile.test
     ./smileycoin-qt_test
 
+Compiling under different operating systems
+-------------------------------------------
+
+* http://devtome.com/doku.php?id=scrypt_altcoin_cloning_guide#windows_-qt
+* https://bitcointalk.org/index.php?topic=149479.0
+
+Dependencies can be found in (dropbox)[https://www.dropbox.com/sh/7f3v6sw6gccno47/AADHQxy5ZHcd7fNjwWvZEjzta]
+
