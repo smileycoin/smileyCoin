@@ -72,6 +72,16 @@ Unit tests for the GUI code are in `src/qt/test/`. To compile and run them:
 Compiling under different operating systems
 -------------------------------------------
 
+### Debian/Ubuntu
+
+    apt-get install build-essential
+        libboost-dev libboost-system-dev libboost-filesystem-dev libboost-system-dev \
+        libboost-program-options-dev libboost-thread-dev \
+        libssl-dev libdb++-dev libdb-dev
+    make -f makefile.unix USE_UPNP=-
+
+### Windows
+
 * http://devtome.com/doku.php?id=scrypt_altcoin_cloning_guide#windows_-qt
 * https://bitcointalk.org/index.php?topic=149479.0
 
