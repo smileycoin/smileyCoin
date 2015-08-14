@@ -1096,15 +1096,24 @@ int64 static GetBlockValue(int nHeight, int64 nFees)
     return nSubsidy + nFees;
 }
 
-static const int64 nTargetTimespan = 5 * 24 * 60 * 60; // Smileycoin: 5 days
 static const int64 nTargetSpacing = 3 * 60; // Smileycoin: 3 minutes
-static const int64 nInterval = nTargetTimespan / nTargetSpacing;
+
+int64 GetTargetTimespan(int nHeight)
+{
+	return nHeight >= 98400 ? 3 * 60 * 60; // 3 hours after 98400 fork
+				: 5 * 24 * 60 * 60; // 5 days before
+}
+
+int64 GetInterval(int nHeight)
+{
+	return GetTargetTimespan(nHeight) / nTargetSpacing;
+}
 
 //
 // minimum amount of work that could possibly be required nTime after
 // minimum work required was nBase
 //
-unsigned int ComputeMinWork(unsigned int nBase, int64 nTime)
+unsigned int ComputeMinWork(unsigned int nBase, int nHeight, int64 nTime)
 {
     // Testnet has min-difficulty blocks
     // after nTargetSpacing*2 time between blocks:
@@ -1118,7 +1127,9 @@ unsigned int ComputeMinWork(unsigned int nBase, int64 nTime)
         // Maximum 400% adjustment...
         bnResult *= 4;
         // ... in best-case exactly 4-times-normal target time
-        nTime -= nTargetTimespan*4;
+        nTime -= GetTargetTimespan(nHeight)*4;
+        // Our block count should have also gone up
+        nHeight += GetInterval(nHeight);
     }
     if (bnResult > bnProofOfWorkLimit)
         bnResult = bnProofOfWorkLimit;
@@ -1128,6 +1139,8 @@ unsigned int ComputeMinWork(unsigned int nBase, int64 nTime)
 unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock)
 {
     unsigned int nProofOfWorkLimit = bnProofOfWorkLimit.GetCompact();
+    int64 nInterval = GetInterval(pindexLast->nHeight+1);
+    int64 nTargetTimespan = GetTargetTimespan(pindexLast->nHeight+1);
 
     // Genesis block
     if (pindexLast == NULL)
@@ -2302,7 +2315,7 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
         CBigNum bnNewBlock;
         bnNewBlock.SetCompact(pblock->nBits);
         CBigNum bnRequired;
-        bnRequired.SetCompact(ComputeMinWork(pcheckpoint->nBits, deltaTime));
+        bnRequired.SetCompact(ComputeMinWork(pcheckpoint->nBits, pcheckpoint->nHeight, deltaTime));
         if (bnNewBlock > bnRequired)
         {
             return state.DoS(100, error("ProcessBlock() : block with too little proof-of-work"));
