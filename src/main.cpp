@@ -1100,7 +1100,7 @@ static const int64 nTargetSpacing = 3 * 60; // Smileycoin: 3 minutes
 
 int64 GetTargetTimespan(int nHeight)
 {
-	return nHeight >= 98400 ? 3 * 60 * 60; // 3 hours after 98400 fork
+	return nHeight >= 98400 ? 3 * 60 * 60 // 3 hours after 98400 fork
 				: 5 * 24 * 60 * 60; // 5 days before
 }
 
