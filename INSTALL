@@ -1,0 +1,5 @@
+Building Auroracoin
+
+See doc/build-*.md for instructions on building auroracoind,
+the intended-for-services, no-graphical-interface, reference
+implementation of Auroracoin.

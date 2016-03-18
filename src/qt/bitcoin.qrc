@@ -1,0 +1,59 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/icons">
+        <file alias="bitcoin">../../media/pixmaps/auroracoin.png</file>
+        <file alias="address-book">../../media/pixmaps/address-book.png</file>
+        <file alias="quit">../../media/pixmaps/quit.png</file>
+        <file alias="send">../../media/pixmaps/send.png</file>
+        <file alias="toolbar">../../media/pixmaps/toolbar.png</file>
+        <file alias="connect_0">../../media/pixmaps/connect0_16.png</file>
+        <file alias="connect_1">../../media/pixmaps/connect1_16.png</file>
+        <file alias="connect_2">../../media/pixmaps/connect2_16.png</file>
+        <file alias="connect_3">../../media/pixmaps/connect3_16.png</file>
+        <file alias="connect_4">../../media/pixmaps/connect4_16.png</file>
+        <file alias="transaction_0">../../media/pixmaps/transaction0.png</file>
+        <file alias="transaction_confirmed">../../media/pixmaps/transaction2.png</file>
+        <file alias="transaction_conflicted">../../media/pixmaps/warning.png</file>
+        <file alias="transaction_1">../../media/pixmaps/clock1.png</file>
+        <file alias="transaction_2">../../media/pixmaps/clock2.png</file>
+        <file alias="transaction_3">../../media/pixmaps/clock3.png</file>
+        <file alias="transaction_4">../../media/pixmaps/clock4.png</file>
+        <file alias="transaction_5">../../media/pixmaps/clock5.png</file>
+        <file alias="options">../../media/pixmaps/configure.png</file>
+        <file alias="receiving_addresses">../../media/pixmaps/receive.png</file>
+        <file alias="editpaste">../../media/pixmaps/editpaste.png</file>
+        <file alias="editcopy">../../media/pixmaps/editcopy.png</file>
+        <file alias="add">../../media/pixmaps/add.png</file>
+        <file alias="bitcoin_testnet">../../media/pixmaps/auroracoin_testnet.png</file>
+        <file alias="toolbar_testnet">../../media/pixmaps/toolbar_testnet.png</file>
+        <file alias="edit">../../media/pixmaps/edit.png</file>
+        <file alias="history">../../media/pixmaps/history.png</file>
+        <file alias="overview">../../media/pixmaps/overview.png</file>
+        <file alias="export">../../media/pixmaps/export.png</file>
+        <file alias="synced">../../media/pixmaps/synced.png</file>
+        <file alias="remove">../../media/pixmaps/remove.png</file>
+        <file alias="tx_mined">../../media/pixmaps/tx_mined.png</file>
+        <file alias="tx_input">../../media/pixmaps/tx_input.png</file>
+        <file alias="tx_output">../../media/pixmaps/tx_output.png</file>
+        <file alias="tx_inout">../../media/pixmaps/tx_inout.png</file>
+        <file alias="lock_closed">../../media/pixmaps/lock_closed.png</file>
+        <file alias="lock_open">../../media/pixmaps/lock_open.png</file>
+        <file alias="key">../../media/pixmaps/key.png</file>
+        <file alias="filesave">../../media/pixmaps/filesave.png</file>
+        <file alias="qrcode">../../media/pixmaps/qrcode.png</file>
+        <file alias="debugwindow">../../media/pixmaps/debugwindow.png</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file alias="about">../../media/pixmaps/about.png</file>
+        <file alias="splash">../../media/pixmaps/splash.png</file>
+        <file alias="splash_testnet">../../media/pixmaps/splash_testnet.png</file>
+	<file alias="backg">../../media/pixmaps/background.png</file>
+    </qresource>
+    <qresource prefix="/movies">
+      <file alias="update_spinner">../../media/movies/update_spinner.mng</file>
+    </qresource>
+    <qresource prefix="/translations">
+        <file alias="en">locale/bitcoin_en.qm</file>
+        <file alias="is">locale/bitcoin_is.qm</file>
+        <file alias="nl">locale/bitcoin_nl.qm</file>
+    </qresource>
+</RCC>
