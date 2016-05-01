@@ -226,15 +226,15 @@ case $host in
        AC_CHECK_PROG([PORT],port, port)
        if test x$PORT = xport; then
          dnl add default macports paths
-         CPPFLAGS="$CPPFLAGS -isystem /opt/local/include -I/opt/local/include/db48"
-         LIBS="$LIBS -L/opt/local/lib -L/opt/local/lib/db48"
+         CPPFLAGS="$CPPFLAGS -isystem /opt/local/include -I/opt/local/include/db53"
+         LIBS="$LIBS -L/opt/local/lib -L/opt/local/lib/db53"
        fi
 
        AC_CHECK_PROG([BREW],brew, brew)
        if test x$BREW = xbrew; then
          dnl add default homebrew paths
          openssl_prefix=`$BREW --prefix openssl`
-         bdb_prefix=`$BREW --prefix berkeley-db4`
+         bdb_prefix=`$BREW --prefix berkeley-db5`
          export PKG_CONFIG_PATH="$openssl_prefix/lib/pkgconfig:$PKG_CONFIG_PATH"
          CPPFLAGS="$CPPFLAGS -I$bdb_prefix/include"
          LIBS="$LIBS -L$bdb_prefix/lib"
@@ -388,7 +388,7 @@ AC_SUBST(LIBMEMENV)
 
 if test x$enable_wallet != xno; then
     dnl Check for libdb_cxx only if wallet enabled
-    BITCOIN_FIND_BDB48
+    AURORACOIN_FIND_BDB53
 fi
 
 dnl Check for libminiupnpc (optional)
