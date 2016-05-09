@@ -36,11 +36,11 @@ public:
         nDefaultPort = 12340;
         nRPCPort = 12341;
 
-        bnProofOfWorkLimit[ALGO_SHA256D] = CBigNum(~uint256(0) >> 32); // 1.00000000
+        bnProofOfWorkLimit[ALGO_SHA256D] = CBigNum(~uint256(0) >> 20); // 1.00000000
         bnProofOfWorkLimit[ALGO_SCRYPT]  = CBigNum(~uint256(0) >> 20);
-        bnProofOfWorkLimit[ALGO_GROESTL] = CBigNum(~uint256(0) >> 23); // 0.00195311
-        bnProofOfWorkLimit[ALGO_SKEIN]   = CBigNum(~uint256(0) >> 23); // 0.00195311
-        bnProofOfWorkLimit[ALGO_QUBIT]   = CBigNum(~uint256(0) >> 22); // 0.00097655
+        bnProofOfWorkLimit[ALGO_GROESTL] = CBigNum(~uint256(0) >> 20); // 0.00195311
+        bnProofOfWorkLimit[ALGO_SKEIN]   = CBigNum(~uint256(0) >> 20); // 0.00195311
+        bnProofOfWorkLimit[ALGO_QUBIT]   = CBigNum(~uint256(0) >> 20); // 0.00097655
 
         // Build the genesis block.
         const char* pszTimestamp = "Visir 10. oktober 2008 Gjaldeyrishoft sett a Islendinga";
@@ -73,7 +73,7 @@ public:
         base58Prefixes[PUBKEY_ADDRESS] = list_of(23);
         base58Prefixes[SCRIPT_ADDRESS] = list_of(5);
         base58Prefixes[SECRET_KEY]     = list_of(176);
-        base58Prefixes[SECRET_KEY_OLD] = list_of(158);
+        base58Prefixes[SECRET_KEY_OLD] = list_of(151);
         base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x88)(0xB2)(0x1E);
         base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x88)(0xAD)(0xE4);
         // Convert the pnSeeds array into usable address objects.
