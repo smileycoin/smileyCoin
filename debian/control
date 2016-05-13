@@ -1,0 +1,15 @@
+Source: auroracoin
+Section: misc
+Priority: optional
+Maintainer: Auroracoin foundation <aurarad@aurarad.is>
+Build-Depends: debhelper (>= 9.0.0), autotools-dev
+Standards-Version: 3.9.5
+Homepage: http://www.auroracoin.is
+#Vcs-Git: git://git.debian.org/collab-maint/auroracoin.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/auroracoin.git;a=summary
+
+Package: auroracoin
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Official software wallet for the Icelandic crypto currency Auroracoin
+ <insert long description, indented with spaces>

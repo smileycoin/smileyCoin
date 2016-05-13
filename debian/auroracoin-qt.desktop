@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Auroracoin
+Comment=Auroracoin P2P Cryptocurrency
+Comment[fr]=Auroracoin, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=Auroracoin, eşten eşe kriptografik sanal para birimi
+Exec=auroracoin-qt %u
+Terminal=false
+Type=Application
+Icon=auroracoin128
+MimeType=x-scheme-handler/auroracoin;
+Categories=Office;Finance;
