@@ -1,0 +1,5 @@
+auroracoin (2016.03.1.0-0ubuntu1) trusty; urgency=low
+
+  * First Ubuntu package release.
+
+ -- Auroracoin foundation <aurarad@aurarad.is>  Tue, 08 Mar 2016 12:30:00 +0100

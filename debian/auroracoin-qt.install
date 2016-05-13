@@ -1,0 +1,4 @@
+auroracoin-qt usr/bin
+media/pixmaps/auroracoin.png usr/share/pixmaps
+debian/auroracoin-qt.desktop usr/share/applications
+debian/auroracoin-qt.protocol usr/share/kde4/services/

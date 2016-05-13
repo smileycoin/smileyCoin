@@ -7,6 +7,6 @@ Comment[tr]=Auroracoin, eşten eşe kriptografik sanal para birimi
 Exec=auroracoin-qt %u
 Terminal=false
 Type=Application
-Icon=auroracoin
+Icon=auroracoin128
 MimeType=x-scheme-handler/auroracoin;
 Categories=Office;Finance;
