@@ -7,6 +7,7 @@
 DEB_INSTALL_MANPAGES += debian/manpages/*
 
 %:
+	./autogen.sh
 	dh $@  --with autotools-dev
 
 override_dh_auto_configure:
