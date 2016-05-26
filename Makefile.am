@@ -7,7 +7,7 @@ man_MANS=debian/manpages/auroracoin-qt.1 \
          debian/manpages/auroracoind.1
 
 desktopdir = $(datadir)/applications
-desktop_DATA = contrib/debian/auroracoin-qt.desktop
+desktop_DATA = debian/auroracoin-qt.desktop
 appicondir=$(datadir)/icons/hicolor/scalable/apps
 appicon_DATA = media/svg/auroracoin.svg
 
