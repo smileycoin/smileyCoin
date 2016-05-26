@@ -2,9 +2,9 @@ ACLOCAL_AMFLAGS = -I src/m4
 SUBDIRS = src
 .PHONY: deploy
 
-man_MANS=contrib/debian/manpages/auroracoin-qt.1 \
-         contrib/debian/manpages/auroracoin.conf.5 \
-         contrib/debian/manpages/auroracoind.1
+man_MANS=debian/manpages/auroracoin-qt.1 \
+         debian/manpages/auroracoin.conf.5 \
+         debian/manpages/auroracoind.1
 
 desktopdir = $(datadir)/applications
 desktop_DATA = contrib/debian/auroracoin-qt.desktop
