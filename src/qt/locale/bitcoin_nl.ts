@@ -1483,7 +1483,7 @@ Adres: %4
     <message>
         <location line="+3"/>
         <source>&amp;Display addresses in transaction list</source>
-        <translation>Geef a&amp;dresseb in de transactielijst weer</translation>
+        <translation>Geef a&amp;dressen in de transactielijst weer</translation>
     </message>
     <message>
         <location line="+9"/>
