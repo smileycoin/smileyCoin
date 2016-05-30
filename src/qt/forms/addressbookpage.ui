@@ -114,46 +114,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="showQRCode">
-       <property name="font">
-        <font>
-         <family>Helvetica</family>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Show &amp;QR Code</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/qrcode</normaloff>:/icons/qrcode</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="verifyMessage">
-       <property name="font">
-        <font>
-         <family>Helvetica</family>
-         <pointsize>13</pointsize>
-         <weight>50</weight>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="toolTip">
-         <string>Verify a message to ensure it was signed with a specified Auroracoin address</string>
-       </property>
-       <property name="text">
-        <string>&amp;Verify Message</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../bitcoin.qrc">
-         <normaloff>:/icons/transaction_0</normaloff>:/icons/transaction_0</iconset>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="deleteAddress">
        <property name="font">
         <font>
