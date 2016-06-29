@@ -1,9 +1,10 @@
-auroracoin (2016.05.2.0-0ubuntu1) trusty; urgency=low
+auroracoin (2016.07.1.0-0ubuntu1) trusty; urgency=low
 
   * New checkpoints.
   * Restore original difficulties for all algorithms.
+  * Update to Berkeley DB 5.3 branch.
 
- -- Auroracoin foundation <aurarad@aurarad.is>  Fri, 0 May 2016 00:00:00 +0200
+ -- Auroracoin foundation <aurarad@aurarad.is>  Wed, 29 June 2016 12:38:00 +0200
 
 auroracoin (2016.05.1.0-0ubuntu1) trusty; urgency=low
 
