@@ -2576,24 +2576,93 @@ void GetMaxBlockSizeByBlock(const CBlock &block,unsigned int &maxBlockSize)
 
 bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bool fCheckMerkleRoot)
 {
+	// Initialize required vars for this function
 	unsigned int maxBlockSize;
-
 	GetMaxBlockSizeByBlock(block,maxBlockSize);
+
+	// hash variables (note: these are not the same)
+	uint256 hash = block.GetHash();
+	//uint256 PoWhash = block.GetPoWHash(block.GetAlgo());
+	//LogPrintf("CheckBlock(): hash = %s\n", hash.ToString());
+	
+	//Get prev block index
+	CBlockIndex* pindexPrev = NULL;
+	int nHeight = 0;
+	if (hash != Params().HashGenesisBlock()) {
+		map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(block.hashPrevBlock);
+		if (mi == mapBlockIndex.end()) {
+			// This gets hit while syncing and a new block hits the chain.
+			LogPrintf("CheckBlock() : prev block not found for %s. Ignoring...\n", hash.ToString());
+			//return state.DoS(10, error("CheckBlock() : prev block not found"), 0, "bad-prevblk");
+			}
+		else {
+			pindexPrev = (*mi).second;
+			nHeight = pindexPrev->nHeight+1;
+			}
+		}
 
 	// Size limits
 	if (block.vtx.empty() || block.vtx.size() > maxBlockSize || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > maxBlockSize)
 		return state.DoS(100, error("CheckBlock() : size limits failed"),
 				REJECT_INVALID, "bad-blk-length");
 
-	// Check proof of work matches claimed amount
-	if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(block.GetAlgo()), block.nBits, block.GetAlgo()))
-		return state.DoS(50, error("CheckBlock() : proof of work failed"),
-				REJECT_INVALID, "high-hash");
+	// Check proof of work
+	// BioMike: There is a problem here:
+	//   A check on hash validation, based on block.Bits has already been performed (See CheckBlock(...)),
+	//   yet, now we check here if block.nBits is right... should be other way around.
+	// BioMike: Moved from AcceptBlock(...) to CheckBlock(...), and put in right order.
+	if(pindexPrev) {
+		unsigned int nCheckBits = 0;
+		nCheckBits = GetNextWorkRequired(pindexPrev, &block, block.GetAlgo());
+	
+		// Is this really needed?
+		if (block.nBits != nCheckBits) {
+			LogPrintf("CheckBlock() : proof of work in block not the same as calculated at height %i. Ignoring...\n", nHeight);
+			//return state.DoS(100, error("CheckBlock() : incorrect proof of work in header"), 
+			//		REJECT_INVALID, "bad-diffbits");
+			}
+
+		// Check proof of work matches claimed amount
+		//if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(block.GetAlgo()), block.nBits, block.GetAlgo()))
+		if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(block.GetAlgo()), nCheckBits, block.GetAlgo()))
+			return state.DoS(50, error("CheckBlock() : proof of work failed"),
+					REJECT_INVALID, "high-hash");
+		}
+		else
+		{
+		// No previous block (new block while syncing), so we can't calculate the NextWorkRequired.
+		// FIXME: In pricipal we should not check it now. Rewrite later.
+		if (fCheckPOW && !CheckProofOfWork(block.GetPoWHash(block.GetAlgo()), block.nBits, block.GetAlgo())) {
+			//LogPrintf("CheckBlock() : proof of work failed at %i. Ignoring...\n", nHeight);
+			return state.DoS(50, error("CheckBlock() : proof of work failed"),
+					REJECT_INVALID, "high-hash");
+			}
+		}
 
 	// Check timestamp
 	if (block.GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
 		return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
 				REJECT_INVALID, "time-too-new");
+
+	// Check amount of algos in row 
+	if(pindexPrev) {
+		// Check count of sequence of same algo
+		if ( (TestNet() && (nHeight >= 100)) || (nHeight > (multiAlgoDiffChangeTarget + nBlockSequentialAlgoMaxCount)) ) {
+			int nAlgo = block.GetAlgo();
+			int nAlgoCount = 1;
+			CBlockIndex* piPrev = pindexPrev;
+			while (piPrev && (nAlgoCount <= nBlockSequentialAlgoMaxCount)) {
+				if (piPrev->GetAlgo() != nAlgo)
+					break;
+				nAlgoCount++;
+				piPrev = piPrev->pprev;
+				}
+				if (nAlgoCount > nBlockSequentialAlgoMaxCount) {
+					return state.DoS(100, error("CheckBlock() : too many blocks from same algo"),
+									REJECT_INVALID, "algo-toomany");
+				}
+			}
+		}
 
 	// First transaction must be coinbase, the rest must not be
 	if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
@@ -2637,6 +2706,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 		return state.DoS(100, error("CheckBlock() : hashMerkleRoot mismatch"),
 				REJECT_INVALID, "bad-txnmrklroot", true);
 
+	//LogPrintf("CheckBlock() finished successful: hash = %s\n", hash.ToString());
 	return true;
 }
 
@@ -2645,6 +2715,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 	AssertLockHeld(cs_main);
 	// Check for duplicate
 	uint256 hash = block.GetHash();
+	//LogPrintf("AcceptBlock(): hash = %s\n", hash.ToString());
 	if (mapBlockIndex.count(hash))
 		return state.Invalid(error("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicate");
 
@@ -2658,7 +2729,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		pindexPrev = (*mi).second;
 		nHeight = pindexPrev->nHeight+1;
 
-	// Check count of sequence of same algo
+	/** // Check count of sequence of same algo
 	if ( (TestNet() && (nHeight >= 100)) || (nHeight > (multiAlgoDiffChangeTarget + nBlockSequentialAlgoMaxCount)) )
 	{
 			int nAlgo = block.GetAlgo();
@@ -2676,11 +2747,15 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 					return state.DoS(100, error("AcceptBlock() : too many blocks from same algo"),
 													REJECT_INVALID, "algo-toomany");
 		}
-	}	
+	}	**/
 
 		// Check proof of work
-		if (block.nBits != GetNextWorkRequired(pindexPrev, &block, block.GetAlgo()))
-			return state.DoS(100, error("AcceptBlock() : incorrect proof of work"), REJECT_INVALID, "bad-diffbits");
+		// BioMike: There is a problem here:
+		//   A check on hash validation, based on block.Bits has already been performed (See CheckBlock(...)),
+		//   yet, now we check here if block.nBits is right... should be other way around.
+		//if (block.nBits != GetNextWorkRequired(pindexPrev, &block, block.GetAlgo()))
+		//	return state.DoS(100, error("AcceptBlock() : incorrect proof of work"), 
+		//				    REJECT_INVALID, "bad-diffbits");
 
 		if ( !TestNet() && nHeight < multiAlgoDiffChangeTarget && block.GetAlgo() != ALGO_SCRYPT )
 			return state.Invalid(error("AcceptBlock() : incorrect hasing algo, only scrypt accepted until block %d", multiAlgoDiffChangeTarget),
@@ -2731,7 +2806,6 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 							REJECT_INVALID, "bad-cb-height");
 			}
 		}
-
 	}
 
 	// Write block to history file
@@ -2760,7 +2834,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		if (chainActive.Height() > (pnode->nStartingHeight != -1 ? pnode->nStartingHeight - 2000 : nBlockEstimate))
 			pnode->PushInventory(CInv(MSG_BLOCK, hash));
 	}
-
+	//LogPrintf("AcceptBlock() successful: hash = %s\n", hash.ToString());
 	return true;
 }
 
@@ -2804,7 +2878,7 @@ void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
 bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBlockPos *dbp)
 {
 	AssertLockHeld(cs_main);
-
+	LogPrintf("ProcessBlock() started\n");
 	// Check for duplicate
 	uint256 hash = pblock->GetHash();
 	if (mapBlockIndex.count(hash))
