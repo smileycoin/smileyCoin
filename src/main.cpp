@@ -2878,7 +2878,7 @@ void PushGetBlocks(CNode* pnode, CBlockIndex* pindexBegin, uint256 hashEnd)
 bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBlockPos *dbp)
 {
 	AssertLockHeld(cs_main);
-	LogPrintf("ProcessBlock() started\n");
+	//LogPrintf("ProcessBlock() started\n");
 	// Check for duplicate
 	uint256 hash = pblock->GetHash();
 	if (mapBlockIndex.count(hash))
