@@ -727,12 +727,12 @@ void static BitcoinMiner(CWallet *pwallet)
         // Update nTime every few seconds
         UpdateTime(*pblock, pindexPrev);
         nBlockTime = ByteReverse(pblock->nTime);
-        if (TestNet())
-        {
+        //if (TestNet())
+        //{
           // Changing pblock->nTime can change work required on testnet:
-          nBlockBits = ByteReverse(pblock->nBits);
-          hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
-        }
+          //nBlockBits = ByteReverse(pblock->nBits);
+          //hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
+        //}
       }
     }
   }
@@ -858,12 +858,12 @@ void static BitcoinMiner(CWallet *pwallet)
         // Update nTime every few seconds
         UpdateTime(*pblock, pindexPrev);
         nBlockTime = ByteReverse(pblock->nTime);
-        if (TestNet())
-        {
+        //if (TestNet())
+        //{
           // Changing pblock->nTime can change work required on testnet:
-          nBlockBits = ByteReverse(pblock->nBits);
-          hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
-        }
+          //nBlockBits = ByteReverse(pblock->nBits);
+          //hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
+        //}
 
       }
     }
@@ -960,12 +960,12 @@ void static BitcoinMiner(CWallet *pwallet)
         // Update nTime every few seconds
         UpdateTime(*pblock, pindexPrev);
         // nBlockTime = ByteReverse(pblock->nTime);
-        if (TestNet())
-        {
+        //if (TestNet())
+        //{
           // Changing pblock->nTime can change work required on testnet:
           // nBlockBits = ByteReverse(pblock->nBits);
           // hashTarget = CBigNum().SetCompact(pblock->nBits).getuint256();
-        }
+        //}
       }
     }
   }

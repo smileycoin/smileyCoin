@@ -1343,21 +1343,21 @@ unsigned int static GetNextWorkRequired_Original(const CBlockIndex* pindexLast, 
       if ((pindexLast->nHeight+1) % nInterval != 0)
       {
           // Special difficulty rule for testnet:
-          if (TestNet())
-          {
+          //if (TestNet())
+          //{
               // If the new block's timestamp is more than 2* 10 minutes
               // then allow mining of a min-difficulty block.
-              if (pblock->nTime > pindexLast->nTime + nTargetSpacing*2)
-                  return nProofOfWorkLimit;
-              else
-              {
+              //if (pblock->nTime > pindexLast->nTime + nTargetSpacing*2)
+                  //return nProofOfWorkLimit;
+              //else
+              //{
                   // Return the last non-special-min-difficulty-rules-block
-                  const CBlockIndex* pindex = pindexLast;
-                  while (pindex->pprev && pindex->nHeight % nInterval != 0 && pindex->nBits == nProofOfWorkLimit)
-                      pindex = pindex->pprev;
-                  return pindex->nBits;
-              }
-          }
+                  //const CBlockIndex* pindex = pindexLast;
+                  //while (pindex->pprev && pindex->nHeight % nInterval != 0 && pindex->nBits == nProofOfWorkLimit)
+                      //pindex = pindex->pprev;
+                  //return pindex->nBits;
+              //}
+          //}
           return pindexLast->nBits;
       }
 
@@ -1573,21 +1573,21 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 unsigned int GetNextWorkRequired(const CBlockIndex * pindexLast, const CBlockHeader * pblock, int algo){
     int DiffMode = 1;
 
-    if (TestNet()) {
-      if (pindexLast->nHeight+1 < 50) { DiffMode = 1;
-       } else if (pindexLast->nHeight + 1 < 100) {
-          DiffMode = 2;
-       } else {
-          DiffMode = 3;
-       }
-    }else{
+    //if (TestNet()) {
+      //if (pindexLast->nHeight+1 < 50) { DiffMode = 1;
+       //} else if (pindexLast->nHeight + 1 < 100) {
+          //DiffMode = 2;
+       //} else {
+          //DiffMode = 3;
+       //}
+    //}else{
       if (pindexLast->nHeight+1 <= 5400) { DiffMode = 1;
       } else if (pindexLast->nHeight + 1 <= multiAlgoDiffChangeTarget) {
           DiffMode = 2;
        } else {
           DiffMode = 3;
        }
-    }
+    //}
 
     if (DiffMode == 1) {
         return GetNextWorkRequired_Original(pindexLast, pblock, algo);
@@ -1781,8 +1781,8 @@ void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev)
 	block.nTime = max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
 
 	// Updating time can change work required on testnet:
-	if (TestNet())
-		block.nBits = GetNextWorkRequired(pindexPrev, &block, block.GetAlgo());
+	//if (TestNet())
+	//	block.nBits = GetNextWorkRequired(pindexPrev, &block, block.GetAlgo());
 }
 
 void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCache &inputs, CTxUndo &txundo, int nHeight, const uint256 &txhash)
