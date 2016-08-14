@@ -1501,9 +1501,9 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 	//	}
 	//}
 
-	LogPrintf("GetNextWorkRequired RETARGET\n");
-	LogPrintf("Algo: %s\n", GetAlgoName(algo));
-	LogPrintf("Height (Before): %s\n", pindexLast->nHeight);
+	//LogPrintf("GetNextWorkRequired RETARGET\n");
+	//LogPrintf("Algo: %s\n", GetAlgoName(algo));
+	//LogPrintf("Height (Before): %s\n", pindexLast->nHeight);
 
 	// find first block in averaging interval
 	// Go back by what we want to be nAveragingInterval blocks per algo
@@ -1516,7 +1516,7 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 	const CBlockIndex* pindexPrevAlgo = GetLastBlockIndexForAlgo(pindexLast, algo);
 	if (pindexPrevAlgo == NULL || pindexFirst == NULL)
 	{
-		LogPrintf("Use default POW Limit\n");
+		//LogPrintf("Use default POW Limit\n");
 		return nProofOfWorkLimit;
 	}
 
@@ -1525,7 +1525,7 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 	int64_t nActualTimespan = pindexLast-> GetMedianTimePast() - pindexFirst->GetMedianTimePast();
 	nActualTimespan = nAveragingTargetTimespan + (nActualTimespan - nAveragingTargetTimespan)/4;
 
-	LogPrintf("nActualTimespan = %d before bounds\n", nActualTimespan);
+	//LogPrintf("nActualTimespan = %d before bounds\n", nActualTimespan);
 
 	if (nActualTimespan < nMinActualTimespanV4)
 		nActualTimespan = nMinActualTimespanV4;
@@ -1564,7 +1564,7 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 		return nProofOfWorkLimit;
 	}
 
-  LogPrintf("MULTI %d  %d  %08x  %08x  %s\n", multiAlgoTimespan, nActualTimespan, pindexLast->nBits, bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
+  //LogPrintf("MULTI %d  %d  %08x  %08x  %s\n", multiAlgoTimespan, nActualTimespan, pindexLast->nBits, bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
 
 	return bnNew.GetCompact();
 }
@@ -3204,24 +3204,26 @@ CBlockIndex * InsertBlockIndex(uint256 hash)
 }
 
 bool static LoadBlockIndexDB()
-						{
+	{
 	if (!pblocktree->LoadBlockIndexGuts())
 		return false;
-
 	boost::this_thread::interruption_point();
 
 	// Calculate nChainWork
 	vector<pair<int, CBlockIndex*> > vSortedByHeight;
 	vSortedByHeight.reserve(mapBlockIndex.size());
+	// The following FOREACH loads entries for ALL blocks in random order...
 	BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
 	{
 		CBlockIndex* pindex = item.second;
 		vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
 	}
+	// Which are sorted here.
 	sort(vSortedByHeight.begin(), vSortedByHeight.end());
 	BOOST_FOREACH(const PAIRTYPE(int, CBlockIndex*)& item, vSortedByHeight)
 	{
 		CBlockIndex* pindex = item.second;
+		// Next command is taking most time
 		pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + pindex->GetBlockWorkAdjusted().getuint256();
 		pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
 		if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS && !(pindex->nStatus & BLOCK_FAILED_MASK))
@@ -3229,7 +3231,6 @@ bool static LoadBlockIndexDB()
 		if ((pindex->nStatus & BLOCK_FAILED_MASK) && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork))
 			pindexBestInvalid = pindex;
 	}
-
 	// Load block file info
 	pblocktree->ReadLastBlockFile(nLastBlockFile);
 	LogPrintf("LoadBlockIndexDB(): last block file = %i\n", nLastBlockFile);

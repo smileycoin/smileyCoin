@@ -878,7 +878,7 @@ public:
 
     CBigNum GetBlockWorkAdjusted() const
     {
-        if (nHeight < multiAlgoDiffChangeTarget)
+        if (nHeight <= multiAlgoDiffChangeTarget )
         {
             CBigNum bnRes;
             bnRes = GetBlockWork() * GetAlgoWorkFactor();

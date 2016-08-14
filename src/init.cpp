@@ -848,8 +848,9 @@ bool AppInit2(boost::thread_group& threadGroup)
                 pcoinsdbview = new CCoinsViewDB(nCoinDBCache, false, fReindex);
                 pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
 
-                if (fReindex)
+                if (fReindex) {
                     pblocktree->WriteReindexing(true);
+                    }
 
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
