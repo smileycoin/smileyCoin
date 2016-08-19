@@ -1001,50 +1001,50 @@ bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree)
 
 static unsigned int GetMaxBlockSize(unsigned int height)
 {
-	if(height<workComputationChangeTarget2)
-	{
+	//if(height<workComputationChangeTarget2)
+	//{
 		return MAX_BLOCK_SIZE;
-	}
-	else if(height<workComputationChangeTarget4)
-	{
-		return MAX_BLOCK_SIZE_2;
-	}
-	else if(height<workComputationChangeTarget6)
-	{
-		return MAX_BLOCK_SIZE_4;
-	}
-	else if(height<workComputationChangeTarget8)
-	{
-		return MAX_BLOCK_SIZE_8;
-	}
-	else if(height<workComputationChangeTarget10)
-	{
-		return MAX_BLOCK_SIZE_16;
-	}
-	else if(height<workComputationChangeTarget12)
-	{
-		return MAX_BLOCK_SIZE_32;
-	}
-	else if(height<workComputationChangeTarget14)
-	{
-		return MAX_BLOCK_SIZE_64;
-	}
-	else if(height<workComputationChangeTarget16)
-	{
-		return MAX_BLOCK_SIZE_128;
-	}
-	else if(height<workComputationChangeTarget18)
-	{
-		return MAX_BLOCK_SIZE_256;
-	}
-	else if(height<workComputationChangeTarget20)
-	{
-		return MAX_BLOCK_SIZE_512;
-	}
-	else
-	{
-		return MAX_BLOCK_SIZE_1024;
-	}
+	//}
+	//else if(height<workComputationChangeTarget4)
+	//{
+	//	return MAX_BLOCK_SIZE_2;
+	//}
+	//else if(height<workComputationChangeTarget6)
+	//{
+	//	return MAX_BLOCK_SIZE_4;
+	//}
+	//else if(height<workComputationChangeTarget8)
+	//{
+	//	return MAX_BLOCK_SIZE_8;
+	//}
+	//else if(height<workComputationChangeTarget10)
+	//{
+	//	return MAX_BLOCK_SIZE_16;
+	//}
+	//else if(height<workComputationChangeTarget12)
+	//{
+	//	return MAX_BLOCK_SIZE_32;
+	//}
+	//else if(height<workComputationChangeTarget14)
+	//{
+	//	return MAX_BLOCK_SIZE_64;
+	//}
+	//else if(height<workComputationChangeTarget16)
+	//{
+	//	return MAX_BLOCK_SIZE_128;
+	//}
+	//else if(height<workComputationChangeTarget18)
+	//{
+	//	return MAX_BLOCK_SIZE_256;
+	//}
+	//else if(height<workComputationChangeTarget20)
+	//{
+	//	return MAX_BLOCK_SIZE_512;
+	//}
+	//else
+	//{
+	//	return MAX_BLOCK_SIZE_1024;
+	//}
 }
 
 //hash ... transaction hash
@@ -3455,9 +3455,9 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
 	int nLoaded = 0;
 	try {
 
-		const unsigned int maxBlockSize=MAX_BLOCK_SIZE_8;
+		/*const unsigned int maxBlockSize=MAX_BLOCK_SIZE_8;*/
 
-		CBufferedFile blkdat(fileIn, 2*maxBlockSize, maxBlockSize+8, SER_DISK, CLIENT_VERSION);
+		CBufferedFile blkdat(fileIn, 2*MAX_BLOCK_SIZE, MAX_BLOCK_SIZE+8, SER_DISK, CLIENT_VERSION);
 		uint64_t nStartByte = 0;
 		if (dbp) {
 			// (try to) skip already indexed part
@@ -3485,7 +3485,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
 					continue;
 				// read size
 				blkdat >> nSize;
-				if (nSize < 80 || nSize > maxBlockSize)
+				if (nSize < 80 || nSize > MAX_BLOCK_SIZE)
 					continue;
 			} catch (std::exception &e) {
 				// no valid block header found; don't complain
