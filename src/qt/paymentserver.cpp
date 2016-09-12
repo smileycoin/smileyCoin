@@ -64,7 +64,7 @@ void PaymentServer::freeCertStore()
 
 //
 // Create a name that is unique for:
-//  testnet / non-testnet
+//  network
 //  data directory
 //
 static QString ipcServerName()
@@ -72,8 +72,6 @@ static QString ipcServerName()
     QString name("AuroracoinQt");
 
     // Append a simple hash of the datadir
-    // Note that GetDataDir(true) returns a different path
-    // for -testnet versus main net
     QString ddir(QString::fromStdString(GetDataDir(true).string()));
     name.append(QString::number(qHash(ddir)));
 
@@ -198,7 +196,7 @@ bool PaymentServer::ipcParseCommandLine(int argc, char* argv[])
                 SelectParams(CChainParams::MAIN);
                 if (!address.IsValid())
                 {
-                    SelectParams(CChainParams::TESTNET);
+                    qDebug() << "PaymentServer::ipcSendCommandLine : Address is not valid for MAINNET: " << arg;
                 }
             }
         }
@@ -212,7 +210,7 @@ bool PaymentServer::ipcParseCommandLine(int argc, char* argv[])
                 if (request.getDetails().network() == "main")
                     SelectParams(CChainParams::MAIN);
                 else
-                    SelectParams(CChainParams::TESTNET);
+                    qDebug() << "PaymentServer::ipcSendCommandLine : Requested network does not exist: " << arg;
             }
         }
         else

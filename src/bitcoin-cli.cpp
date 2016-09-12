@@ -27,11 +27,6 @@ static bool AppInitRPC(int argc, char* argv[])
         fprintf(stderr,"Error reading configuration file: %s\n", e.what());
         return false;
     }
-    // Check for -testnet or -reg1test parameter (TestNet() calls are only valid after this clause)
-    if (!SelectParamsFromCommandLine()) {
-        fprintf(stderr, "Error: Invalid combination of -reg1test and -testnet.\n");
-        return false;
-    }
 
     if (argc<2 || mapArgs.count("-?") || mapArgs.count("--help"))
     {

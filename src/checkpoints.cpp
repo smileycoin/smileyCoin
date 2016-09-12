@@ -59,22 +59,8 @@ namespace Checkpoints
         1416.0     // * estimated number of transactions per day after checkpoint
     };
 
-    static MapCheckpoints mapCheckpointsTestnet =
-        boost::assign::map_list_of
-        ( 0, uint256("0x2a8e100939494904af825b488596ddd536b3a96226ad02e0f7ab7ae472b27a8e"))
-        ;
-    static const CCheckpointData dataTestnet = {
-        &mapCheckpointsTestnet,
-        1428109151,
-        1,
-        1
-    };
-
     const CCheckpointData &Checkpoints() {
-        if (Params().NetworkID() == CChainParams::TESTNET)
-            return dataTestnet;
-        else 
-            return data;
+        return data;
     }
 
     bool CheckBlock(int nHeight, const uint256& hash)

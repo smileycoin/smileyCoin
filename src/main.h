@@ -850,11 +850,7 @@ public:
 
     int GetAlgoWorkFactor() const
     {
-        if (!TestNet() && (nHeight < multiAlgoDiffChangeTarget))
-        {
-            return 1;
-        }
-        if (TestNet() && (nHeight < 100))
+        if (nHeight < multiAlgoDiffChangeTarget)
         {
             return 1;
         }
