@@ -535,9 +535,9 @@ int main(int argc, char *argv[])
     // - QSettings() will use the new application name after this, resulting in network-specific settings
     // - Needs to be done before createOptionsModel
 
-    // Check for -testnet or -regtest parameter (Params() calls are only valid after this clause)
+    // Check for -testnet or -reg1test parameter (Params() calls are only valid after this clause)
     if (!SelectParamsFromCommandLine()) {
-        QMessageBox::critical(0, QObject::tr("Auroracoin"), QObject::tr("Error: Invalid combination of -regtest and -testnet."));
+        QMessageBox::critical(0, QObject::tr("Auroracoin"), QObject::tr("Error: Invalid combination of -reg1test and -testnet."));
         return 1;
     }
 #ifdef ENABLE_WALLET

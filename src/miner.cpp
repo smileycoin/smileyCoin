@@ -592,15 +592,12 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
 
 void static MinerWaitOnline()
 {
-  if (Params().NetworkID() != CChainParams::REGTEST)
+  // Busy-wait for the network to come online so we don't waste time mining
+  // on an obsolete chain.
+  while (vNodes.empty() || IsInitialBlockDownload())
   {
-    // Busy-wait for the network to come online so we don't waste time mining
-    // on an obsolete chain. In regtest mode we expect to fly solo.
-    while (vNodes.empty() || IsInitialBlockDownload())
-    {
-      MilliSleep(1000);
-      boost::this_thread::interruption_point();
-    }
+    MilliSleep(1000);
+    boost::this_thread::interruption_point();
   }
 }
 
@@ -675,11 +672,6 @@ void static BitcoinMiner(CWallet *pwallet)
             CheckWork(pblock, *pwallet, reservekey);
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
-            // In regression test mode, stop mining after a block is found. This
-            // allows developers to controllably generate a block on demand.
-            if (Params().NetworkID() == CChainParams::REGTEST)
-            throw boost::thread_interrupted();
-
             break;
           }
         }
@@ -715,7 +707,7 @@ void static BitcoinMiner(CWallet *pwallet)
 
         // Check for stop or if block needs to be rebuilt
         boost::this_thread::interruption_point();
-        if (vNodes.empty() && Params().NetworkID() != CChainParams::REGTEST)
+        if (vNodes.empty())
         break;
         if (nBlockNonce >= 0xffff0000)
         break;
@@ -846,7 +838,7 @@ void static BitcoinMiner(CWallet *pwallet)
 
         // Check for stop or if block needs to be rebuilt
         boost::this_thread::interruption_point();
-        if (vNodes.empty() && Params().NetworkID() != CChainParams::REGTEST)
+        if (vNodes.empty())
         break;
         if (pblock->nNonce >= 0xffff0000)
         break;
@@ -948,7 +940,7 @@ void static BitcoinMiner(CWallet *pwallet)
 
         // Check for stop or if block needs to be rebuilt
         boost::this_thread::interruption_point();
-        if (vNodes.empty() && Params().NetworkID() != CChainParams::REGTEST)
+        if (vNodes.empty())
         break;
         if (++pblock->nNonce >= 0xffff0000)
         break;
@@ -1009,9 +1001,6 @@ void static BitcoinMiner(CWallet *pwallet)
     static boost::thread_group* minerThreads = NULL;
 
     if (nThreads < 0) {
-      if (Params().NetworkID() == CChainParams::REGTEST)
-      nThreads = 1;
-      else
       nThreads = boost::thread::hardware_concurrency();
     }
 

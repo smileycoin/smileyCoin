@@ -174,32 +174,6 @@ public:
 static CTestNetParams testNetParams;
 
 
-// Regression test
-class CRegTestParams : public CTestNetParams {
-public:
-    CRegTestParams() {
-        pchMessageStart[0] = 0xfa;
-        pchMessageStart[1] = 0xbf;
-        pchMessageStart[2] = 0xb5;
-        pchMessageStart[3] = 0xda;
-        //nSubsidyHalvingInterval = 150;
-        // bnProofOfWorkLimit = CBigNum();
-        genesis.nTime = 1296688602;
-        genesis.nBits = 0x207fffff;
-        genesis.nNonce = 0;
-        hashGenesisBlock = genesis.GetHash();
-        nDefaultPort = 19444;
-        strDataDir = "regtest";
-        //assert(hashGenesisBlock == uint256("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
-
-        vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
-    }
-
-    virtual bool RequireRPCPassword() const { return false; }
-    virtual Network NetworkID() const { return CChainParams::REGTEST; }
-};
-static CRegTestParams regTestParams;
-
 static CChainParams *pCurrentParams = &mainParams;
 
 const CChainParams &Params() {
@@ -214,9 +188,6 @@ void SelectParams(CChainParams::Network network) {
         case CChainParams::TESTNET:
             pCurrentParams = &testNetParams;
             break;
-        case CChainParams::REGTEST:
-            pCurrentParams = &regTestParams;
-            break;
         default:
             assert(false && "Unimplemented network");
             return;
@@ -224,16 +195,13 @@ void SelectParams(CChainParams::Network network) {
 }
 
 bool SelectParamsFromCommandLine() {
-    bool fRegTest = GetBoolArg("-regtest", false);
     bool fTestNet = GetBoolArg("-testnet", false);
 
-    if (fTestNet && fRegTest) {
+    if (fTestNet) {
         return false;
     }
 
-    if (fRegTest) {
-        SelectParams(CChainParams::REGTEST);
-    } else if (fTestNet) {
+    if (fTestNet) {
         SelectParams(CChainParams::TESTNET);
     } else {
         SelectParams(CChainParams::MAIN);

@@ -289,9 +289,6 @@ std::string HelpMessage(HelpMessageMode hmm)
         strUsage += "  -printblocktree        " + _("Print block tree on startup (default: 0)") + "\n";
         strUsage += "  -printpriority         " + _("Log transaction priority and fee per kB when mining blocks (default: 0)") + "\n";
         strUsage += "  -privdb                " + _("Sets the DB_PRIVATE flag in the wallet db environment (default: 1)") + "\n";
-        strUsage += "  -regtest               " + _("Enter regression test mode, which uses a special chain in which blocks can be solved instantly.") + "\n";
-        strUsage += "                         " + _("This is intended for regression testing tools and app development.") + "\n";
-        strUsage += "                         " + _("In this mode -genproclimit controls how many blocks are generated immediately.") + "\n";
     }
     strUsage += "  -shrinkdebugfile       " + _("Shrink debug.log file on client startup (default: 1 when no -debug)") + "\n";
     strUsage += "  -testnet               " + _("Use the test network") + "\n";
@@ -532,7 +529,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         InitWarning(_("Warning: Deprecated argument -debugnet ignored, use -debug=net"));
 
     fBenchmark = GetBoolArg("-benchmark", false);
-    mempool.setSanityCheck(GetBoolArg("-checkmempool", RegTest()));
+    mempool.setSanityCheck(GetBoolArg("-checkmempool", false));
     Checkpoints::fEnabled = GetBoolArg("-checkpoints", true);
 
     // -par=0 means autodetect, but nScriptCheckThreads==0 means no concurrency

@@ -835,7 +835,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
 		return state.DoS(100, error("AcceptToMemoryPool: : coinbase as individual tx"),
 				REJECT_INVALID, "coinbase");
 
-	// Rather not work on nonstandard transactions (unless -testnet/-regtest)
+	// Rather not work on nonstandard transactions (unless -testnet/)
 	string reason;
 	if (Params().NetworkID() == CChainParams::MAIN && !IsStandardTx(tx, reason))
 		return state.DoS(0, error("AcceptToMemoryPool : nonstandard transaction: %s", reason), REJECT_NONSTANDARD, reason);
