@@ -708,7 +708,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 
     CService addrProxy;
-    bool fProxy = false;
     if (mapArgs.count("-proxy")) {
         addrProxy = CService(mapArgs["-proxy"], 9050);
         if (!addrProxy.IsValid())
@@ -721,12 +720,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                 SetProxy(NET_IPV6, addrProxy, nSocksVersion);
             SetNameProxy(addrProxy, nSocksVersion);
         }
-        fProxy = true;
     }
-
-    // -tor support has been removed.
-    if (mapArgs.count("-onion") || mapArgs.count("-tor"))
-        printf("Notice: Tor support has been removed.\n");
 
     // see Step 2: parameter interactions for more information about these
     fNoListen = !GetBoolArg("-listen", true);
