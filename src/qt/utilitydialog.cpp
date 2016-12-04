@@ -11,7 +11,7 @@
 #include "clientmodel.h"
 #include "guiutil.h"
 
-#include "clientversion.h"
+#include "version.h"
 #include "init.h"
 #include "util.h"
 
