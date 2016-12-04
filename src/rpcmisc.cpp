@@ -36,7 +36,7 @@ Value getinfo(const Array& params, bool fHelp)
             "{\n"
             "  \"version\": xxxxx,           (numeric) the server version\n"
             "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
-            "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
+            "  \"build_date\": xxxxx,        (string) the wallet build date\n"
             "  \"balance\": xxxxxxx,         (numeric) the total auroracoin balance of the wallet\n"
             "  \"blocks\": xxxxxx,           (numeric) the current number of blocks processed in the server\n"
             "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
@@ -61,9 +61,9 @@ Value getinfo(const Array& params, bool fHelp)
     Object obj;
     obj.push_back(Pair("version",         (int)CLIENT_VERSION));
     obj.push_back(Pair("protocolversion", (int)PROTOCOL_VERSION));
+    obj.push_back(Pair("build_date",      CLIENT_DATE : string()));
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
-        obj.push_back(Pair("walletversion", pwalletMain->GetVersion()));
         obj.push_back(Pair("balance",       ValueFromAmount(pwalletMain->GetBalance())));
     }
 #endif
