@@ -10,6 +10,7 @@
 // for both bitcoind and bitcoin-qt, to make it harder for attackers to
 // target servers or GUI users specifically.
 const std::string CLIENT_NAME("Guðbrandur Þorláksson");
+const std::string CLIENT_NAME_NON_UNICODE("Gudbrandur Thorlaksson");
 
 #define BUILD_DATE __DATE__ ", " __TIME__
 
