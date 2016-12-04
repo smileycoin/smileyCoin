@@ -34,9 +34,8 @@ Value getinfo(const Array& params, bool fHelp)
             "Returns an object containing various state info.\n"
             "\nResult:\n"
             "{\n"
-            "  \"build_name\": xxxxx,        (string) the wallet build name\n"
-            "  \"build_date\": xxxxx,        (string) the wallet build date\n"
             "  \"version\": xxxxx,           (numeric) the wallet build version\n"
+            "  \"build_date\": xxxxx,        (string) the wallet build date\n"
             "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
             "  \"balance\": xxxxxxx,         (numeric) the total auroracoin balance of the wallet\n"
             "  \"blocks\": xxxxxx,           (numeric) the current number of blocks processed in the server\n"
@@ -60,9 +59,8 @@ Value getinfo(const Array& params, bool fHelp)
     GetProxy(NET_IPV4, proxy);
 
     Object obj;
-    obj.push_back(Pair("client_name",      CLIENT_NAME));
-    obj.push_back(Pair("build_date",      CLIENT_DATE));
     obj.push_back(Pair("version",         (int)CLIENT_VERSION));
+    obj.push_back(Pair("build_date",      CLIENT_DATE));
     obj.push_back(Pair("protocolversion", (int)PROTOCOL_VERSION));
 #ifdef ENABLE_WALLET
     if (pwalletMain) {
