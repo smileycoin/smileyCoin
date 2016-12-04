@@ -4,6 +4,9 @@
 #ifndef BITCOIN_VERSION_H
 #define BITCOIN_VERSION_H
 
+#ifndef CLIENTVERSION_H
+#define CLIENTVERSION_H
+
 #if defined(HAVE_CONFIG_H)
 #include "bitcoin-config.h"
 #else
