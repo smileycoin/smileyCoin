@@ -4,7 +4,7 @@
 
 #include "splashscreen.h"
 
-#include "clientversion.h"
+#include "version.h"
 #include "init.h"
 #include "ui_interface.h"
 #include "util.h"
