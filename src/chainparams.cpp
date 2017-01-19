@@ -22,7 +22,7 @@ using namespace boost::assign;
 
 unsigned int pnSeed[] =
 {
-    0xA2F39055, 0x5EF2E56F, 0x57D54ADA, 0x50F812B0, 0x256187D5
+    0xA2F39055, 0x5EF2E56F, 0x57D54ADA, 0x50F812B0, 0x256187D5, 0x9FCBD468, 0x92B9AB35, 0x8AC586B4
 };
 
 class CMainParams : public CChainParams {
@@ -70,6 +70,9 @@ public:
         vSeeds.push_back(CDNSSeedData("united-states-east", "s1.auroraseed.com"));
         vSeeds.push_back(CDNSSeedData("iceland", "s1.auroraseed.org"));
         vSeeds.push_back(CDNSSeedData("the-netherlands", "s1.auroraseed.eu"));
+        vSeeds.push_back(CDNSSeedData("electrum2", "electrum2.aurorcoin.is"));
+        vSeeds.push_back(CDNSSeedData("electrum3", "electrum3.auroracoin.is"));
+        vSeeds.push_back(CDNSSeedData("electrum4", "electrum4.auroracoin.is"));
 
         base58Prefixes[PUBKEY_ADDRESS] = list_of(23);
         base58Prefixes[SCRIPT_ADDRESS] = list_of(5);
