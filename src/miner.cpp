@@ -381,7 +381,11 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     CCoinsViewCache viewNew(*pcoinsTip, true);
     CValidationState state;
     if (!ConnectBlock(*pblock, state, &indexDummy, viewNew, true))
-    throw std::runtime_error("CreateNewBlock() : ConnectBlock failed");
+    {
+    //throw std::runtime_error("CreateNewBlock() : ConnectBlock failed");
+    LogPrintf("CreateNewBlock() : ConnectBlock failed\n");
+    return NULL;
+    }
   }
 
   return pblocktemplate.release();
