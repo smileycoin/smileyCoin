@@ -1744,7 +1744,7 @@ Adres: %4
     <message>
         <location filename="../guiutil.cpp" line="+93"/>
         <source>Enter a Auroracoin address (e.g. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</source>
-        <translation>Voer eenAuroracoin adres in (bijv. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</translation>
+        <translation>Voer een Auroracoin adres in (bijv. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</translation>
     </message>
 </context>
 <context>
