@@ -1,3 +1,14 @@
+auroracoin (2017.02.1.0-0ubuntu1) xenial; urgency=low
+
+  * Improved wallet loading speed.
+  * New checkpoints and updated seeds.
+  * Versioning code improvements.
+  * In-wallet miner improvements.
+  * Removal of testnet and regnet code.
+  * Removal of Tor/Onion routing network support.
+
+ -- Auroracoin foundation <aurarad@aurarad.is>  Fri, 17 Feb 2017 16:48:00 +0100
+
 auroracoin (2016.08.1.0-0ubuntu1) trusty; urgency=low
 
   * New checkpoints.

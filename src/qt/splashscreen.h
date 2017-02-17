@@ -14,7 +14,7 @@ class SplashScreen : public QSplashScreen
     Q_OBJECT
 
 public:
-    explicit SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f, bool isTestNet);
+    explicit SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f);
     ~SplashScreen();
 
 public slots:

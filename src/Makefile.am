@@ -34,7 +34,7 @@ BITCOIN_CORE_H = \
   chainparams.h \
   checkpoints.h \
   checkqueue.h \
-  clientversion.h \
+  version.h \
   coincontrol.h \
   coins.h \
   compat.h \
@@ -100,7 +100,7 @@ JSON_H = \
 
 obj/build.h: FORCE
 	@$(MKDIR_P) $(abs_top_builddir)/src/obj
-	@$(top_srcdir)/share/genbuild.sh $(abs_top_builddir)/src/obj/build.h \
+	@$(top_srcdir)/misc/share/genbuild.sh $(abs_top_builddir)/src/obj/build.h \
 	  $(abs_top_srcdir)
 version.o: obj/build.h
 
@@ -221,7 +221,7 @@ leveldb/%.a:
 
 qt/bitcoinstrings.cpp: $(libbitcoin_server_a_SOURCES) $(libbitcoin_common_a_SOURCES) $(libbitcoin_cli_a_SOURCES)
 	@test -n $(XGETTEXT) || echo "xgettext is required for updating translations"
-	@cd $(top_srcdir); XGETTEXT=$(XGETTEXT) share/qt/extract_strings_qt.py
+	@cd $(top_srcdir); XGETTEXT=$(XGETTEXT) misc/share/qt/extract_strings_qt.py
 
 CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
 

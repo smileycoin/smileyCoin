@@ -22,7 +22,7 @@ using namespace boost::assign;
 
 unsigned int pnSeed[] =
 {
-    0xA2F39055, 0x5EF2E56F, 0x57D54ADA, 0x50F812B0, 0x256187D5
+    0xA2F39055, 0x5EF2E56F, 0x57D54ADA, 0x50F812B0, 0x256187D5, 0x9FCBD468, 0x92B9AB35, 0x8AC586B4
 };
 
 class CMainParams : public CChainParams {
@@ -70,6 +70,9 @@ public:
         vSeeds.push_back(CDNSSeedData("united-states-east", "s1.auroraseed.com"));
         vSeeds.push_back(CDNSSeedData("iceland", "s1.auroraseed.org"));
         vSeeds.push_back(CDNSSeedData("the-netherlands", "s1.auroraseed.eu"));
+        vSeeds.push_back(CDNSSeedData("electrum2", "electrum2.aurorcoin.is"));
+        vSeeds.push_back(CDNSSeedData("electrum3", "electrum3.auroracoin.is"));
+        vSeeds.push_back(CDNSSeedData("electrum4", "electrum4.auroracoin.is"));
 
         base58Prefixes[PUBKEY_ADDRESS] = list_of(23);
         base58Prefixes[SCRIPT_ADDRESS] = list_of(5);
@@ -102,104 +105,6 @@ protected:
 static CMainParams mainParams;
 
 
-// Testnet
-class CTestNetParams : public CMainParams {
-public:
-    CTestNetParams() {
-        // The message start string is designed to be unlikely to occur in normal data.
-        pchMessageStart[0] = 0xfd;
-        pchMessageStart[1] = 0xa4;
-        pchMessageStart[2] = 0xdc;
-        pchMessageStart[3] = 0x6d;  // the "d" seperates test net from main net
-        nDefaultPort = 4321;
-        nRPCPort = 14321;
-        strDataDir = "testnet";
-
-        // Modify the testnet genesis block so the timestamp is valid for a later start.
-        genesis.nTime = 1448114586;
-        genesis.nNonce = 123378;
-        hashGenesisBlock = genesis.GetHash();
-        assert(hashGenesisBlock == uint256("0x1e47fdcb0dd34a6b28c47ef90768bea62694bb3fe712d2d2687c7c20df634131"));
-
-        // If genesis block hash does not match, then generate new genesis hash.
-        if (hashGenesisBlock != uint256("0x1e47fdcb0dd34a6b28c47ef90768bea62694bb3fe712d2d2687c7c20df634131"))
-        {
-            printf("Searching for testnet genesis block...\n");
-            // This will figure out a valid hash and Nonce if you're creating a different genesis block:
-            //uint256 hashTarget = CBigNum().SetCompact(block.nBits).getuint256();
-            uint256 hashTarget = CBigNum().SetCompact(genesis.nBits).getuint256();
-            uint256 thash;
-            uint256 bestfound;
-
-            //static char scratchpad[SCRYPT_SCRATCHPAD_SIZE];
-            scrypt_1024_1_1_256(BEGIN(genesis.nVersion), BEGIN(bestfound));
-
-            while(true)
-                {
-                scrypt_1024_1_1_256(BEGIN(genesis.nVersion), BEGIN(thash));
-                //thash = scrypt_blockhash(BEGIN(block.nVersion));
-                if (thash <= hashTarget)
-                    break;
-                //if ((genesis.nNonce & 0xFFF) == 0)
-                if (thash <= bestfound)
-                    {
-                    bestfound = thash;
-                    printf("nonce %08X: hash = %s (target = %s)\n", genesis.nNonce, thash.ToString().c_str(), hashTarget.ToString().c_str());
-                    }
-                ++genesis.nNonce;
-                if (genesis.nNonce == 0)
-                    {
-                    printf("NONCE WRAPPED, incrementing time\n");
-                    ++genesis.nTime;
-                    }
-                }
-           printf("block.nTime = %u \n", genesis.nTime);
-           printf("block.nNonce = %u \n", genesis.nNonce);
-           printf("block.GetHash = %s\n", genesis.GetHash().ToString().c_str());
-           }
-
-        vFixedSeeds.clear();
-        vSeeds.clear();
-        vSeeds.push_back(CDNSSeedData("testnet-united-states-east", "testnet1.auroraseed.com"));
-        vSeeds.push_back(CDNSSeedData("testnet-united-states-west", "testnet2.criptoe.com"));
-
-        base58Prefixes[PUBKEY_ADDRESS] = list_of(111);
-        base58Prefixes[SCRIPT_ADDRESS] = list_of(196);
-        base58Prefixes[SECRET_KEY]     = list_of(239);
-        base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x04)(0x35)(0x87)(0xCF);
-        base58Prefixes[EXT_SECRET_KEY] = list_of(0x04)(0x35)(0x83)(0x94);
-    }
-    virtual Network NetworkID() const { return CChainParams::TESTNET; }
-};
-static CTestNetParams testNetParams;
-
-
-// Regression test
-class CRegTestParams : public CTestNetParams {
-public:
-    CRegTestParams() {
-        pchMessageStart[0] = 0xfa;
-        pchMessageStart[1] = 0xbf;
-        pchMessageStart[2] = 0xb5;
-        pchMessageStart[3] = 0xda;
-        //nSubsidyHalvingInterval = 150;
-        // bnProofOfWorkLimit = CBigNum();
-        genesis.nTime = 1296688602;
-        genesis.nBits = 0x207fffff;
-        genesis.nNonce = 0;
-        hashGenesisBlock = genesis.GetHash();
-        nDefaultPort = 19444;
-        strDataDir = "regtest";
-        //assert(hashGenesisBlock == uint256("0x0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"));
-
-        vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
-    }
-
-    virtual bool RequireRPCPassword() const { return false; }
-    virtual Network NetworkID() const { return CChainParams::REGTEST; }
-};
-static CRegTestParams regTestParams;
-
 static CChainParams *pCurrentParams = &mainParams;
 
 const CChainParams &Params() {
@@ -211,12 +116,6 @@ void SelectParams(CChainParams::Network network) {
         case CChainParams::MAIN:
             pCurrentParams = &mainParams;
             break;
-        case CChainParams::TESTNET:
-            pCurrentParams = &testNetParams;
-            break;
-        case CChainParams::REGTEST:
-            pCurrentParams = &regTestParams;
-            break;
         default:
             assert(false && "Unimplemented network");
             return;
@@ -224,19 +123,7 @@ void SelectParams(CChainParams::Network network) {
 }
 
 bool SelectParamsFromCommandLine() {
-    bool fRegTest = GetBoolArg("-regtest", false);
-    bool fTestNet = GetBoolArg("-testnet", false);
 
-    if (fTestNet && fRegTest) {
-        return false;
-    }
-
-    if (fRegTest) {
-        SelectParams(CChainParams::REGTEST);
-    } else if (fTestNet) {
-        SelectParams(CChainParams::TESTNET);
-    } else {
-        SelectParams(CChainParams::MAIN);
-    }
+    SelectParams(CChainParams::MAIN);
     return true;
 }

@@ -835,9 +835,9 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
 		return state.DoS(100, error("AcceptToMemoryPool: : coinbase as individual tx"),
 				REJECT_INVALID, "coinbase");
 
-	// Rather not work on nonstandard transactions (unless -testnet/-regtest)
+	// Rather not work on nonstandard transactions.
 	string reason;
-	if (Params().NetworkID() == CChainParams::MAIN && !IsStandardTx(tx, reason))
+	if (!IsStandardTx(tx, reason))
 		return state.DoS(0, error("AcceptToMemoryPool : nonstandard transaction: %s", reason), REJECT_NONSTANDARD, reason);
 
 	// is it already in the memory pool?
@@ -1001,50 +1001,7 @@ bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree)
 
 static unsigned int GetMaxBlockSize(unsigned int height)
 {
-	if(height<workComputationChangeTarget2)
-	{
-		return MAX_BLOCK_SIZE;
-	}
-	else if(height<workComputationChangeTarget4)
-	{
-		return MAX_BLOCK_SIZE_2;
-	}
-	else if(height<workComputationChangeTarget6)
-	{
-		return MAX_BLOCK_SIZE_4;
-	}
-	else if(height<workComputationChangeTarget8)
-	{
-		return MAX_BLOCK_SIZE_8;
-	}
-	else if(height<workComputationChangeTarget10)
-	{
-		return MAX_BLOCK_SIZE_16;
-	}
-	else if(height<workComputationChangeTarget12)
-	{
-		return MAX_BLOCK_SIZE_32;
-	}
-	else if(height<workComputationChangeTarget14)
-	{
-		return MAX_BLOCK_SIZE_64;
-	}
-	else if(height<workComputationChangeTarget16)
-	{
-		return MAX_BLOCK_SIZE_128;
-	}
-	else if(height<workComputationChangeTarget18)
-	{
-		return MAX_BLOCK_SIZE_256;
-	}
-	else if(height<workComputationChangeTarget20)
-	{
-		return MAX_BLOCK_SIZE_512;
-	}
-	else
-	{
-		return MAX_BLOCK_SIZE_1024;
-	}
+	return MAX_BLOCK_SIZE;
 }
 
 //hash ... transaction hash
@@ -1342,22 +1299,6 @@ unsigned int static GetNextWorkRequired_Original(const CBlockIndex* pindexLast, 
       // Only change once per interval
       if ((pindexLast->nHeight+1) % nInterval != 0)
       {
-          // Special difficulty rule for testnet:
-          if (TestNet())
-          {
-              // If the new block's timestamp is more than 2* 10 minutes
-              // then allow mining of a min-difficulty block.
-              if (pblock->nTime > pindexLast->nTime + nTargetSpacing*2)
-                  return nProofOfWorkLimit;
-              else
-              {
-                  // Return the last non-special-min-difficulty-rules-block
-                  const CBlockIndex* pindex = pindexLast;
-                  while (pindex->pprev && pindex->nHeight % nInterval != 0 && pindex->nBits == nProofOfWorkLimit)
-                      pindex = pindex->pprev;
-                  return pindex->nBits;
-              }
-          }
           return pindexLast->nBits;
       }
 
@@ -1486,24 +1427,9 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 {
 	unsigned int nProofOfWorkLimit = Params().ProofOfWorkLimit(algo).GetCompact();
 
-	//if (TestNet())
-	//{
-	//	// Testnet minimum difficulty block if it goes over normal block time.
-	//	if (pblock->nTime > pindexLast->nTime + nTargetSpacing*2)
-	//		return nProofOfWorkLimit;
-	//	else
-	//	{
-	//		// Return the last non-special-min-difficulty-rules-block
-	//		const CBlockIndex* pindex = pindexLast;
-	//		while (pindex->pprev && pindex->nHeight % nInterval != 0 && pindex->nBits == nProofOfWorkLimit)
-	//			pindex = pindex->pprev;
-	//		return pindex->nBits;
-	//	}
-	//}
-
-	LogPrintf("GetNextWorkRequired RETARGET\n");
-	LogPrintf("Algo: %s\n", GetAlgoName(algo));
-	LogPrintf("Height (Before): %s\n", pindexLast->nHeight);
+	//LogPrintf("GetNextWorkRequired RETARGET\n");
+	//LogPrintf("Algo: %s\n", GetAlgoName(algo));
+	//LogPrintf("Height (Before): %s\n", pindexLast->nHeight);
 
 	// find first block in averaging interval
 	// Go back by what we want to be nAveragingInterval blocks per algo
@@ -1516,7 +1442,7 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 	const CBlockIndex* pindexPrevAlgo = GetLastBlockIndexForAlgo(pindexLast, algo);
 	if (pindexPrevAlgo == NULL || pindexFirst == NULL)
 	{
-		LogPrintf("Use default POW Limit\n");
+		//LogPrintf("Use default POW Limit\n");
 		return nProofOfWorkLimit;
 	}
 
@@ -1525,7 +1451,7 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 	int64_t nActualTimespan = pindexLast-> GetMedianTimePast() - pindexFirst->GetMedianTimePast();
 	nActualTimespan = nAveragingTargetTimespan + (nActualTimespan - nAveragingTargetTimespan)/4;
 
-	LogPrintf("nActualTimespan = %d before bounds\n", nActualTimespan);
+	//LogPrintf("nActualTimespan = %d before bounds\n", nActualTimespan);
 
 	if (nActualTimespan < nMinActualTimespanV4)
 		nActualTimespan = nMinActualTimespanV4;
@@ -1564,7 +1490,7 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 		return nProofOfWorkLimit;
 	}
 
-  LogPrintf("MULTI %d  %d  %08x  %08x  %s\n", multiAlgoTimespan, nActualTimespan, pindexLast->nBits, bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
+  //LogPrintf("MULTI %d  %d  %08x  %08x  %s\n", multiAlgoTimespan, nActualTimespan, pindexLast->nBits, bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
 
 	return bnNew.GetCompact();
 }
@@ -1573,21 +1499,12 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 unsigned int GetNextWorkRequired(const CBlockIndex * pindexLast, const CBlockHeader * pblock, int algo){
     int DiffMode = 1;
 
-    if (TestNet()) {
-      if (pindexLast->nHeight+1 < 50) { DiffMode = 1;
-       } else if (pindexLast->nHeight + 1 < 100) {
-          DiffMode = 2;
-       } else {
-          DiffMode = 3;
-       }
-    }else{
-      if (pindexLast->nHeight+1 <= 5400) { DiffMode = 1;
+    if (pindexLast->nHeight+1 <= 5400) { DiffMode = 1;
       } else if (pindexLast->nHeight + 1 <= multiAlgoDiffChangeTarget) {
-          DiffMode = 2;
-       } else {
-          DiffMode = 3;
-       }
-    }
+        DiffMode = 2;
+      } else {
+        DiffMode = 3;
+      }
 
     if (DiffMode == 1) {
         return GetNextWorkRequired_Original(pindexLast, pblock, algo);
@@ -1779,10 +1696,6 @@ void static InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state
 void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev)
 {
 	block.nTime = max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
-
-	// Updating time can change work required on testnet:
-	if (TestNet())
-		block.nBits = GetNextWorkRequired(pindexPrev, &block, block.GetAlgo());
 }
 
 void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCache &inputs, CTxUndo &txundo, int nHeight, const uint256 &txhash)
@@ -2647,7 +2560,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 	// Check amount of algos in row 
 	if(pindexPrev) {
 		// Check count of sequence of same algo
-		if ( (TestNet() && (nHeight >= 100)) || (nHeight > (multiAlgoDiffChangeTarget + nBlockSequentialAlgoMaxCount)) ) {
+		if (nHeight > (multiAlgoDiffChangeTarget + nBlockSequentialAlgoMaxCount)) {
 			int nAlgo = block.GetAlgo();
 			int nAlgoCount = 1;
 			CBlockIndex* piPrev = pindexPrev;
@@ -2729,26 +2642,6 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		pindexPrev = (*mi).second;
 		nHeight = pindexPrev->nHeight+1;
 
-	/** // Check count of sequence of same algo
-	if ( (TestNet() && (nHeight >= 100)) || (nHeight > (multiAlgoDiffChangeTarget + nBlockSequentialAlgoMaxCount)) )
-	{
-			int nAlgo = block.GetAlgo();
-			int nAlgoCount = 1;
-			CBlockIndex* piPrev = pindexPrev;
-			while (piPrev && (nAlgoCount <= nBlockSequentialAlgoMaxCount))
-			{
-					if (piPrev->GetAlgo() != nAlgo)
-							break;
-					nAlgoCount++;
-					piPrev = piPrev->pprev;
-			}
-			if (nAlgoCount > nBlockSequentialAlgoMaxCount)
-			{
-					return state.DoS(100, error("AcceptBlock() : too many blocks from same algo"),
-													REJECT_INVALID, "algo-toomany");
-		}
-	}	**/
-
 		// Check proof of work
 		// BioMike: There is a problem here:
 		//   A check on hash validation, based on block.Bits has already been performed (See CheckBlock(...)),
@@ -2757,7 +2650,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		//	return state.DoS(100, error("AcceptBlock() : incorrect proof of work"), 
 		//				    REJECT_INVALID, "bad-diffbits");
 
-		if ( !TestNet() && nHeight < multiAlgoDiffChangeTarget && block.GetAlgo() != ALGO_SCRYPT )
+		if ( nHeight < multiAlgoDiffChangeTarget && block.GetAlgo() != ALGO_SCRYPT )
 			return state.Invalid(error("AcceptBlock() : incorrect hasing algo, only scrypt accepted until block %d", multiAlgoDiffChangeTarget),
 					REJECT_INVALID, "bad-hashalgo");
 
@@ -2782,11 +2675,10 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		if (pcheckpoint && nHeight < pcheckpoint->nHeight)
 			return state.DoS(100, error("AcceptBlock() : forked chain older than last checkpoint (height %d)", nHeight));
 
-		// Reject block.nVersion=1 blocks when 95% (75% on testnet) of the network has upgraded:
+		// Reject block.nVersion=1 blocks when 95% of the network has upgraded:
 		if (block.nVersion < 2)
 		{
-			if ((!TestNet() && CBlockIndex::IsSuperMajority(2, pindexPrev, 950, 1000)) ||
-					(TestNet() && CBlockIndex::IsSuperMajority(2, pindexPrev, 75, 100)))
+			if (CBlockIndex::IsSuperMajority(2, pindexPrev, 950, 1000))
 			{
 				return state.Invalid(error("AcceptBlock() : rejected nVersion=1 block"),
 						REJECT_OBSOLETE, "bad-version");
@@ -2795,9 +2687,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		// Enforce block.nVersion=2 rule that the coinbase starts with serialized block height
 		if (block.nVersion >= 2)
 		{
-			// if 750 of the last 1,000 blocks are version 2 or greater (51/100 if testnet):
-			if ((!TestNet() && CBlockIndex::IsSuperMajority(2, pindexPrev, 750, 1000)) ||
-					(TestNet() && CBlockIndex::IsSuperMajority(2, pindexPrev, 51, 100)))
+			// if 750 of the last 1,000 blocks are version 2 or greater:
+			if (CBlockIndex::IsSuperMajority(2, pindexPrev, 750, 1000))
 			{
 				CScript expect = CScript() << nHeight;
 				if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
@@ -3204,24 +3095,26 @@ CBlockIndex * InsertBlockIndex(uint256 hash)
 }
 
 bool static LoadBlockIndexDB()
-						{
+	{
 	if (!pblocktree->LoadBlockIndexGuts())
 		return false;
-
 	boost::this_thread::interruption_point();
 
 	// Calculate nChainWork
 	vector<pair<int, CBlockIndex*> > vSortedByHeight;
 	vSortedByHeight.reserve(mapBlockIndex.size());
+	// The following FOREACH loads entries for ALL blocks in random order...
 	BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
 	{
 		CBlockIndex* pindex = item.second;
 		vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
 	}
+	// Which are sorted here.
 	sort(vSortedByHeight.begin(), vSortedByHeight.end());
 	BOOST_FOREACH(const PAIRTYPE(int, CBlockIndex*)& item, vSortedByHeight)
 	{
 		CBlockIndex* pindex = item.second;
+		// Next command is taking most time
 		pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + pindex->GetBlockWorkAdjusted().getuint256();
 		pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
 		if ((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS && !(pindex->nStatus & BLOCK_FAILED_MASK))
@@ -3229,7 +3122,6 @@ bool static LoadBlockIndexDB()
 		if ((pindex->nStatus & BLOCK_FAILED_MASK) && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork))
 			pindexBestInvalid = pindex;
 	}
-
 	// Load block file info
 	pblocktree->ReadLastBlockFile(nLastBlockFile);
 	LogPrintf("LoadBlockIndexDB(): last block file = %i\n", nLastBlockFile);
@@ -3454,9 +3346,9 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
 	int nLoaded = 0;
 	try {
 
-		const unsigned int maxBlockSize=MAX_BLOCK_SIZE_8;
+		/*const unsigned int maxBlockSize=MAX_BLOCK_SIZE_8;*/
 
-		CBufferedFile blkdat(fileIn, 2*maxBlockSize, maxBlockSize+8, SER_DISK, CLIENT_VERSION);
+		CBufferedFile blkdat(fileIn, 2*MAX_BLOCK_SIZE, MAX_BLOCK_SIZE+8, SER_DISK, CLIENT_VERSION);
 		uint64_t nStartByte = 0;
 		if (dbp) {
 			// (try to) skip already indexed part
@@ -3484,7 +3376,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
 					continue;
 				// read size
 				blkdat >> nSize;
-				if (nSize < 80 || nSize > maxBlockSize)
+				if (nSize < 80 || nSize > MAX_BLOCK_SIZE)
 					continue;
 			} catch (std::exception &e) {
 				// no valid block header found; don't complain

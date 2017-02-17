@@ -255,15 +255,12 @@ std::string HelpMessageCli(bool mainProgram)
         strUsage += "  -?                     " + _("This help message") + "\n";
         strUsage += "  -conf=<file>           " + _("Specify configuration file (default: auroracoin.conf)") + "\n";
         strUsage += "  -datadir=<dir>         " + _("Specify data directory") + "\n";
-        strUsage += "  -testnet               " + _("Use the test network") + "\n";
-        strUsage += "  -regtest               " + _("Enter regression test mode, which uses a special chain in which blocks can be "
-                                                    "solved instantly. This is intended for regression testing tools and app development.") + "\n";
     } else {
         strUsage += _("RPC client options:") + "\n";
     }
 
     strUsage += "  -rpcconnect=<ip>       " + _("Send commands to node running on <ip> (default: 127.0.0.1)") + "\n";
-    strUsage += "  -rpcport=<port>        " + _("Connect to JSON-RPC on <port> (default: 8332 or testnet: 18332)") + "\n";
+    strUsage += "  -rpcport=<port>        " + _("Connect to JSON-RPC on <port> (default: 8332)") + "\n";
     strUsage += "  -rpcwait               " + _("Wait for RPC server to start") + "\n";
 
     if(mainProgram)

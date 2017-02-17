@@ -1,4 +1,5 @@
 // Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2015-2017 The Auroracoin developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -49,45 +50,22 @@ namespace Checkpoints
         (225322, uint256("0x21f073cc0f1c2abc5c36003c37f4cdbde0a9387a23af9d123331a7cf7907ced5"))
         (230868, uint256("0x000000000000027d4eb492a0d4c56dbd8226748a6cab75a8dfa5709f2bcc128c"))
         (240071, uint256("0x000000000000011f5021a4f8bc788c844eafbff8bc52401b3b38b42c83e12a7b"))
+        (301521, uint256("0xe39f7f6e72802d1135a9e86cea2f3ec1eaac25ff053f299558fdafaaa52586a1"))
+        (400108, uint256("0x09f3ef490abfd61036d8402ab4ab2af9fbe7a93700cac73712889efb4e820d28"))
+        (500494, uint256("0xae948205889a686abecacc3c29d6b9be5a2aa5ad863c2c5acbdaf3f6436b0117"))
+        (600241, uint256("0x3560c08ae21baece1e82decb25aaf7142fbe3f717ee240e506bf0e12e20854cf"))
         ;
 
     static const CCheckpointData data = {
         &mapCheckpoints,
-        1462990072, // * UNIX timestamp of last checkpoint block
-        653066,   // * total number of transactions between genesis and last checkpoint
+        1483213161, // * UNIX timestamp of last checkpoint block
+        1106236,   // * total number of transactions between genesis and last checkpoint
                     //   (the tx=... number in the SetBestChain debug.log lines)
-        1416.0     // * estimated number of transactions per day after checkpoint
-    };
-
-    static MapCheckpoints mapCheckpointsTestnet =
-        boost::assign::map_list_of
-        ( 0, uint256("0x2a8e100939494904af825b488596ddd536b3a96226ad02e0f7ab7ae472b27a8e"))
-        ;
-    static const CCheckpointData dataTestnet = {
-        &mapCheckpointsTestnet,
-        1428109151,
-        1,
-        1
-    };
-
-    static MapCheckpoints mapCheckpointsRegtest =
-        boost::assign::map_list_of
-        ( 0, uint256("0x2a8e100939494904af825b488596ddd536b3a96226ad02e0f7ab7ae472b27a8e"))
-        ;
-    static const CCheckpointData dataRegtest = {
-        &mapCheckpointsRegtest,
-        1428109151,
-        1,
-        1
+        2000.0     // * estimated number of transactions per day after checkpoint
     };
 
     const CCheckpointData &Checkpoints() {
-        if (Params().NetworkID() == CChainParams::TESTNET)
-            return dataTestnet;
-        else if (Params().NetworkID() == CChainParams::MAIN)
-            return data;
-        else
-            return dataRegtest;
+        return data;
     }
 
     bool CheckBlock(int nHeight, const uint256& hash)

@@ -54,7 +54,7 @@ public:
 class CTxMemPool
 {
 private:
-    bool fSanityCheck; // Normally false, true if -checkmempool or -regtest
+    bool fSanityCheck; // Normally false, true if -checkmempool
     unsigned int nTransactionsUpdated;
 
 public:
