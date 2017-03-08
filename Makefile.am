@@ -25,7 +25,8 @@ OSX_DEPLOY_SCRIPT=$(top_srcdir)/misc/contrib/macdeploy/macdeployqtplus
 OSX_FANCY_PLIST=$(top_srcdir)/misc/contrib/macdeploy/fancy.plist
 OSX_INSTALLER_ICONS=$(top_srcdir)/media/pixmaps/auroracoin.icns
 OSX_PLIST=$(top_srcdir)/misc/share/qt/Info.plist #not installed
-OSX_QT_TRANSLATIONS = en,is,nl
+OSX_QT_TRANSLATIONS = da,de,es,hu,ru,uk,zh_CN,zh_TW
+#OSX_QT_TRANSLATIONS = en,is,nl This didn't work as planned.
 
 DIST_DOCS = $(wildcard doc/*.md) $(wildcard doc/release-notes/*.md)
 
