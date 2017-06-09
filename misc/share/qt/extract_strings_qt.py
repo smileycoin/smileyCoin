@@ -68,10 +68,10 @@ f.write("""
 #define UNUSED
 #endif
 """)
-f.write('static const char UNUSED *auroracoin_strings[] = {\n')
+f.write('static const char UNUSED *smileycoin_strings[] = {\n')
 messages.sort(key=operator.itemgetter(0))
 for (msgid, msgstr) in messages:
     if msgid != EMPTY:
-        f.write('QT_TRANSLATE_NOOP("auroracoin-core", %s),\n' % ('\n'.join(msgid)))
+        f.write('QT_TRANSLATE_NOOP("smileycoin-core", %s),\n' % ('\n'.join(msgid)))
 f.write('};\n')
 f.close()

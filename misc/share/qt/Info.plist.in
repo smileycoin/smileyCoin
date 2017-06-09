@@ -11,7 +11,7 @@
   </array>
 
   <key>CFBundleIconFile</key>
-  <string>auroracoin.icns</string>
+  <string>smileycoin.icns</string>
 
   <key>CFBundlePackageType</key>
   <string>APPL</string>
@@ -29,10 +29,10 @@
   <string>????</string>
 
   <key>CFBundleExecutable</key>
-  <string>Auroracoin-Qt</string>
+  <string>Smileycoin-Qt</string>
 
   <key>CFBundleIdentifier</key>
-  <string>org.auroracoinfoundation.Auroracoin-Qt</string>
+  <string>org.smileycoinfoundation.Smileycoin-Qt</string>
 
   <key>CFBundleURLTypes</key>
   <array>
@@ -40,10 +40,10 @@
       <key>CFBundleTypeRole</key>
       <string>Editor</string>
       <key>CFBundleURLName</key>
-      <string>org.auroracoin.AuroracoinPayment</string>
+      <string>org.smileycoin.SmileycoinPayment</string>
       <key>CFBundleURLSchemes</key>
       <array>
-        <string>auroracoin</string>
+        <string>smileycoin</string>
       </array>
     </dict>
   </array>
@@ -52,9 +52,9 @@
   <array>
     <dict>
       <key>UTTypeIdentifier</key>
-      <string>org.auroracoin.paymentrequest</string>
+      <string>org.smileycoin.paymentrequest</string>
       <key>UTTypeDescription</key>
-      <string>Auroracoin payment request</string>
+      <string>Smileycoin payment request</string>
       <key>UTTypeConformsTo</key>
       <array>
         <string>public.data</string>
@@ -62,10 +62,10 @@
       <key>UTTypeTagSpecification</key>
       <dict>
         <key>public.mime-type</key>
-        <string>application/x-auroracoin-payment-request</string>
+        <string>application/x-smileycoin-payment-request</string>
         <key>public.filename-extension</key>
         <array>
-          <string>auroracoinpaymentrequest</string>
+          <string>smileycoinpaymentrequest</string>
         </array>
       </dict>
     </dict>
@@ -78,7 +78,7 @@
       <string>Editor</string>
       <key>LSItemContentTypes</key>
       <array>
-        <string>org.auroracoin.paymentrequest</string>
+        <string>org.smileycoin.paymentrequest</string>
       </array>
       <key>LSHandlerRank</key>
       <string>Owner</string>

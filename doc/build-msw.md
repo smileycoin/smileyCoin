@@ -72,12 +72,12 @@ MSYS shell:
 	mkdir miniupnpc
 	cp *.h miniupnpc/
 
-Auroracoin
+Smileycoin
 -------
 MSYS shell:
 
-	cd \auroracoin
+	cd \smileycoin
 	sh autogen.sh
 	sh configure
 	mingw32-make
-	strip auroracoind.exe
+	strip smileycoind.exe

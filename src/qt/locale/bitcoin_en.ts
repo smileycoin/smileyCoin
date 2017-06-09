@@ -5,12 +5,12 @@
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
-        <source>About Auroracoin Core</source>
+        <source>About Smileycoin Core</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+39"/>
-        <source>&lt;b&gt;Auroracoin Core&lt;/b&gt; version</source>
+        <source>&lt;b&gt;Smileycoin Core&lt;/b&gt; version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -32,7 +32,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+0"/>
-        <source>The Bitcoin and Auroracoin Core developers</source>
+        <source>The Bitcoin and Smileycoin Core developers</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -82,7 +82,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+19"/>
-        <source>Verify a message to ensure it was signed with a specified Auroracoin address</source>
+        <source>Verify a message to ensure it was signed with a specified Smileycoin address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -132,12 +132,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+7"/>
-        <source>These are your Auroracoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Smileycoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
-        <source>These are your Auroracoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <source>These are your Smileycoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -258,7 +258,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+1"/>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR AURORACOINS&lt;/b&gt;!</source>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR SMILEYCOINS&lt;/b&gt;!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -274,7 +274,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="-56"/>
-        <source>Auroracoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your auroracoins from being stolen by malware infecting your computer.</source>
+        <source>Smileycoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your smileycoins from being stolen by malware infecting your computer.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -334,12 +334,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     <name>BitcoinGUI</name>
     <message>
         <location filename="../bitcoin.cpp" line="+447"/>
-        <source>A fatal error occurred. Auroracoin can no longer continue safely and will quit.</source>
+        <source>A fatal error occurred. Smileycoin can no longer continue safely and will quit.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="+76"/>
-        <source>Auroracoin Core</source>
+        <source>Smileycoin Core</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -375,7 +375,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+1"/>
-        <source>Send coins to a Auroracoin address</source>
+        <source>Send coins to a Smileycoin address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -385,7 +385,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+1"/>
-        <source>Request payments (generates QR codes and auroracoin: URIs)</source>
+        <source>Request payments (generates QR codes and smileycoin: URIs)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -421,12 +421,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+4"/>
         <location line="+2"/>
-        <source>&amp;About Auroracoin Core</source>
+        <source>&amp;About Smileycoin Core</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Show information about Auroracoin</source>
+        <source>Show information about Smileycoin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -447,7 +447,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+1"/>
-        <source>Modify configuration options for Auroracoin</source>
+        <source>Modify configuration options for Smileycoin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -498,7 +498,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+1"/>
-        <source>Sign messages with your Auroracoin addresses to prove you own them</source>
+        <source>Sign messages with your Smileycoin addresses to prove you own them</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -508,7 +508,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+1"/>
-        <source>Verify messages to ensure they were signed with specified Auroracoin addresses</source>
+        <source>Verify messages to ensure they were signed with specified Smileycoin addresses</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -548,7 +548,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+1"/>
-        <source>Open a auroracoin: URI or payment request</source>
+        <source>Open a smileycoin: URI or payment request</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -558,7 +558,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+1"/>
-        <source>Show the Auroracoin Core help message to get a list with possible Auroracoin command-line options</source>
+        <source>Show the Smileycoin Core help message to get a list with possible Smileycoin command-line options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -584,12 +584,12 @@ This product includes software developed by the OpenSSL Project for use in the O
     <message>
         <location line="+93"/>
         <location line="+5"/>
-        <source>Auroracoin client</source>
+        <source>Smileycoin client</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
         <location line="+142"/>
-        <source>%n active connection(s) to Auroracoin network</source>
+        <source>%n active connection(s) to Smileycoin network</source>
         <translation type="unfinished">
             <numerusform></numerusform>
             <numerusform></numerusform>
@@ -690,7 +690,7 @@ This product includes software developed by the OpenSSL Project for use in the O
     </message>
     <message>
         <location line="+13"/>
-        <source>Auroracoin</source>
+        <source>Smileycoin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1087,7 +1087,7 @@ Address: %4
     </message>
     <message>
         <location line="+71"/>
-        <source>The entered address &quot;%1&quot; is not a valid Auroracoin address.</source>
+        <source>The entered address &quot;%1&quot; is not a valid Smileycoin address.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1138,12 +1138,12 @@ Address: %4
     <name>HelpMessageDialog</name>
     <message>
         <location filename="../forms/helpmessagedialog.ui" line="+19"/>
-        <source>Auroracoin Core - Command-line options</source>
+        <source>Smileycoin Core - Command-line options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../utilitydialog.cpp" line="+24"/>
-        <source>Auroracoin Core</source>
+        <source>Smileycoin Core</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1201,17 +1201,17 @@ Address: %4
     </message>
     <message>
         <location line="+9"/>
-        <source>Welcome to Auroracoin Core.</source>
+        <source>Welcome to Smileycoin Core.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+26"/>
-        <source>As this is the first time the program is launched, you can choose where Auroracoin Core will store its data.</source>
+        <source>As this is the first time the program is launched, you can choose where Smileycoin Core will store its data.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
-        <source>Auroracoin Core will download and store a copy of the Auroracoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
+        <source>Smileycoin Core will download and store a copy of the Smileycoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1226,7 +1226,7 @@ Address: %4
     </message>
     <message>
         <location filename="../intro.cpp" line="+84"/>
-        <source>Auroracoin</source>
+        <source>Smileycoin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1292,12 +1292,12 @@ Address: %4
     </message>
     <message>
         <location line="+6"/>
-        <source>Automatically start Auroracoin after logging in to the system.</source>
+        <source>Automatically start Smileycoin after logging in to the system.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>&amp;Start Auroracoin on system login</source>
+        <source>&amp;Start Smileycoin on system login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1367,7 +1367,7 @@ Address: %4
     </message>
     <message>
         <location line="+6"/>
-        <source>Automatically open the Auroracoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <source>Automatically open the Smileycoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1377,7 +1377,7 @@ Address: %4
     </message>
     <message>
         <location line="+7"/>
-        <source>Connect to the Auroracoin network through a SOCKS proxy.</source>
+        <source>Connect to the Smileycoin network through a SOCKS proxy.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1452,7 +1452,7 @@ Address: %4
     </message>
     <message>
         <location line="+13"/>
-        <source>The user interface language can be set here. This setting will take effect after restarting Auroracoin.</source>
+        <source>The user interface language can be set here. This setting will take effect after restarting Smileycoin.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1467,7 +1467,7 @@ Address: %4
     </message>
     <message>
         <location line="+9"/>
-        <source>Whether to show Auroracoin addresses in the transaction list or not.</source>
+        <source>Whether to show Smileycoin addresses in the transaction list or not.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1563,7 +1563,7 @@ Address: %4
     <message>
         <location line="+15"/>
         <location line="+215"/>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Auroracoin network after a connection is established, but this process has not completed yet.</source>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Smileycoin network after a connection is established, but this process has not completed yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1622,7 +1622,7 @@ Address: %4
     </message>
     <message>
         <location line="-353"/>
-        <source>Cannot start auroracoin: click-to-pay handler</source>
+        <source>Cannot start smileycoin: click-to-pay handler</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1648,7 +1648,7 @@ Address: %4
     </message>
     <message>
         <location line="+13"/>
-        <source>URI can not be parsed! This can be caused by an invalid Auroracoin address or malformed URI parameters.</source>
+        <source>URI can not be parsed! This can be caused by an invalid Smileycoin address or malformed URI parameters.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1708,7 +1708,7 @@ Address: %4
         <location filename="../bitcoin.cpp" line="+73"/>
         <location line="+7"/>
         <location line="+13"/>
-        <source>Auroracoin</source>
+        <source>Smileycoin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1728,12 +1728,12 @@ Address: %4
     </message>
     <message>
         <location line="+60"/>
-        <source>Auroracoin Core didn&apos;t yet exit safely...</source>
+        <source>Smileycoin Core didn&apos;t yet exit safely...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../guiutil.cpp" line="+93"/>
-        <source>Enter a Auroracoin address (e.g. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</source>
+        <source>Enter a Smileycoin address (e.g. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1859,7 +1859,7 @@ Address: %4
     </message>
     <message>
         <location line="+7"/>
-        <source>Open the Auroracoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
+        <source>Open the Smileycoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1906,7 +1906,7 @@ Address: %4
     </message>
     <message>
         <location filename="../rpcconsole.cpp" line="-35"/>
-        <source>Welcome to the Auroracoin RPC console.</source>
+        <source>Welcome to the Smileycoin RPC console.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1970,7 +1970,7 @@ Address: %4
     <message>
         <location line="+14"/>
         <location line="+23"/>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Auroracoin network.</source>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Smileycoin network.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2401,7 +2401,7 @@ Address: %4
     </message>
     <message>
         <location line="+113"/>
-        <source>Warning: Invalid Auroracoin address</source>
+        <source>Warning: Invalid Smileycoin address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2483,7 +2483,7 @@ Address: %4
     </message>
     <message>
         <location line="+10"/>
-        <source>A message that was attached to the auroracoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Auroracoin network.</source>
+        <source>A message that was attached to the smileycoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Smileycoin network.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2518,7 +2518,7 @@ Address: %4
     <name>ShutdownWindow</name>
     <message>
         <location filename="../utilitydialog.cpp" line="+48"/>
-        <source>Auroracoin Core is shutting down...</source>
+        <source>Smileycoin Core is shutting down...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2588,7 +2588,7 @@ Address: %4
     </message>
     <message>
         <location line="+21"/>
-        <source>Sign the message to prove you own this Auroracoin address</source>
+        <source>Sign the message to prove you own this Smileycoin address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2624,7 +2624,7 @@ Address: %4
     </message>
     <message>
         <location line="+37"/>
-        <source>Verify the message to ensure it was signed with the specified Auroracoin address</source>
+        <source>Verify the message to ensure it was signed with the specified Smileycoin address</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2644,7 +2644,7 @@ Address: %4
     </message>
     <message>
         <location line="+1"/>
-        <source>Enter a Auroracoin address (e.g. DNS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
+        <source>Enter a Smileycoin address (e.g. DNS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2723,7 +2723,7 @@ Address: %4
     </message>
     <message>
         <location line="+1"/>
-        <source>The Auroracoin developers</source>
+        <source>The Smileycoin developers</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3323,13 +3323,13 @@ Address: %4
         <source>%s, you must set a rpcpassword in the configuration file:
 %s
 It is recommended you use the following random password:
-rpcuser=auroracoinrpc
+rpcuser=smileycoinrpc
 rpcpassword=%s
 (you do not need to remember this password)
 The username and password MUST NOT be the same.
 If the file does not exist, create it with owner-readable-only file permissions.
 It is also recommended to set alertnotify so you are notified of problems;
-for example: alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@foo.com
+for example: alertnotify=echo %%s | mail -s &quot;Smileycoin Alert&quot; admin@foo.com
 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -3355,7 +3355,7 @@ for example: alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@f
     </message>
     <message>
         <location line="+3"/>
-        <source>Cannot obtain a lock on data directory %s. Auroracoin Core is probably already running.</source>
+        <source>Cannot obtain a lock on data directory %s. Smileycoin Core is probably already running.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3460,7 +3460,7 @@ for example: alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@f
     </message>
     <message>
         <location line="+3"/>
-        <source>Unable to bind to %s on this computer. Auroracoin Core is probably already running.</source>
+        <source>Unable to bind to %s on this computer. Smileycoin Core is probably already running.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3475,7 +3475,7 @@ for example: alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@f
     </message>
     <message>
         <location line="+3"/>
-        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Auroracoin will not work properly.</source>
+        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Smileycoin will not work properly.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3552,12 +3552,12 @@ If the file does not exist, create it with owner-readable-only file permissions.
     </message>
     <message>
         <location line="+1"/>
-        <source>Auroracoin Core Daemon</source>
+        <source>Smileycoin Core Daemon</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Auroracoin Core RPC client version</source>
+        <source>Smileycoin Core RPC client version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3677,7 +3677,7 @@ If the file does not exist, create it with owner-readable-only file permissions.
     </message>
     <message>
         <location line="+1"/>
-        <source>Error loading wallet.dat: Wallet requires newer version of Auroracoin</source>
+        <source>Error loading wallet.dat: Wallet requires newer version of Smileycoin</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4012,7 +4012,7 @@ If the file does not exist, create it with owner-readable-only file permissions.
     </message>
     <message>
         <location line="+1"/>
-        <source>Send command to Auroracoin Core</source>
+        <source>Send command to Smileycoin Core</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4102,7 +4102,7 @@ If the file does not exist, create it with owner-readable-only file permissions.
     </message>
     <message>
         <location line="+1"/>
-        <source>Specify pid file (default: auroracoind.pid)</source>
+        <source>Specify pid file (default: smileycoind.pid)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4122,7 +4122,7 @@ If the file does not exist, create it with owner-readable-only file permissions.
     </message>
     <message>
         <location line="+1"/>
-        <source>Start Auroracoin Core Daemon</source>
+        <source>Start Smileycoin Core Daemon</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4187,7 +4187,7 @@ If the file does not exist, create it with owner-readable-only file permissions.
     </message>
     <message>
         <location line="+1"/>
-        <source>Usage (deprecated, use auroracoin-cli):</source>
+        <source>Usage (deprecated, use smileycoin-cli):</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4242,7 +4242,7 @@ If the file does not exist, create it with owner-readable-only file permissions.
     </message>
     <message>
         <location line="+1"/>
-        <source>Wallet needed to be rewritten: restart Auroracoin to complete</source>
+        <source>Wallet needed to be rewritten: restart Smileycoin to complete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

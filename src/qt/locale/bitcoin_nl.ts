@@ -5,13 +5,13 @@
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
-        <source>About Auroracoin Core</source>
-        <translation>Over Auroracoin Core</translation>
+        <source>About Smileycoin Core</source>
+        <translation>Over Smileycoin Core</translation>
     </message>
     <message>
         <location line="+39"/>
-        <source>&lt;b&gt;Auroracoin Core&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;Auroracoin Core&lt;/b&gt; versie</translation>
+        <source>&lt;b&gt;Smileycoin Core&lt;/b&gt; version</source>
+        <translation>&lt;b&gt;Smileycoin Core&lt;/b&gt; versie</translation>
     </message>
     <message>
         <location line="+57"/>
@@ -39,8 +39,8 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="+0"/>
-        <source>The Bitcoin and Auroracoin Core developers</source>
-        <translation>De Bitcoin en Auroracoin Core ontwikkelaars</translation>
+        <source>The Bitcoin and Smileycoin Core developers</source>
+        <translation>De Bitcoin en Smileycoin Core ontwikkelaars</translation>
     </message>
     <message>
         <location line="+12"/>
@@ -89,8 +89,8 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="+19"/>
-        <source>Verify a message to ensure it was signed with a specified Auroracoin address</source>
-        <translation>Controleer een bericht om te verifiëren dat het gespecificeerde Auroracoinadres het bericht heeft ondertekend</translation>
+        <source>Verify a message to ensure it was signed with a specified Smileycoin address</source>
+        <translation>Controleer een bericht om te verifiëren dat het gespecificeerde Smileycoinadres het bericht heeft ondertekend</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -139,13 +139,13 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="+7"/>
-        <source>These are your Auroracoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Dit zijn uw Auroracoinadressen om betalingen mee te verzenden. Check altijd het bedrag en het ontvangende adres voordat u uw auroracoins verzendt.</translation>
+        <source>These are your Smileycoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Dit zijn uw Smileycoinadressen om betalingen mee te verzenden. Check altijd het bedrag en het ontvangende adres voordat u uw smileycoins verzendt.</translation>
     </message>
     <message>
         <location line="+4"/>
-        <source>These are your Auroracoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
-        <translation>Dit zijn uw Auroracoin adressen om betalingen te ontvangen. Het is aanbevolen om voor iedere transactie een nieuw ontvangstadres te gebruiken.</translation>
+        <source>These are your Smileycoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <translation>Dit zijn uw Smileycoin adressen om betalingen te ontvangen. Het is aanbevolen om voor iedere transactie een nieuw ontvangstadres te gebruiken.</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -265,8 +265,8 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="+1"/>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR AURORACOINS&lt;/b&gt;!</source>
-        <translation>Waarschuwing: Als u uw portemonnee versleutelt en uw wachtwoord vergeet, zult u &lt;b&gt;AL UW AURORACOINS VERLIEZEN&lt;/b&gt;!</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR SMILEYCOINS&lt;/b&gt;!</source>
+        <translation>Waarschuwing: Als u uw portemonnee versleutelt en uw wachtwoord vergeet, zult u &lt;b&gt;AL UW SMILEYCOINS VERLIEZEN&lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -281,8 +281,8 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="-56"/>
-        <source>Auroracoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your auroracoins from being stolen by malware infecting your computer.</source>
-        <translation>Auroracoin zal nu afsluiten om het versleutelingsproces te voltooien. Onthoud dat het versleutelen van uw portemonnee u niet volledig kan beschermen: Malware kan uw computer infecteren en uw auroracoins stelen.</translation>
+        <source>Smileycoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your smileycoins from being stolen by malware infecting your computer.</source>
+        <translation>Smileycoin zal nu afsluiten om het versleutelingsproces te voltooien. Onthoud dat het versleutelen van uw portemonnee u niet volledig kan beschermen: Malware kan uw computer infecteren en uw smileycoins stelen.</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -341,13 +341,13 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     <name>BitcoinGUI</name>
     <message>
         <location filename="../bitcoin.cpp" line="+447"/>
-        <source>A fatal error occurred. Auroracoin can no longer continue safely and will quit.</source>
-        <translation>Er is een fatale fout opgetreden. Auroracoin kan niet meer veilig doorgaan en zal nu afgesloten worden.</translation>
+        <source>A fatal error occurred. Smileycoin can no longer continue safely and will quit.</source>
+        <translation>Er is een fatale fout opgetreden. Smileycoin kan niet meer veilig doorgaan en zal nu afgesloten worden.</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="+76"/>
-        <source>Auroracoin Core</source>
-        <translation>Auroracoin Core</translation>
+        <source>Smileycoin Core</source>
+        <translation>Smileycoin Core</translation>
     </message>
     <message>
         <location line="+38"/>
@@ -382,8 +382,8 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="+1"/>
-        <source>Send coins to a Auroracoin address</source>
-        <translation>Stuur coins naar een Auroracoin adres</translation>
+        <source>Send coins to a Smileycoin address</source>
+        <translation>Stuur coins naar een Smileycoin adres</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -392,8 +392,8 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="+1"/>
-        <source>Request payments (generates QR codes and auroracoin: URIs)</source>
-        <translation>Betalingsverzoeken (genereert QR codes en auroracoin: URIs)</translation>
+        <source>Request payments (generates QR codes and smileycoin: URIs)</source>
+        <translation>Betalingsverzoeken (genereert QR codes en smileycoin: URIs)</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -428,13 +428,13 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     <message>
         <location line="+4"/>
         <location line="+2"/>
-        <source>&amp;About Auroracoin Core</source>
-        <translation>&amp;Over Auroracoin Core</translation>
+        <source>&amp;About Smileycoin Core</source>
+        <translation>&amp;Over Smileycoin Core</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Show information about Auroracoin</source>
-        <translation>Laat informatie zien over Auroracoin</translation>
+        <source>Show information about Smileycoin</source>
+        <translation>Laat informatie zien over Smileycoin</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -454,8 +454,8 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="+1"/>
-        <source>Modify configuration options for Auroracoin</source>
-        <translation>Wijzig instellingen van Auroracoin</translation>
+        <source>Modify configuration options for Smileycoin</source>
+        <translation>Wijzig instellingen van Smileycoin</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -505,8 +505,8 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="+1"/>
-        <source>Sign messages with your Auroracoin addresses to prove you own them</source>
-        <translation>Onderteken berichten met uw Auroracoinadressen om te bewijzen dat u deze adressen bezit</translation>
+        <source>Sign messages with your Smileycoin addresses to prove you own them</source>
+        <translation>Onderteken berichten met uw Smileycoinadressen om te bewijzen dat u deze adressen bezit</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -515,8 +515,8 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="+1"/>
-        <source>Verify messages to ensure they were signed with specified Auroracoin addresses</source>
-        <translation>Verifiëer handtekeningen om zeker te zijn dat de berichten zijn ondertekend met de gespecificeerde Auroracoinadressen</translation>
+        <source>Verify messages to ensure they were signed with specified Smileycoin addresses</source>
+        <translation>Verifiëer handtekeningen om zeker te zijn dat de berichten zijn ondertekend met de gespecificeerde Smileycoinadressen</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -555,8 +555,8 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="+1"/>
-        <source>Open a auroracoin: URI or payment request</source>
-        <translation>Open een auroracoin: URI of betalingsverzoek</translation>
+        <source>Open a smileycoin: URI or payment request</source>
+        <translation>Open een smileycoin: URI of betalingsverzoek</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -565,8 +565,8 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="+1"/>
-        <source>Show the Auroracoin Core help message to get a list with possible Auroracoin command-line options</source>
-        <translation>Geef het Auroracoin Core helpbericht weer om een lijst met mogelijke Auroracoin commandoregelopties te verkrijgen</translation>
+        <source>Show the Smileycoin Core help message to get a list with possible Smileycoin command-line options</source>
+        <translation>Geef het Smileycoin Core helpbericht weer om een lijst met mogelijke Smileycoin commandoregelopties te verkrijgen</translation>
     </message>
     <message>
         <location line="+34"/>
@@ -591,14 +591,14 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     <message>
         <location line="+93"/>
         <location line="+5"/>
-        <source>Auroracoin client</source>
-        <translation>Auroracoin client</translation>
+        <source>Smileycoin client</source>
+        <translation>Smileycoin client</translation>
     </message>
     <message numerus="yes">
         <location line="+142"/>
-        <source>%n active connection(s) to Auroracoin network</source>
+        <source>%n active connection(s) to Smileycoin network</source>
         <translation>
-            <numerusform>%n actieve verbinding naar Auroracoinnetwerk@%n actieve verbindingen naar Auroracoinnetwerk</numerusform>
+            <numerusform>%n actieve verbinding naar Smileycoinnetwerk@%n actieve verbindingen naar Smileycoinnetwerk</numerusform>
         </translation>
     </message>
     <message>
@@ -696,8 +696,8 @@ Dit product bevat software ontwikkeld door het OpenSSL Project voor gebruik in d
     </message>
     <message>
         <location line="+13"/>
-        <source>Auroracoin</source>
-        <translation>Auroracoin</translation>
+        <source>Smileycoin</source>
+        <translation>Smileycoin</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -1097,8 +1097,8 @@ Adres: %4
     </message>
     <message>
         <location line="+71"/>
-        <source>The entered address &quot;%1&quot; is not a valid Auroracoin address.</source>
-        <translation>Het opgegeven adres &quot;%1&quot; is een ongeldig Auroracoinadres.</translation>
+        <source>The entered address &quot;%1&quot; is not a valid Smileycoin address.</source>
+        <translation>Het opgegeven adres &quot;%1&quot; is een ongeldig Smileycoinadres.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1148,13 +1148,13 @@ Adres: %4
     <name>HelpMessageDialog</name>
     <message>
         <location filename="../forms/helpmessagedialog.ui" line="+19"/>
-        <source>Auroracoin Core - Command-line options</source>
-        <translation>Auroracoin Core - Commandoregelopties</translation>
+        <source>Smileycoin Core - Command-line options</source>
+        <translation>Smileycoin Core - Commandoregelopties</translation>
     </message>
     <message>
         <location filename="../utilitydialog.cpp" line="+24"/>
-        <source>Auroracoin Core</source>
-        <translation>Auroracoin Core</translation>
+        <source>Smileycoin Core</source>
+        <translation>Smileycoin Core</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -1211,18 +1211,18 @@ Adres: %4
     </message>
     <message>
         <location line="+9"/>
-        <source>Welcome to Auroracoin Core.</source>
-        <translation>Welkom bij Auroracoin Core.</translation>
+        <source>Welcome to Smileycoin Core.</source>
+        <translation>Welkom bij Smileycoin Core.</translation>
     </message>
     <message>
         <location line="+26"/>
-        <source>As this is the first time the program is launched, you can choose where Auroracoin Core will store its data.</source>
-        <translation>Omdat dit de eerste keer is dat het programma gestart is, kunt u nu kiezen waar de Auroracoin portemonnee de data moet opslaan.</translation>
+        <source>As this is the first time the program is launched, you can choose where Smileycoin Core will store its data.</source>
+        <translation>Omdat dit de eerste keer is dat het programma gestart is, kunt u nu kiezen waar de Smileycoin portemonnee de data moet opslaan.</translation>
     </message>
     <message>
         <location line="+10"/>
-        <source>Auroracoin Core will download and store a copy of the Auroracoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
-        <translation>Auroracoin Core zal een kopie van de Auroracoin blockchain downloaden en opslaan. Ten minste %1GB aan gegevens zullen in deze directory opgeslagen worden, en dit zal over de tijd groeien. De portemonee zal ook in deze directory opgeslagen worden.</translation>
+        <source>Smileycoin Core will download and store a copy of the Smileycoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
+        <translation>Smileycoin Core zal een kopie van de Smileycoin blockchain downloaden en opslaan. Ten minste %1GB aan gegevens zullen in deze directory opgeslagen worden, en dit zal over de tijd groeien. De portemonee zal ook in deze directory opgeslagen worden.</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1236,8 +1236,8 @@ Adres: %4
     </message>
     <message>
         <location filename="../intro.cpp" line="+84"/>
-        <source>Auroracoin</source>
-        <translation>Auroracoin</translation>
+        <source>Smileycoin</source>
+        <translation>Smileycoin</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -1302,13 +1302,13 @@ Adres: %4
     </message>
     <message>
         <location line="+6"/>
-        <source>Automatically start Auroracoin after logging in to the system.</source>
-        <translation>Start Auroracoin automatisch na inloggen in het systeem.</translation>
+        <source>Automatically start Smileycoin after logging in to the system.</source>
+        <translation>Start Smileycoin automatisch na inloggen in het systeem.</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>&amp;Start Auroracoin on system login</source>
-        <translation>S&amp;tart Auroracoin bij het inloggen in het systeem</translation>
+        <source>&amp;Start Smileycoin on system login</source>
+        <translation>S&amp;tart Smileycoin bij het inloggen in het systeem</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -1377,8 +1377,8 @@ Adres: %4
     </message>
     <message>
         <location line="+6"/>
-        <source>Automatically open the Auroracoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Open de Auroracoin-poort automatisch op de router. Dit werkt alleen als de router UPnP ondersteunt en het aanstaat.</translation>
+        <source>Automatically open the Smileycoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Open de Smileycoin-poort automatisch op de router. Dit werkt alleen als de router UPnP ondersteunt en het aanstaat.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1387,8 +1387,8 @@ Adres: %4
     </message>
     <message>
         <location line="+7"/>
-        <source>Connect to the Auroracoin network through a SOCKS proxy.</source>
-        <translation>Verbind met het Auroracoin netwerk via een SOCKS proxy.</translation>
+        <source>Connect to the Smileycoin network through a SOCKS proxy.</source>
+        <translation>Verbind met het Smileycoin netwerk via een SOCKS proxy.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1462,8 +1462,8 @@ Adres: %4
     </message>
     <message>
         <location line="+13"/>
-        <source>The user interface language can be set here. This setting will take effect after restarting Auroracoin.</source>
-        <translation>De taal van de gebruikersinterface kan hier ingesteld worden. Deze instelling zal pas van kracht worden nadat Auroracoin herstart wordt.</translation>
+        <source>The user interface language can be set here. This setting will take effect after restarting Smileycoin.</source>
+        <translation>De taal van de gebruikersinterface kan hier ingesteld worden. Deze instelling zal pas van kracht worden nadat Smileycoin herstart wordt.</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -1477,8 +1477,8 @@ Adres: %4
     </message>
     <message>
         <location line="+9"/>
-        <source>Whether to show Auroracoin addresses in the transaction list or not.</source>
-        <translation>Of Auroracoinadressen in de transactielijst weergegeven moeten worden of niet.</translation>
+        <source>Whether to show Smileycoin addresses in the transaction list or not.</source>
+        <translation>Of Smileycoinadressen in de transactielijst weergegeven moeten worden of niet.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1573,8 +1573,8 @@ Adres: %4
     <message>
         <location line="+15"/>
         <location line="+215"/>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Auroracoin network after a connection is established, but this process has not completed yet.</source>
-        <translation>De weergegeven informatie kan verouderd zijn. Uw portemonnee synchroniseert automaticsh met het Auroracoinnetwerk nadat een verbinding is gelegd, maar dit proces is nog niet voltooid.</translation>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Smileycoin network after a connection is established, but this process has not completed yet.</source>
+        <translation>De weergegeven informatie kan verouderd zijn. Uw portemonnee synchroniseert automaticsh met het Smileycoinnetwerk nadat een verbinding is gelegd, maar dit proces is nog niet voltooid.</translation>
     </message>
     <message>
         <location line="-165"/>
@@ -1632,8 +1632,8 @@ Adres: %4
     </message>
     <message>
         <location line="-353"/>
-        <source>Cannot start auroracoin: click-to-pay handler</source>
-        <translation>Kan auroracoin niet starten: click-to-pay handler</translation>
+        <source>Cannot start smileycoin: click-to-pay handler</source>
+        <translation>Kan smileycoin niet starten: click-to-pay handler</translation>
     </message>
     <message>
         <location line="+58"/>
@@ -1658,8 +1658,8 @@ Adres: %4
     </message>
     <message>
         <location line="+13"/>
-        <source>URI can not be parsed! This can be caused by an invalid Auroracoin address or malformed URI parameters.</source>
-        <translation>URI kan niet verwerkt worden! Dit kan het gevolg zijn van een ongeldig Auroracoin adres of misvormde URI parameters.</translation>
+        <source>URI can not be parsed! This can be caused by an invalid Smileycoin address or malformed URI parameters.</source>
+        <translation>URI kan niet verwerkt worden! Dit kan het gevolg zijn van een ongeldig Smileycoin adres of misvormde URI parameters.</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -1718,8 +1718,8 @@ Adres: %4
         <location filename="../bitcoin.cpp" line="+73"/>
         <location line="+7"/>
         <location line="+13"/>
-        <source>Auroracoin</source>
-        <translation>Auroracoin</translation>
+        <source>Smileycoin</source>
+        <translation>Smileycoin</translation>
     </message>
     <message>
         <location line="-19"/>
@@ -1738,13 +1738,13 @@ Adres: %4
     </message>
     <message>
         <location line="+60"/>
-        <source>Auroracoin Core didn&apos;t yet exit safely...</source>
-        <translation>Auroracoin is nog niet veilig afgesloten...</translation>
+        <source>Smileycoin Core didn&apos;t yet exit safely...</source>
+        <translation>Smileycoin is nog niet veilig afgesloten...</translation>
     </message>
     <message>
         <location filename="../guiutil.cpp" line="+93"/>
-        <source>Enter a Auroracoin address (e.g. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</source>
-        <translation>Voer een Auroracoin adres in (bijv. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</translation>
+        <source>Enter a Smileycoin address (e.g. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</source>
+        <translation>Voer een Smileycoin adres in (bijv. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</translation>
     </message>
 </context>
 <context>
@@ -1869,8 +1869,8 @@ Adres: %4
     </message>
     <message>
         <location line="+7"/>
-        <source>Open the Auroracoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
-        <translation>Open het Auroracoindebug-logbestand van de huidige datamap. Dit kan een aantal seconden duren voor grote logbestanden.</translation>
+        <source>Open the Smileycoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
+        <translation>Open het Smileycoindebug-logbestand van de huidige datamap. Dit kan een aantal seconden duren voor grote logbestanden.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1916,8 +1916,8 @@ Adres: %4
     </message>
     <message>
         <location filename="../rpcconsole.cpp" line="-35"/>
-        <source>Welcome to the Auroracoin RPC console.</source>
-        <translation>Welkom bij de Auroracoin RPC console.</translation>
+        <source>Welcome to the Smileycoin RPC console.</source>
+        <translation>Welkom bij de Smileycoin RPC console.</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -1980,8 +1980,8 @@ Adres: %4
     <message>
         <location line="+14"/>
         <location line="+23"/>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Auroracoin network.</source>
-        <translation>Een optioneel bericht om bij te voegen aan het betalingsverzoek, welke zal getoond worden wanneer het verzoek is geopend. Opmerking: Het bericht zal niet met de betaling over het Auroracoinnetwerk verzonden worden.</translation>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Smileycoin network.</source>
+        <translation>Een optioneel bericht om bij te voegen aan het betalingsverzoek, welke zal getoond worden wanneer het verzoek is geopend. Opmerking: Het bericht zal niet met de betaling over het Smileycoinnetwerk verzonden worden.</translation>
     </message>
     <message>
         <location line="-20"/>
@@ -2411,8 +2411,8 @@ Adres: %4
     </message>
     <message>
         <location line="+113"/>
-        <source>Warning: Invalid Auroracoin address</source>
-        <translation>Waarschuwing: ongeldig Auroracoin adres</translation>
+        <source>Warning: Invalid Smileycoin address</source>
+        <translation>Waarschuwing: ongeldig Smileycoin adres</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -2493,8 +2493,8 @@ Adres: %4
     </message>
     <message>
         <location line="+10"/>
-        <source>A message that was attached to the auroracoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Auroracoin network.</source>
-        <translation>Een bericht was aan de auroracoin: URI toegevoegd, welke met de transactie zal worden opgeslagen voor uw referentie. NB: Dit bericht zal niet over het Auroracoin netwerk verstuurd worden.</translation>
+        <source>A message that was attached to the smileycoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Smileycoin network.</source>
+        <translation>Een bericht was aan de smileycoin: URI toegevoegd, welke met de transactie zal worden opgeslagen voor uw referentie. NB: Dit bericht zal niet over het Smileycoin netwerk verstuurd worden.</translation>
     </message>
     <message>
         <location line="+426"/>
@@ -2528,8 +2528,8 @@ Adres: %4
     <name>ShutdownWindow</name>
     <message>
         <location filename="../utilitydialog.cpp" line="+48"/>
-        <source>Auroracoin Core is shutting down...</source>
-        <translation>Auroracoin wordt afgesloten...</translation>
+        <source>Smileycoin Core is shutting down...</source>
+        <translation>Smileycoin wordt afgesloten...</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2598,8 +2598,8 @@ Adres: %4
     </message>
     <message>
         <location line="+21"/>
-        <source>Sign the message to prove you own this Auroracoin address</source>
-        <translation>Onderteken een bericht om te bewijzen dat u een bepaald Auroracoinadres bezit</translation>
+        <source>Sign the message to prove you own this Smileycoin address</source>
+        <translation>Onderteken een bericht om te bewijzen dat u een bepaald Smileycoinadres bezit</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -2634,8 +2634,8 @@ Adres: %4
     </message>
     <message>
         <location line="+37"/>
-        <source>Verify the message to ensure it was signed with the specified Auroracoin address</source>
-        <translation>Controleer een bericht om te verifiëren dat het gespecificeerde Auroracoinadres het bericht heeft ondertekend</translation>
+        <source>Verify the message to ensure it was signed with the specified Smileycoin address</source>
+        <translation>Controleer een bericht om te verifiëren dat het gespecificeerde Smileycoinadres het bericht heeft ondertekend</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -2654,8 +2654,8 @@ Adres: %4
     </message>
     <message>
         <location line="+1"/>
-        <source>Enter a Auroracoin address (e.g. DNS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Voer een Auroracoinadres is (bijv. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</translation>
+        <source>Enter a Smileycoin address (e.g. DNS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
+        <translation>Voer een Smileycoinadres is (bijv. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</translation>
     </message>
     <message>
         <location line="+83"/>
@@ -2733,8 +2733,8 @@ Adres: %4
     </message>
     <message>
         <location line="+1"/>
-        <source>The Auroracoin developers</source>
-        <translation>De Auroracoin-ontwikkelaars</translation>
+        <source>The Smileycoin developers</source>
+        <translation>De Smileycoin-ontwikkelaars</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -3329,23 +3329,23 @@ Adres: %4
         <source>%s, you must set a rpcpassword in the configuration file:
 %s
 It is recommended you use the following random password:
-rpcuser=auroracoinrpc
+rpcuser=smileycoinrpc
 rpcpassword=%s
 (you do not need to remember this password)
 The username and password MUST NOT be the same.
 If the file does not exist, create it with owner-readable-only file permissions.
 It is also recommended to set alertnotify so you are notified of problems;
-for example: alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@foo.com
+for example: alertnotify=echo %%s | mail -s &quot;Smileycoin Alert&quot; admin@foo.com
 </source>
         <translation>%s, u moet een RPC-wachtwoord instellen in het configuratiebestand: %s
 U wordt aangeraden het volgende willekeurige wachtwoord te gebruiken:
-rpcuser=auroracoinrpc
+rpcuser=smileycoinrpc
 rpcpassword=%s
 (u hoeft dit wachtwoord niet te onthouden)
 De gebruikersnaam en wachtwoord mogen niet hetzelfde zijn.
 Als het bestand niet bestaat, make hem dan aan met leesrechten voor enkel de eigenaar.
 Het is ook aan te bevelen &quot;alertnotify&quot; in te stellen zodat u op de hoogte gesteld wordt van problemen;
-for example: alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@foo.com</translation>
+for example: alertnotify=echo %%s | mail -s &quot;Smileycoin Alert&quot; admin@foo.com</translation>
     </message>
     <message>
         <location line="+12"/>
@@ -3369,8 +3369,8 @@ for example: alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@f
     </message>
     <message>
         <location line="+3"/>
-        <source>Cannot obtain a lock on data directory %s. Auroracoin Core is probably already running.</source>
-        <translation>Kan geen lock op gegevensdirectory %s verkrijgen. Auroracoin Core draait waarschijnlijk al.</translation>
+        <source>Cannot obtain a lock on data directory %s. Smileycoin Core is probably already running.</source>
+        <translation>Kan geen lock op gegevensdirectory %s verkrijgen. Smileycoin Core draait waarschijnlijk al.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -3474,8 +3474,8 @@ for example: alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@f
     </message>
     <message>
         <location line="+3"/>
-        <source>Unable to bind to %s on this computer. Auroracoin Core is probably already running.</source>
-        <translation>Kan niet binden aan %s op deze computer. Auroracoin Core draait waarschijnlijk al.</translation>
+        <source>Unable to bind to %s on this computer. Smileycoin Core is probably already running.</source>
+        <translation>Kan niet binden aan %s op deze computer. Smileycoin Core draait waarschijnlijk al.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -3489,8 +3489,8 @@ for example: alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@f
     </message>
     <message>
         <location line="+3"/>
-        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Auroracoin will not work properly.</source>
-        <translation>Waarschuwing: Controleer a.u.b. dat uw computer&apos;s datum en tijd correct zijn! Als uw klok fout loopt zal Auroracoin niet goed werken.</translation>
+        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Smileycoin will not work properly.</source>
+        <translation>Waarschuwing: Controleer a.u.b. dat uw computer&apos;s datum en tijd correct zijn! Als uw klok fout loopt zal Smileycoin niet goed werken.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -3568,13 +3568,13 @@ Als het bestand niet bestaat, maak het dan aan, met een alleen-lezen-permissie.<
     </message>
     <message>
         <location line="+1"/>
-        <source>Auroracoin Core Daemon</source>
-        <translation>Auroracoin Core daemon</translation>
+        <source>Smileycoin Core Daemon</source>
+        <translation>Smileycoin Core daemon</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Auroracoin Core RPC client version</source>
-        <translation>Auroracoin Core RPC client versie</translation>
+        <source>Smileycoin Core RPC client version</source>
+        <translation>Smileycoin Core RPC client versie</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -3693,8 +3693,8 @@ Als het bestand niet bestaat, maak het dan aan, met een alleen-lezen-permissie.<
     </message>
     <message>
         <location line="+1"/>
-        <source>Error loading wallet.dat: Wallet requires newer version of Auroracoin</source>
-        <translation>Fout bij laden wallet.dat: Portemonnee vereist een nieuwere versie van Auroracoin</translation>
+        <source>Error loading wallet.dat: Wallet requires newer version of Smileycoin</source>
+        <translation>Fout bij laden wallet.dat: Portemonnee vereist een nieuwere versie van Smileycoin</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -4028,8 +4028,8 @@ Als het bestand niet bestaat, maak het dan aan, met een alleen-lezen-permissie.<
     </message>
     <message>
         <location line="+1"/>
-        <source>Send command to Auroracoin Core</source>
-        <translation>Stuur commando naar Auroracoin Core</translation>
+        <source>Send command to Smileycoin Core</source>
+        <translation>Stuur commando naar Smileycoin Core</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -4118,8 +4118,8 @@ Als het bestand niet bestaat, maak het dan aan, met een alleen-lezen-permissie.<
     </message>
     <message>
         <location line="+1"/>
-        <source>Specify pid file (default: auroracoind.pid)</source>
-        <translation>Specificeer pid-bestand (standaard: auroracoind.pid)
+        <source>Specify pid file (default: smileycoind.pid)</source>
+        <translation>Specificeer pid-bestand (standaard: smileycoind.pid)
 </translation>
     </message>
     <message>
@@ -4139,8 +4139,8 @@ Als het bestand niet bestaat, maak het dan aan, met een alleen-lezen-permissie.<
     </message>
     <message>
         <location line="+1"/>
-        <source>Start Auroracoin Core Daemon</source>
-        <translation>Start Auroracoin Core daemon</translation>
+        <source>Start Smileycoin Core Daemon</source>
+        <translation>Start Smileycoin Core daemon</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -4204,8 +4204,8 @@ Als het bestand niet bestaat, maak het dan aan, met een alleen-lezen-permissie.<
     </message>
     <message>
         <location line="+1"/>
-        <source>Usage (deprecated, use auroracoin-cli):</source>
-        <translation>Gebruik (verouderd, gebruik auroracoin-cli):</translation>
+        <source>Usage (deprecated, use smileycoin-cli):</source>
+        <translation>Gebruik (verouderd, gebruik smileycoin-cli):</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -4259,8 +4259,8 @@ Als het bestand niet bestaat, maak het dan aan, met een alleen-lezen-permissie.<
     </message>
     <message>
         <location line="+1"/>
-        <source>Wallet needed to be rewritten: restart Auroracoin to complete</source>
-        <translation>Portemonnee moest herschreven worden: Herstart Auroracoin om te voltooien</translation>
+        <source>Wallet needed to be rewritten: restart Smileycoin to complete</source>
+        <translation>Portemonnee moest herschreven worden: Herstart Smileycoin om te voltooien</translation>
     </message>
     <message>
         <location line="+1"/>

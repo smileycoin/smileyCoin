@@ -1,6 +1,6 @@
 Mac OS X Build Instructions and Notes
 ====================================
-This guide will show you how to build auroracoind(headless client) for OSX.
+This guide will show you how to build smileycoind(headless client) for OSX.
 
 Notes
 -----
@@ -52,14 +52,14 @@ Optional: install Qt4
 
     sudo port install qt4-mac qrencode protobuf-cpp
 
-### Building `auroracoind`
+### Building `smileycoind`
 
 1. Clone the github tree to get the source code and go into the directory.
 
-        git clone git@github.com:auroracoin/auroracoin.git auroracoin
-        cd auroracoin
+        git clone git@github.com:smileycoin/smileycoin.git smileycoin
+        cd smileycoin
 
-2.  Build auroracoind (and Auroracoin-Qt, if configured):
+2.  Build smileycoind (and Smileycoin-Qt, if configured):
 
         ./autogen.sh
         ./configure
@@ -88,14 +88,14 @@ If not, you can ensure that the Homebrew OpenSSL is correctly linked by running
 
 Rerunning "openssl version" should now return the correct version.
 
-### Building `auroracoind`
+### Building `smileycoind`
 
 1. Clone the github tree to get the source code and go into the directory.
 
-        git clone https://github.com/auroracoin/AuroracoinProject.git
-        cd auroracoin
+        git clone https://github.com/smileycoin/SmileycoinProject.git
+        cd smileycoin
 
-2.  Build auroracoind:
+2.  Build smileycoind:
 
         ./autogen.sh
         ./configure
@@ -107,11 +107,11 @@ Rerunning "openssl version" should now return the correct version.
 
 Creating a release build
 ------------------------
-You can ignore this section if you are building `auroracoind` for your own use.
+You can ignore this section if you are building `smileycoind` for your own use.
 
-auroracoind/auroracoin-cli binaries are not included in the Auroracoin-Qt.app bundle.
+smileycoind/smileycoin-cli binaries are not included in the Smileycoin-Qt.app bundle.
 
-If you are building `auroracoind` or `Auroracoin-Qt` for others, your build machine should be set up
+If you are building `smileycoind` or `Smileycoin-Qt` for others, your build machine should be set up
 as follows for maximum compatibility:
 
 All dependencies should be compiled with these flags:
@@ -129,32 +129,32 @@ For MacPorts, that means editing your macports.conf and setting
 ... and then uninstalling and re-installing, or simply rebuilding, all ports.
 
 As of December 2012, the `boost` port does not obey `macosx_deployment_target`.
-Download `http://gavinandresen-auroracoin.s3.amazonaws.com/boost_macports_fix.zip`
+Download `http://gavinandresen-smileycoin.s3.amazonaws.com/boost_macports_fix.zip`
 for a fix.
 
-Once dependencies are compiled, see release-process.md for how the Auroracoin-Qt.app
+Once dependencies are compiled, see release-process.md for how the Smileycoin-Qt.app
 bundle is packaged and signed to create the .dmg disk image that is distributed.
 
 Running
 -------
 
-It's now available at `./auroracoind`, provided that you are still in the `src`
+It's now available at `./smileycoind`, provided that you are still in the `src`
 directory. We have to first create the RPC configuration file, though.
 
-Run `./auroracoind` to get the filename where it should be put, or just try these
+Run `./smileycoind` to get the filename where it should be put, or just try these
 commands:
 
-    echo -e "rpcuser=auroracoinrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/Auroracoin/auroracoin.conf"
-    chmod 600 "/Users/${USER}/Library/Application Support/Auroracoin/auroracoin.conf"
+    echo -e "rpcuser=smileycoinrpc\nrpcpassword=$(xxd -l 16 -p /dev/urandom)" > "/Users/${USER}/Library/Application Support/Smileycoin/smileycoin.conf"
+    chmod 600 "/Users/${USER}/Library/Application Support/Smileycoin/smileycoin.conf"
 
 When next you run it, it will start downloading the blockchain, but it won't
 output anything while it's doing this. This process may take several hours;
 you can monitor its process by looking at the debug.log file, like this:
 
-    tail -f $HOME/Library/Application\ Support/Auroracoin/debug.log
+    tail -f $HOME/Library/Application\ Support/Smileycoin/debug.log
 
 Other commands:
 
-    ./auroracoind -daemon # to start the auroracoin daemon.
-    ./auroracoin-cli --help  # for a list of command-line options.
-    ./auroracoin-cli help    # When the daemon is running, to get a list of RPC commands
+    ./smileycoind -daemon # to start the smileycoin daemon.
+    ./smileycoin-cli --help  # for a list of command-line options.
+    ./smileycoin-cli help    # When the daemon is running, to get a list of RPC commands

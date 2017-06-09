@@ -89,6 +89,6 @@ Threads
 
 - ThreadRPCServer : Remote procedure call handler, listens on port 8332 for connections and services them.
 
-- AuroracoinMiner : Generates auroracoins (if wallet is enabled).
+- SmileycoinMiner : Generates smileycoins (if wallet is enabled).
 
 - Shutdown : Does an orderly shutdown of everything.

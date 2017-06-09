@@ -37,7 +37,7 @@ Value getinfo(const Array& params, bool fHelp)
             "  \"version\": xxxxx,           (numeric) the wallet build version\n"
             "  \"build_date\": xxxxx,        (string) the wallet build date\n"
             "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
-            "  \"balance\": xxxxxxx,         (numeric) the total auroracoin balance of the wallet\n"
+            "  \"balance\": xxxxxxx,         (numeric) the total smileycoin balance of the wallet\n"
             "  \"blocks\": xxxxxx,           (numeric) the current number of blocks processed in the server\n"
             "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
             "  \"connections\": xxxxx,       (numeric) the number of connections\n"
@@ -46,8 +46,8 @@ Value getinfo(const Array& params, bool fHelp)
             "  \"keypoololdest\": xxxxxx,    (numeric) the timestamp (seconds since GMT epoch) of the oldest pre-generated key in the key pool\n"
             "  \"keypoolsize\": xxxx,        (numeric) how many new keys are pre-generated\n"
             "  \"unlocked_until\": ttt,      (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
-            "  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set in aur/kb\n"
-            "  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for non-free transactions in aur/kb\n"
+            "  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set in smly/kb\n"
+            "  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for non-free transactions in smly/kb\n"
             "  \"errors\": \"...\"           (string) any error messages\n"
             "}\n"
             "\nExamples:\n"
@@ -135,14 +135,14 @@ Value validateaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "validateaddress \"auroracoinaddress\"\n"
-            "\nReturn information about the given auroracoin address.\n"
+            "validateaddress \"smileycoinaddress\"\n"
+            "\nReturn information about the given smileycoin address.\n"
             "\nArguments:\n"
-            "1. \"auroracoinaddress\"     (string, required) The auroracoin address to validate\n"
+            "1. \"smileycoinaddress\"     (string, required) The smileycoin address to validate\n"
             "\nResult:\n"
             "{\n"
             "  \"isvalid\" : true|false,            (boolean) If the address is valid or not. If not, this is the only property returned.\n"
-            "  \"address\" : \"auroracoinaddress\", (string) The auroracoin address validated\n"
+            "  \"address\" : \"smileycoinaddress\", (string) The smileycoin address validated\n"
             "  \"ismine\" : true|false,             (boolean) If the address is yours or not\n"
             "  \"isscript\" : true|false,           (boolean) If the key is a script\n"
             "  \"pubkey\" : \"publickeyhex\",       (string) The hex value of the raw public key\n"
@@ -246,9 +246,9 @@ Value createmultisig(const Array& params, bool fHelp)
 
             "\nArguments:\n"
             "1. nrequired      (numeric, required) The number of required signatures out of the n keys or addresses.\n"
-            "2. \"keys\"       (string, required) A json array of keys which are auroracoin addresses or hex-encoded public keys\n"
+            "2. \"keys\"       (string, required) A json array of keys which are smileycoin addresses or hex-encoded public keys\n"
             "     [\n"
-            "       \"key\"    (string) auroracoin address or hex-encoded public key\n"
+            "       \"key\"    (string) smileycoin address or hex-encoded public key\n"
             "       ,...\n"
             "     ]\n"
 
@@ -283,10 +283,10 @@ Value verifymessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 3)
         throw runtime_error(
-            "verifymessage \"auroracoinaddress\" \"signature\" \"message\"\n"
+            "verifymessage \"smileycoinaddress\" \"signature\" \"message\"\n"
             "\nVerify a signed message\n"
             "\nArguments:\n"
-            "1. \"auroracoinaddress\"  (string, required) The auroracoin address to use for the signature.\n"
+            "1. \"smileycoinaddress\"  (string, required) The smileycoin address to use for the signature.\n"
             "2. \"signature\"          (string, required) The signature provided by the signer in base 64 encoding (see signmessage).\n"
             "3. \"message\"            (string, required) The message that was signed.\n"
             "\nResult:\n"

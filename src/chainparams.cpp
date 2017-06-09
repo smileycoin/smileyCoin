@@ -65,14 +65,14 @@ public:
         assert(hashGenesisBlock == uint256("0x2a8e100939494904af825b488596ddd536b3a96226ad02e0f7ab7ae472b27a8e"));
         assert(genesis.hashMerkleRoot == uint256("0x8957e5e8d2f0e90c42e739ec62fcc5dd21064852da64b6528ebd46567f222169"));
 
-        vSeeds.push_back(CDNSSeedData("luxembourgh", "s1.auroraseed.net"));
-        vSeeds.push_back(CDNSSeedData("united-states-west", "aurseed1.criptoe.com"));
-        vSeeds.push_back(CDNSSeedData("united-states-east", "s1.auroraseed.com"));
-        vSeeds.push_back(CDNSSeedData("iceland", "s1.auroraseed.org"));
-        vSeeds.push_back(CDNSSeedData("the-netherlands", "s1.auroraseed.eu"));
-        vSeeds.push_back(CDNSSeedData("electrum2", "electrum2.aurorcoin.is"));
-        vSeeds.push_back(CDNSSeedData("electrum3", "electrum3.auroracoin.is"));
-        vSeeds.push_back(CDNSSeedData("electrum4", "electrum4.auroracoin.is"));
+        vSeeds.push_back(CDNSSeedData("luxembourgh", "s1.smlyoraseed.net"));
+        vSeeds.push_back(CDNSSeedData("united-states-west", "smlyseed1.criptoe.com"));
+        vSeeds.push_back(CDNSSeedData("united-states-east", "s1.smlyoraseed.com"));
+        vSeeds.push_back(CDNSSeedData("iceland", "s1.smlyoraseed.org"));
+        vSeeds.push_back(CDNSSeedData("the-netherlands", "s1.smlyoraseed.eu"));
+        vSeeds.push_back(CDNSSeedData("electrum2", "electrum2.smlyorcoin.is"));
+        vSeeds.push_back(CDNSSeedData("electrum3", "electrum3.smileycoin.is"));
+        vSeeds.push_back(CDNSSeedData("electrum4", "electrum4.smileycoin.is"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,23);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);

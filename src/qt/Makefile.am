@@ -5,7 +5,7 @@ AM_CPPFLAGS += -I$(top_srcdir)/src \
   -I$(top_builddir)/src/qt/forms \
   $(PROTOBUF_CFLAGS) \
   $(QR_CFLAGS)
-bin_PROGRAMS = auroracoin-qt
+bin_PROGRAMS = smileycoin-qt
 noinst_LIBRARIES = libbitcoinqt.a
 SUBDIRS = . $(BUILD_TEST_QT)
 DIST_SUBDIRS = . test
@@ -150,8 +150,8 @@ BITCOIN_QT_H = \
 RES_ICONS = \
   ../../media/pixmaps/add.png \
   ../../media/pixmaps/address-book.png \
-  ../../media/pixmaps/auroracoin.png \
-  ../../media/pixmaps/auroracoin_testnet.png \
+  ../../media/pixmaps/smileycoin.png \
+  ../../media/pixmaps/smileycoin_testnet.png \
   ../../media/pixmaps/clock1.png \
   ../../media/pixmaps/clock2.png \
   ../../media/pixmaps/clock3.png \
@@ -245,7 +245,7 @@ endif
 RES_IMAGES = \
   ../../media/pixmaps/about.png \
   ../../media/pixmaps/splash.png \
-  ../../media/pixmaps/auroracoin.png \
+  ../../media/pixmaps/smileycoin.png \
   ../../media/pixmaps/splash_testnet.png
 
 RES_MOVIES = $(wildcard res/movies/spinner-*.png)
@@ -268,22 +268,22 @@ $(QT_MOC): $(PROTOBUF_H)
 $(QT_MOC_CPP): $(PROTOBUF_H)
 
 # bitcoin-qt binary #
-auroracoin_qt_CPPFLAGS = $(AM_CPPFLAGS) $(QT_INCLUDES) \
+smileycoin_qt_CPPFLAGS = $(AM_CPPFLAGS) $(QT_INCLUDES) \
   -I$(top_srcdir)/src/qt/forms
-auroracoin_qt_SOURCES = bitcoin.cpp
+smileycoin_qt_SOURCES = bitcoin.cpp
 if TARGET_DARWIN
-  auroracoin_qt_SOURCES += $(BITCOIN_MM)
+  smileycoin_qt_SOURCES += $(BITCOIN_MM)
 endif
 if TARGET_WINDOWS
-  auroracoin_qt_SOURCES += $(BITCOIN_RC)
+  smileycoin_qt_SOURCES += $(BITCOIN_RC)
 endif
-auroracoin_qt_LDADD = libbitcoinqt.a $(LIBBITCOIN_SERVER)
+smileycoin_qt_LDADD = libbitcoinqt.a $(LIBBITCOIN_SERVER)
 if ENABLE_WALLET
-auroracoin_qt_LDADD += $(LIBBITCOIN_WALLET)
+smileycoin_qt_LDADD += $(LIBBITCOIN_WALLET)
 endif
-auroracoin_qt_LDADD += $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBLEVELDB) $(LIBMEMENV) \
+smileycoin_qt_LDADD += $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBLEVELDB) $(LIBMEMENV) \
   $(BOOST_LIBS) $(QT_LIBS) $(QT_DBUS_LIBS) $(QR_LIBS) $(PROTOBUF_LIBS) $(BDB_LIBS)
-auroracoin_qt_LDFLAGS = $(QT_LDFLAGS)
+smileycoin_qt_LDFLAGS = $(QT_LDFLAGS)
 
 # forms/foo.h -> forms/ui_foo.h
 QT_FORMS_H=$(join $(dir $(QT_FORMS_UI)),$(addprefix ui_, $(notdir $(QT_FORMS_UI:.ui=.h))))

@@ -58,13 +58,13 @@ bool AppInit(int argc, char* argv[])
         if (mapArgs.count("-?") || mapArgs.count("--help"))
         {
             // First part of help message is specific to bitcoind / RPC client
-            std::string strUsage = _("Auroracoin Core Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n\n" +
+            std::string strUsage = _("Smileycoin Core Daemon") + " " + _("version") + " " + FormatFullVersion() + "\n\n" +
                 _("Usage:") + "\n" +
-                  "  auroracoind [options]                     " + _("Start Auroracoin Core Daemon") + "\n" +
-                _("Usage (deprecated, use auroracoin-cli):") + "\n" +
-                  "  auroracoind [options] <command> [params]  " + _("Send command to Auroracoin Core") + "\n" +
-                  "  auroracoind [options] help                " + _("List commands") + "\n" +
-                  "  auroracoind [options] help <command>      " + _("Get help for a command") + "\n";
+                  "  smileycoind [options]                     " + _("Start Smileycoin Core Daemon") + "\n" +
+                _("Usage (deprecated, use smileycoin-cli):") + "\n" +
+                  "  smileycoind [options] <command> [params]  " + _("Send command to Smileycoin Core") + "\n" +
+                  "  smileycoind [options] help                " + _("List commands") + "\n" +
+                  "  smileycoind [options] help <command>      " + _("Get help for a command") + "\n";
 
             strUsage += "\n" + HelpMessage(HMM_BITCOIND);
             strUsage += "\n" + HelpMessageCli(false);
@@ -76,7 +76,7 @@ bool AppInit(int argc, char* argv[])
         // Command-line RPC
         bool fCommandLine = false;
         for (int i = 1; i < argc; i++)
-            if (!IsSwitchChar(argv[i][0]) && !boost::algorithm::istarts_with(argv[i], "auroracoin:"))
+            if (!IsSwitchChar(argv[i][0]) && !boost::algorithm::istarts_with(argv[i], "smileycoin:"))
                 fCommandLine = true;
 
         if (fCommandLine)
@@ -88,7 +88,7 @@ bool AppInit(int argc, char* argv[])
         fDaemon = GetBoolArg("-daemon", false);
         if (fDaemon)
         {
-            fprintf(stdout, "Auroracoin server starting\n");
+            fprintf(stdout, "Smileycoin server starting\n");
 
             // Daemonize
             pid_t pid = fork();

@@ -1,4 +1,4 @@
-Name "Auroracoin Core (-bit)"
+Name "Smileycoin Core (-bit)"
 
 RequestExecutionLevel highest
 SetCompressor /SOLID lzma
@@ -6,23 +6,23 @@ SetCompressor /SOLID lzma
 # General Symbol Definitions
 !define REGKEY "SOFTWARE\$(^Name)"
 !define VERSION 2016.8.1
-!define COMPANY "Auroracoin Core project"
-!define URL http://www.auroracoin.co/
+!define COMPANY "Smileycoin Core project"
+!define URL http://www.smileycoin.co/
 
 # MUI Symbol Definitions
-!define MUI_ICON "/home/myckel/software/github/aurarad/Auroracoin/share/pixmaps/bitcoin.ico"
-!define MUI_WELCOMEFINISHPAGE_BITMAP "/home/myckel/software/github/aurarad/Auroracoin/share/pixmaps/nsis-wizard.bmp"
+!define MUI_ICON "/home/myckel/software/github/smlyarad/Smileycoin/share/pixmaps/bitcoin.ico"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "/home/myckel/software/github/smlyarad/Smileycoin/share/pixmaps/nsis-wizard.bmp"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_RIGHT
-!define MUI_HEADERIMAGE_BITMAP "/home/myckel/software/github/aurarad/Auroracoin/share/pixmaps/nsis-header.bmp"
+!define MUI_HEADERIMAGE_BITMAP "/home/myckel/software/github/smlyarad/Smileycoin/share/pixmaps/nsis-header.bmp"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
 !define MUI_STARTMENUPAGE_REGISTRY_KEY ${REGKEY}
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
-!define MUI_STARTMENUPAGE_DEFAULTFOLDER "Auroracoin Core"
-!define MUI_FINISHPAGE_RUN $INSTDIR\auroracoin-qt.exe
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "Smileycoin Core"
+!define MUI_FINISHPAGE_RUN $INSTDIR\smileycoin-qt.exe
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
-!define MUI_UNWELCOMEFINISHPAGE_BITMAP "/home/myckel/software/github/aurarad/Auroracoin/share/pixmaps/nsis-wizard.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "/home/myckel/software/github/smlyarad/Smileycoin/share/pixmaps/nsis-wizard.bmp"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
 # Included files
@@ -48,18 +48,18 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE English
 
 # Installer attributes
-OutFile /home/myckel/software/github/aurarad/Auroracoin/auroracoin-${VERSION}-win-setup.exe
+OutFile /home/myckel/software/github/smlyarad/Smileycoin/smileycoin-${VERSION}-win-setup.exe
 !if "" == "64"
-InstallDir $PROGRAMFILES64\Auroracoin
+InstallDir $PROGRAMFILES64\Smileycoin
 !else
-InstallDir $PROGRAMFILES\Auroracoin
+InstallDir $PROGRAMFILES\Smileycoin
 !endif
 CRCCheck on
 XPStyle on
 BrandingText " "
 ShowInstDetails show
 VIProductVersion ${VERSION}.0
-VIAddVersionKey ProductName "Auroracoin Core"
+VIAddVersionKey ProductName "Smileycoin Core"
 VIAddVersionKey ProductVersion "${VERSION}"
 VIAddVersionKey CompanyName "${COMPANY}"
 VIAddVersionKey CompanyWebsite "${URL}"
@@ -73,19 +73,19 @@ ShowUninstDetails show
 Section -Main SEC0000
     SetOutPath $INSTDIR
     SetOverwrite on
-    File /home/myckel/software/github/aurarad/Auroracoin/release/auroracoin-qt.exe
-    File /oname=COPYING.txt /home/myckel/software/github/aurarad/Auroracoin/COPYING
-    File /oname=readme.txt /home/myckel/software/github/aurarad/Auroracoin/doc/README_windows.txt
+    File /home/myckel/software/github/smlyarad/Smileycoin/release/smileycoin-qt.exe
+    File /oname=COPYING.txt /home/myckel/software/github/smlyarad/Smileycoin/COPYING
+    File /oname=readme.txt /home/myckel/software/github/smlyarad/Smileycoin/doc/README_windows.txt
     SetOutPath $INSTDIR\daemon
-    File /home/myckel/software/github/aurarad/Auroracoin/release/auroracoind.exe
-    File /home/myckel/software/github/aurarad/Auroracoin/release/auroracoin-cli.exe
+    File /home/myckel/software/github/smlyarad/Smileycoin/release/smileycoind.exe
+    File /home/myckel/software/github/smlyarad/Smileycoin/release/smileycoin-cli.exe
     SetOutPath $INSTDIR\doc
-    File /r /home/myckel/software/github/aurarad/Auroracoin/doc\*.*
+    File /r /home/myckel/software/github/smlyarad/Smileycoin/doc\*.*
     SetOutPath $INSTDIR
     WriteRegStr HKCU "${REGKEY}\Components" Main 1
 
     # Remove old wxwidgets-based-bitcoin executable and locales:
-    Delete /REBOOTOK $INSTDIR\auroracoin.exe
+    Delete /REBOOTOK $INSTDIR\smileycoin.exe
     RMDir /r /REBOOTOK $INSTDIR\locale
 SectionEnd
 
@@ -95,7 +95,7 @@ Section -post SEC0001
     WriteUninstaller $INSTDIR\uninstall.exe
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
     CreateDirectory $SMPROGRAMS\$StartMenuGroup
-    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk" $INSTDIR\auroracoin-qt.exe
+    CreateShortcut "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk" $INSTDIR\smileycoin-qt.exe
     CreateShortcut "$SMPROGRAMS\$StartMenuGroup\Uninstall $(^Name).lnk" $INSTDIR\uninstall.exe
     !insertmacro MUI_STARTMENU_WRITE_END
     WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
@@ -106,10 +106,10 @@ Section -post SEC0001
     WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" UninstallString $INSTDIR\uninstall.exe
     WriteRegDWORD HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
     WriteRegDWORD HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
-    WriteRegStr HKCR "auroracoin" "URL Protocol" ""
-    WriteRegStr HKCR "auroracoin" "" "URL:Auroracoin"
-    WriteRegStr HKCR "auroracoin\DefaultIcon" "" $INSTDIR\auroracoin-qt.exe
-    WriteRegStr HKCR "auroracoin\shell\open\command" "" '"$INSTDIR\auroracoin-qt.exe" "%1"'
+    WriteRegStr HKCR "smileycoin" "URL Protocol" ""
+    WriteRegStr HKCR "smileycoin" "" "URL:Smileycoin"
+    WriteRegStr HKCR "smileycoin\DefaultIcon" "" $INSTDIR\smileycoin-qt.exe
+    WriteRegStr HKCR "smileycoin\shell\open\command" "" '"$INSTDIR\smileycoin-qt.exe" "%1"'
 SectionEnd
 
 # Macro for selecting uninstaller sections
@@ -127,7 +127,7 @@ done${UNSECTION_ID}:
 
 # Uninstaller sections
 Section /o -un.Main UNSEC0000
-    Delete /REBOOTOK $INSTDIR\auroracoin-qt.exe
+    Delete /REBOOTOK $INSTDIR\smileycoin-qt.exe
     Delete /REBOOTOK $INSTDIR\COPYING.txt
     Delete /REBOOTOK $INSTDIR\readme.txt
     RMDir /r /REBOOTOK $INSTDIR\daemon
@@ -139,7 +139,7 @@ Section -un.post UNSEC0001
     DeleteRegKey HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\Uninstall $(^Name).lnk"
     Delete /REBOOTOK "$SMPROGRAMS\$StartMenuGroup\$(^Name).lnk"
-    Delete /REBOOTOK "$SMSTARTUP\Auroracoin.lnk"
+    Delete /REBOOTOK "$SMSTARTUP\Smileycoin.lnk"
     Delete /REBOOTOK $INSTDIR\uninstall.exe
     Delete /REBOOTOK $INSTDIR\debug.log
     Delete /REBOOTOK $INSTDIR\db.log

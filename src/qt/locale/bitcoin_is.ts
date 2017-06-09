@@ -5,13 +5,13 @@
     <name>AboutDialog</name>
     <message>
         <location filename="../forms/aboutdialog.ui" line="+14"/>
-        <source>About Auroracoin Core</source>
-        <translation>Um Auroracoin Kjarnann</translation>
+        <source>About Smileycoin Core</source>
+        <translation>Um Smileycoin Kjarnann</translation>
     </message>
     <message>
         <location line="+39"/>
-        <source>&lt;b&gt;Auroracoin Core&lt;/b&gt; version</source>
-        <translation>&lt;b&gt;Auroracoin Kjarni&lt;/b&gt; útgáfa</translation>
+        <source>&lt;b&gt;Smileycoin Core&lt;/b&gt; version</source>
+        <translation>&lt;b&gt;Smileycoin Kjarni&lt;/b&gt; útgáfa</translation>
     </message>
     <message>
         <location line="+57"/>
@@ -40,8 +40,8 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="+0"/>
-        <source>The Bitcoin and Auroracoin Core developers</source>
-        <translation>Bitcoin og Auroracoin þrónuarteymið</translation>
+        <source>The Bitcoin and Smileycoin Core developers</source>
+        <translation>Bitcoin og Smileycoin þrónuarteymið</translation>
     </message>
     <message>
         <location line="+12"/>
@@ -90,8 +90,8 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="+19"/>
-        <source>Verify a message to ensure it was signed with a specified Auroracoin address</source>
-        <translation>Staðfesta skilaboð til að tryggja að þau séu staðfest af völdu Auroracoin reikningsnúmeri </translation>
+        <source>Verify a message to ensure it was signed with a specified Smileycoin address</source>
+        <translation>Staðfesta skilaboð til að tryggja að þau séu staðfest af völdu Smileycoin reikningsnúmeri </translation>
     </message>
     <message>
         <location line="+3"/>
@@ -121,7 +121,7 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     <message>
         <location filename="../addressbookpage.cpp" line="-30"/>
         <source>Choose the address to send coins to</source>
-        <translation>Veldu reikningsnúmer til að senda Auroracoin</translation>
+        <translation>Veldu reikningsnúmer til að senda Smileycoin</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -140,13 +140,13 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="+7"/>
-        <source>These are your Auroracoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Þetta eru Auroracoin reikningsnúmerin þín til að senda greiðslur. Athugið upphæðina og reikningsnúmerið áður en þú sendir greiðsluna.</translation>
+        <source>These are your Smileycoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Þetta eru Smileycoin reikningsnúmerin þín til að senda greiðslur. Athugið upphæðina og reikningsnúmerið áður en þú sendir greiðsluna.</translation>
     </message>
     <message>
         <location line="+4"/>
-        <source>These are your Auroracoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
-        <translation>Þetta eru Auroracoin reikningsnúmerin þín, til að móttaka greiðslur. Það er mælt með því að nota nýtt reikningsnúmer fyrir hverja millifærslu.</translation>
+        <source>These are your Smileycoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <translation>Þetta eru Smileycoin reikningsnúmerin þín, til að móttaka greiðslur. Það er mælt með því að nota nýtt reikningsnúmer fyrir hverja millifærslu.</translation>
     </message>
     <message>
         <location line="+7"/>
@@ -266,8 +266,8 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="+1"/>
-        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR AURORACOINS&lt;/b&gt;!</source>
-        <translation>Aðvörun: Ef þú dulkóðar veskið og tapar lykilorðinu, munt þú &lt;b&gt;TAPA ÖLLUM ÞÍNUM AURORACOIN&lt;/b&gt;!</translation>
+        <source>Warning: If you encrypt your wallet and lose your passphrase, you will &lt;b&gt;LOSE ALL OF YOUR SMILEYCOINS&lt;/b&gt;!</source>
+        <translation>Aðvörun: Ef þú dulkóðar veskið og tapar lykilorðinu, munt þú &lt;b&gt;TAPA ÖLLUM ÞÍNUM SMILEYCOIN&lt;/b&gt;!</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -282,8 +282,8 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="-56"/>
-        <source>Auroracoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your auroracoins from being stolen by malware infecting your computer.</source>
-        <translation>Auroracoin veskið mun nú lokast til að klára dulkóðunarferlið. Mundu að með því að dulkóða veskið þitt er samt ekki fyllilega hægt tryggja öryggi veskisins gagnvart vírusum eða ormum sem nú þegar hafa sýkt tölvuna þína.</translation>
+        <source>Smileycoin will close now to finish the encryption process. Remember that encrypting your wallet cannot fully protect your smileycoins from being stolen by malware infecting your computer.</source>
+        <translation>Smileycoin veskið mun nú lokast til að klára dulkóðunarferlið. Mundu að með því að dulkóða veskið þitt er samt ekki fyllilega hægt tryggja öryggi veskisins gagnvart vírusum eða ormum sem nú þegar hafa sýkt tölvuna þína.</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -342,13 +342,13 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     <name>BitcoinGUI</name>
     <message>
         <location filename="../bitcoin.cpp" line="+447"/>
-        <source>A fatal error occurred. Auroracoin can no longer continue safely and will quit.</source>
-        <translation>Alvarleg villa átti sér stað. Auroracoin veskið verður að slökkva á sér .</translation>
+        <source>A fatal error occurred. Smileycoin can no longer continue safely and will quit.</source>
+        <translation>Alvarleg villa átti sér stað. Smileycoin veskið verður að slökkva á sér .</translation>
     </message>
     <message>
         <location filename="../bitcoingui.cpp" line="+76"/>
-        <source>Auroracoin Core</source>
-        <translation>Auroracoin Kjarni</translation>
+        <source>Smileycoin Core</source>
+        <translation>Smileycoin Kjarni</translation>
     </message>
     <message>
         <location line="+38"/>
@@ -383,8 +383,8 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="+1"/>
-        <source>Send coins to a Auroracoin address</source>
-        <translation>Sendu Auroracoin reikningsnúmer</translation>
+        <source>Send coins to a Smileycoin address</source>
+        <translation>Sendu Smileycoin reikningsnúmer</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -393,8 +393,8 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="+1"/>
-        <source>Request payments (generates QR codes and auroracoin: URIs)</source>
-        <translation>Óska eftir greiðslu (býr til QR kóða og Auroracoin: URI)</translation>
+        <source>Request payments (generates QR codes and smileycoin: URIs)</source>
+        <translation>Óska eftir greiðslu (býr til QR kóða og Smileycoin: URI)</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -429,13 +429,13 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     <message>
         <location line="+4"/>
         <location line="+2"/>
-        <source>&amp;About Auroracoin Core</source>
-        <translation>&amp;Um Aurororacoin kjarnann</translation>
+        <source>&amp;About Smileycoin Core</source>
+        <translation>&amp;Um Smlyororacoin kjarnann</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Show information about Auroracoin</source>
-        <translation>Sýna upplýsingar um Auroracoin</translation>
+        <source>Show information about Smileycoin</source>
+        <translation>Sýna upplýsingar um Smileycoin</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -455,8 +455,8 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="+1"/>
-        <source>Modify configuration options for Auroracoin</source>
-        <translation>Breyta stillingum fyrir Auroracoin veskið</translation>
+        <source>Modify configuration options for Smileycoin</source>
+        <translation>Breyta stillingum fyrir Smileycoin veskið</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -506,8 +506,8 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="+1"/>
-        <source>Sign messages with your Auroracoin addresses to prove you own them</source>
-        <translation>Skráðu skilaboð með Auroracoin reikningsnúmeri til að sanna að þú eigir það</translation>
+        <source>Sign messages with your Smileycoin addresses to prove you own them</source>
+        <translation>Skráðu skilaboð með Smileycoin reikningsnúmeri til að sanna að þú eigir það</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -516,8 +516,8 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="+1"/>
-        <source>Verify messages to ensure they were signed with specified Auroracoin addresses</source>
-        <translation>Staðfesta skilaboð til að ganga úr skugga um að þau staðfest með Auroracoin reikningsnúmeri</translation>
+        <source>Verify messages to ensure they were signed with specified Smileycoin addresses</source>
+        <translation>Staðfesta skilaboð til að ganga úr skugga um að þau staðfest með Smileycoin reikningsnúmeri</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -556,8 +556,8 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="+1"/>
-        <source>Open a auroracoin: URI or payment request</source>
-        <translation>Opna Auroracoin: URI eða greiðslubeiðni</translation>
+        <source>Open a smileycoin: URI or payment request</source>
+        <translation>Opna Smileycoin: URI eða greiðslubeiðni</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -566,8 +566,8 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="+1"/>
-        <source>Show the Auroracoin Core help message to get a list with possible Auroracoin command-line options</source>
-        <translation>Sýna hjálpar skilaboð Auroracoin kjarnans til að fá lista yfir mögulegar Auroracoin skipanir</translation>
+        <source>Show the Smileycoin Core help message to get a list with possible Smileycoin command-line options</source>
+        <translation>Sýna hjálpar skilaboð Smileycoin kjarnans til að fá lista yfir mögulegar Smileycoin skipanir</translation>
     </message>
     <message>
         <location line="+34"/>
@@ -592,14 +592,14 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     <message>
         <location line="+93"/>
         <location line="+5"/>
-        <source>Auroracoin client</source>
-        <translation>Auroracoin tengill</translation>
+        <source>Smileycoin client</source>
+        <translation>Smileycoin tengill</translation>
     </message>
     <message numerus="yes">
         <location line="+142"/>
-        <source>%n active connection(s) to Auroracoin network</source>
+        <source>%n active connection(s) to Smileycoin network</source>
         <translation>
-            <numerusform>%n virk tenging við Auroracoin netið@%n virkar tengingar við Auroracoin netið</numerusform>
+            <numerusform>%n virk tenging við Smileycoin netið@%n virkar tengingar við Smileycoin netið</numerusform>
         </translation>
     </message>
     <message>
@@ -693,8 +693,8 @@ Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi e�
     </message>
     <message>
         <location line="+13"/>
-        <source>Auroracoin</source>
-        <translation>Auroracoin</translation>
+        <source>Smileycoin</source>
+        <translation>Smileycoin</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -1094,8 +1094,8 @@ Address: %4
     </message>
     <message>
         <location line="+71"/>
-        <source>The entered address &quot;%1&quot; is not a valid Auroracoin address.</source>
-        <translation>Reikningsnúmerið &quot;%1&quot; er ekki Auroracoin reikningsnúmer.</translation>
+        <source>The entered address &quot;%1&quot; is not a valid Smileycoin address.</source>
+        <translation>Reikningsnúmerið &quot;%1&quot; er ekki Smileycoin reikningsnúmer.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1145,13 +1145,13 @@ Address: %4
     <name>HelpMessageDialog</name>
     <message>
         <location filename="../forms/helpmessagedialog.ui" line="+19"/>
-        <source>Auroracoin Core - Command-line options</source>
-        <translation>Auroracoin Kjarni - Valmöguleikar fyrir innslegnar skipanir</translation>
+        <source>Smileycoin Core - Command-line options</source>
+        <translation>Smileycoin Kjarni - Valmöguleikar fyrir innslegnar skipanir</translation>
     </message>
     <message>
         <location filename="../utilitydialog.cpp" line="+24"/>
-        <source>Auroracoin Core</source>
-        <translation>Auroracoin Kjarni</translation>
+        <source>Smileycoin Core</source>
+        <translation>Smileycoin Kjarni</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -1208,18 +1208,18 @@ Address: %4
     </message>
     <message>
         <location line="+9"/>
-        <source>Welcome to Auroracoin Core.</source>
-        <translation>Velkomin í Auroracoin kjarnann</translation>
+        <source>Welcome to Smileycoin Core.</source>
+        <translation>Velkomin í Smileycoin kjarnann</translation>
     </message>
     <message>
         <location line="+26"/>
-        <source>As this is the first time the program is launched, you can choose where Auroracoin Core will store its data.</source>
-        <translation>Þar sem þetta er í fyrsta skipti sem veskið er ræst, þú getur valið hvar Auroracoin gögnin verða geymd.</translation>
+        <source>As this is the first time the program is launched, you can choose where Smileycoin Core will store its data.</source>
+        <translation>Þar sem þetta er í fyrsta skipti sem veskið er ræst, þú getur valið hvar Smileycoin gögnin verða geymd.</translation>
     </message>
     <message>
         <location line="+10"/>
-        <source>Auroracoin Core will download and store a copy of the Auroracoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
-        <translation>Auroracoin Kjarninn mun hala niður og vista eintak af Auroracoin blokkarkeðjunni. Allavegana %1GB af gögnum munu verða vistuð í þessari möppu og mun gagnamagnið aukast með tíma. Veskið þitt mun einnig verða vistað í þessari möppu.</translation>
+        <source>Smileycoin Core will download and store a copy of the Smileycoin block chain. At least %1GB of data will be stored in this directory, and it will grow over time. The wallet will also be stored in this directory.</source>
+        <translation>Smileycoin Kjarninn mun hala niður og vista eintak af Smileycoin blokkarkeðjunni. Allavegana %1GB af gögnum munu verða vistuð í þessari möppu og mun gagnamagnið aukast með tíma. Veskið þitt mun einnig verða vistað í þessari möppu.</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1233,8 +1233,8 @@ Address: %4
     </message>
     <message>
         <location filename="../intro.cpp" line="+84"/>
-        <source>Auroracoin</source>
-        <translation>Auroracoin</translation>
+        <source>Smileycoin</source>
+        <translation>Smileycoin</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -1299,13 +1299,13 @@ Address: %4
     </message>
     <message>
         <location line="+6"/>
-        <source>Automatically start Auroracoin after logging in to the system.</source>
-        <translation>Opna sjálfvirkt Auroracoin veski við innskráningu í tölvu.</translation>
+        <source>Automatically start Smileycoin after logging in to the system.</source>
+        <translation>Opna sjálfvirkt Smileycoin veski við innskráningu í tölvu.</translation>
     </message>
     <message>
         <location line="+3"/>
-        <source>&amp;Start Auroracoin on system login</source>
-        <translation>&amp;Opna Auroracoin við innskráningu</translation>
+        <source>&amp;Start Smileycoin on system login</source>
+        <translation>&amp;Opna Smileycoin við innskráningu</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -1374,8 +1374,8 @@ Address: %4
     </message>
     <message>
         <location line="+6"/>
-        <source>Automatically open the Auroracoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Opna sjálfvirkt port fyrir Auroracoin veski á gagnabeini. Þetta virkar bara þegar gagnabeinirinn styður UPnP og það er virkjað.</translation>
+        <source>Automatically open the Smileycoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Opna sjálfvirkt port fyrir Smileycoin veski á gagnabeini. Þetta virkar bara þegar gagnabeinirinn styður UPnP og það er virkjað.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1384,8 +1384,8 @@ Address: %4
     </message>
     <message>
         <location line="+7"/>
-        <source>Connect to the Auroracoin network through a SOCKS proxy.</source>
-        <translation>Tengjast Auroracoin netinu um SOCKS proxy.</translation>
+        <source>Connect to the Smileycoin network through a SOCKS proxy.</source>
+        <translation>Tengjast Smileycoin netinu um SOCKS proxy.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1459,8 +1459,8 @@ Address: %4
     </message>
     <message>
         <location line="+13"/>
-        <source>The user interface language can be set here. This setting will take effect after restarting Auroracoin.</source>
-        <translation>Tungumál fyrir notendaviðmót er valið hér. Þessar stillingar taka gildi eftur endurræsingu á Auroracoin veskinu.</translation>
+        <source>The user interface language can be set here. This setting will take effect after restarting Smileycoin.</source>
+        <translation>Tungumál fyrir notendaviðmót er valið hér. Þessar stillingar taka gildi eftur endurræsingu á Smileycoin veskinu.</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -1470,12 +1470,12 @@ Address: %4
     <message>
         <location line="+13"/>
         <source>Choose the default subdivision unit to show in the interface and when sending coins.</source>
-        <translation>Veldu sjálfgefna undreiningu til að sýna í viðmótinu þegar þú sendir Auroracoin.</translation>
+        <translation>Veldu sjálfgefna undreiningu til að sýna í viðmótinu þegar þú sendir Smileycoin.</translation>
     </message>
     <message>
         <location line="+9"/>
-        <source>Whether to show Auroracoin addresses in the transaction list or not.</source>
-        <translation>Hvort það eigi að sýna Auroracoin reikningsnúmer í millifærslulistanum eða ekki.</translation>
+        <source>Whether to show Smileycoin addresses in the transaction list or not.</source>
+        <translation>Hvort það eigi að sýna Smileycoin reikningsnúmer í millifærslulistanum eða ekki.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -1570,8 +1570,8 @@ Address: %4
     <message>
         <location line="+15"/>
         <location line="+215"/>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Auroracoin network after a connection is established, but this process has not completed yet.</source>
-        <translation>Þessar upplýsingar gætu verið útrunnar. Veskið mun sjálfkrafa samstilla sig við Auroracoin netið eftir að tengingu hefur verið komið á, en þessari aðgerð er ekki enn lokið.</translation>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Smileycoin network after a connection is established, but this process has not completed yet.</source>
+        <translation>Þessar upplýsingar gætu verið útrunnar. Veskið mun sjálfkrafa samstilla sig við Smileycoin netið eftir að tengingu hefur verið komið á, en þessari aðgerð er ekki enn lokið.</translation>
     </message>
     <message>
         <location line="-165"/>
@@ -1629,8 +1629,8 @@ Address: %4
     </message>
     <message>
         <location line="-353"/>
-        <source>Cannot start auroracoin: click-to-pay handler</source>
-        <translation>Ekki hægt að ræsa Auroracoin veskið: smelltu til að borga þjónustuaðila</translation>
+        <source>Cannot start smileycoin: click-to-pay handler</source>
+        <translation>Ekki hægt að ræsa Smileycoin veskið: smelltu til að borga þjónustuaðila</translation>
     </message>
     <message>
         <location line="+58"/>
@@ -1655,8 +1655,8 @@ Address: %4
     </message>
     <message>
         <location line="+13"/>
-        <source>URI can not be parsed! This can be caused by an invalid Auroracoin address or malformed URI parameters.</source>
-        <translation>URI virkar ekki! Þetta getur verið út af ógildu Auroracoin reikningsnúmeri eða vitlausum URI föstum.</translation>
+        <source>URI can not be parsed! This can be caused by an invalid Smileycoin address or malformed URI parameters.</source>
+        <translation>URI virkar ekki! Þetta getur verið út af ógildu Smileycoin reikningsnúmeri eða vitlausum URI föstum.</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -1715,8 +1715,8 @@ Address: %4
         <location filename="../bitcoin.cpp" line="+73"/>
         <location line="+7"/>
         <location line="+13"/>
-        <source>Auroracoin</source>
-        <translation>Auroracoin</translation>
+        <source>Smileycoin</source>
+        <translation>Smileycoin</translation>
     </message>
     <message>
         <location line="-19"/>
@@ -1735,13 +1735,13 @@ Address: %4
     </message>
     <message>
         <location line="+60"/>
-        <source>Auroracoin Core didn&apos;t yet exit safely...</source>
-        <translation>Auroracoin Kjarninn gat ekki strax lokað eðlilega...</translation>
+        <source>Smileycoin Core didn&apos;t yet exit safely...</source>
+        <translation>Smileycoin Kjarninn gat ekki strax lokað eðlilega...</translation>
     </message>
     <message>
         <location filename="../guiutil.cpp" line="+93"/>
-        <source>Enter a Auroracoin address (e.g. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</source>
-        <translation>Sláðu inn Auroracoin reikningsnúmer (t.d. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</translation>
+        <source>Enter a Smileycoin address (e.g. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</source>
+        <translation>Sláðu inn Smileycoin reikningsnúmer (t.d. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)</translation>
     </message>
 </context>
 <context>
@@ -1866,7 +1866,7 @@ Address: %4
     </message>
     <message>
         <location line="+7"/>
-        <source>Open the Auroracoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
+        <source>Open the Smileycoin debug log file from the current data directory. This can take a few seconds for large log files.</source>
         <translation>Opna villuleitarskrá frá núverandi staðsetningu. Þetta gæti tekið nokkrar sekúntur fyir stærri skrár.</translation>
     </message>
     <message>
@@ -1913,8 +1913,8 @@ Address: %4
     </message>
     <message>
         <location filename="../rpcconsole.cpp" line="-35"/>
-        <source>Welcome to the Auroracoin RPC console.</source>
-        <translation>Velkominn í Auroracoin RPC viðmótið.</translation>
+        <source>Welcome to the Smileycoin RPC console.</source>
+        <translation>Velkominn í Smileycoin RPC viðmótið.</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -1977,8 +1977,8 @@ Address: %4
     <message>
         <location line="+14"/>
         <location line="+23"/>
-        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Auroracoin network.</source>
-        <translation>Valkvæð skilaboð til að festa við greiðsluna, sem verður sýnileg þegar beiðnin er opnum. Takið eftir: Skilaboðin eru ekki send með greiðslunni um Auroracoin netið.</translation>
+        <source>An optional message to attach to the payment request, which will be displayed when the request is opened. Note: The message will not be sent with the payment over the Smileycoin network.</source>
+        <translation>Valkvæð skilaboð til að festa við greiðsluna, sem verður sýnileg þegar beiðnin er opnum. Takið eftir: Skilaboðin eru ekki send með greiðslunni um Smileycoin netið.</translation>
     </message>
     <message>
         <location line="-20"/>
@@ -2404,12 +2404,12 @@ Address: %4
     <message>
         <location line="+4"/>
         <source>The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.</source>
-        <translation>Millifærlsunni var hafnað! Þetta gæti gerst ef búið er að eyða Auroracoin-unum í veskinu, t.d. ef þú hefur afritað wallet.dat skránna í aðra tölvu og eytt þar en tilvist þeirrar millifærslu er ekki í þessu veski. </translation>
+        <translation>Millifærlsunni var hafnað! Þetta gæti gerst ef búið er að eyða Smileycoin-unum í veskinu, t.d. ef þú hefur afritað wallet.dat skránna í aðra tölvu og eytt þar en tilvist þeirrar millifærslu er ekki í þessu veski. </translation>
     </message>
     <message>
         <location line="+113"/>
-        <source>Warning: Invalid Auroracoin address</source>
-        <translation>Viðvörun: Ógilt Auroracoin reikningsnúmer</translation>
+        <source>Warning: Invalid Smileycoin address</source>
+        <translation>Viðvörun: Ógilt Smileycoin reikningsnúmer</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -2490,8 +2490,8 @@ Address: %4
     </message>
     <message>
         <location line="+10"/>
-        <source>A message that was attached to the auroracoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Auroracoin network.</source>
-        <translation>Skilaboð sem var fest við reikningsnúmerið: URI sem verður fest við millifærsluna fyrir þig. NB. Þessi skilaboð verða ekki send yfir Auroracoin netið.</translation>
+        <source>A message that was attached to the smileycoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Smileycoin network.</source>
+        <translation>Skilaboð sem var fest við reikningsnúmerið: URI sem verður fest við millifærsluna fyrir þig. NB. Þessi skilaboð verða ekki send yfir Smileycoin netið.</translation>
     </message>
     <message>
         <location line="+426"/>
@@ -2525,8 +2525,8 @@ Address: %4
     <name>ShutdownWindow</name>
     <message>
         <location filename="../utilitydialog.cpp" line="+48"/>
-        <source>Auroracoin Core is shutting down...</source>
-        <translation>Auroracoin Kjarninn er að slökkva á sér...</translation>
+        <source>Smileycoin Core is shutting down...</source>
+        <translation>Smileycoin Kjarninn er að slökkva á sér...</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2595,8 +2595,8 @@ Address: %4
     </message>
     <message>
         <location line="+21"/>
-        <source>Sign the message to prove you own this Auroracoin address</source>
-        <translation>Staðfesta skilaboðin til að sanna að þú eigir Auroracoin reikningsnúmerið</translation>
+        <source>Sign the message to prove you own this Smileycoin address</source>
+        <translation>Staðfesta skilaboðin til að sanna að þú eigir Smileycoin reikningsnúmerið</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -2631,8 +2631,8 @@ Address: %4
     </message>
     <message>
         <location line="+37"/>
-        <source>Verify the message to ensure it was signed with the specified Auroracoin address</source>
-        <translation>Staðfesta skilaboð til að ganga úr skugga um að það var undirskrifað með ákveðnu Auroracoin reikningsnúmeri</translation>
+        <source>Verify the message to ensure it was signed with the specified Smileycoin address</source>
+        <translation>Staðfesta skilaboð til að ganga úr skugga um að það var undirskrifað með ákveðnu Smileycoin reikningsnúmeri</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -2651,8 +2651,8 @@ Address: %4
     </message>
     <message>
         <location line="+1"/>
-        <source>Enter a Auroracoin address (e.g. DNS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
-        <translation>Sláðu inn Auroracoin reikningsnúmer (t.d. AT3XK3BX6iDRwoFpgukDybXLeYSREn8N8r)</translation>
+        <source>Enter a Smileycoin address (e.g. DNS17iag9jJgTHD1VXjvLCEnZuQ3rJDE9L)</source>
+        <translation>Sláðu inn Smileycoin reikningsnúmer (t.d. AT3XK3BX6iDRwoFpgukDybXLeYSREn8N8r)</translation>
     </message>
     <message>
         <location line="+83"/>
@@ -2730,8 +2730,8 @@ Address: %4
     </message>
     <message>
         <location line="+1"/>
-        <source>The Auroracoin developers</source>
-        <translation>Auroracoin þróunarteymið</translation>
+        <source>The Smileycoin developers</source>
+        <translation>Smileycoin þróunarteymið</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2905,7 +2905,7 @@ Address: %4
     <message>
         <location line="+7"/>
         <source>Generated coins must mature %1 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to &quot;not accepted&quot; and it won&apos;t be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.</source>
-        <translation>Nýr Auroracoin verður að bíða %1 blokkir áður en hægt er að eyða þeim. Þegar þú bjóst til blokkina var henni útvarpað um netið til að henni yrið bætt við í blokkarkeðjuna. Ef blokkin kemst ekki inn í keðjuna mun ástand hennar breytast í &quot;ekki samþykkt&quot; og ekki verður hægt að eyða Auroracoin-unum. Þetta gæti gerst af og til ef önnur nóða finnur blokk fáum sekúntum á undan þér.</translation>
+        <translation>Nýr Smileycoin verður að bíða %1 blokkir áður en hægt er að eyða þeim. Þegar þú bjóst til blokkina var henni útvarpað um netið til að henni yrið bætt við í blokkarkeðjuna. Ef blokkin kemst ekki inn í keðjuna mun ástand hennar breytast í &quot;ekki samþykkt&quot; og ekki verður hægt að eyða Smileycoin-unum. Þetta gæti gerst af og til ef önnur nóða finnur blokk fáum sekúntum á undan þér.</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -3273,7 +3273,7 @@ Address: %4
     <message>
         <location filename="../walletmodel.cpp" line="+258"/>
         <source>Send Coins</source>
-        <translation>Senda Auroracoin</translation>
+        <translation>Senda Smileycoin</translation>
     </message>
 </context>
 <context>
@@ -3326,24 +3326,24 @@ Address: %4
         <source>%s, you must set a rpcpassword in the configuration file:
 %s
 It is recommended you use the following random password:
-rpcuser=auroracoinrpc
+rpcuser=smileycoinrpc
 rpcpassword=%s
 (you do not need to remember this password)
 The username and password MUST NOT be the same.
 If the file does not exist, create it with owner-readable-only file permissions.
 It is also recommended to set alertnotify so you are notified of problems;
-for example: alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@foo.com
+for example: alertnotify=echo %%s | mail -s &quot;Smileycoin Alert&quot; admin@foo.com
 </source>
         <translation>%s, Þú verður að setja upp rpcpassword í breytingar skánni:
 %s
 Það er mælt með að þú notir eftirfarandi random lykilorð:
-rpcuser=auroracoinrpc
+rpcuser=smileycoinrpc
 rpcpassword=%s
 (þú þarft ekki að muna þetta lykilorð)
 Notendanafnið og lykilorðið MEGA EKKI VERA það sama.
 Ef skráin er ekki til, búðu hana til með owner-readable-only file permissions.
 Einnig er mælt með að setja alertnotify svo að þú verðir var við vandamál;
-til dæmis; alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@foo.com
+til dæmis; alertnotify=echo %%s | mail -s &quot;Smileycoin Alert&quot; admin@foo.com
 </translation>
     </message>
     <message>
@@ -3368,8 +3368,8 @@ til dæmis; alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@fo
     </message>
     <message>
         <location line="+3"/>
-        <source>Cannot obtain a lock on data directory %s. Auroracoin Core is probably already running.</source>
-        <translation>Get ekki læst á gagnaskrá %s. Auroracoin Kjarninn er örugglega nú þegar í gangi.</translation>
+        <source>Cannot obtain a lock on data directory %s. Smileycoin Core is probably already running.</source>
+        <translation>Get ekki læst á gagnaskrá %s. Smileycoin Kjarninn er örugglega nú þegar í gangi.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -3473,8 +3473,8 @@ til dæmis; alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@fo
     </message>
     <message>
         <location line="+3"/>
-        <source>Unable to bind to %s on this computer. Auroracoin Core is probably already running.</source>
-        <translation>Gat ekki bundist við %s á þessari tölvu. Auroracoin Kjarninn er sennilega í gangi.</translation>
+        <source>Unable to bind to %s on this computer. Smileycoin Core is probably already running.</source>
+        <translation>Gat ekki bundist við %s á þessari tölvu. Smileycoin Kjarninn er sennilega í gangi.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -3488,8 +3488,8 @@ til dæmis; alertnotify=echo %%s | mail -s &quot;Auroracoin Alert&quot; admin@fo
     </message>
     <message>
         <location line="+3"/>
-        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Auroracoin will not work properly.</source>
-        <translation>Viðvörun: Vinsamlegast athugaðu hvort klukkan í tölvunniþinni síni réttan dag og tíma! Ef klukkan er röng mun Auroracoin ekki virka rétt.</translation>
+        <source>Warning: Please check that your computer&apos;s date and time are correct! If your clock is wrong Smileycoin will not work properly.</source>
+        <translation>Viðvörun: Vinsamlegast athugaðu hvort klukkan í tölvunniþinni síni réttan dag og tíma! Ef klukkan er röng mun Smileycoin ekki virka rétt.</translation>
     </message>
     <message>
         <location line="+3"/>
@@ -3567,13 +3567,13 @@ Ef skráin er ekki til, skaltu búa hana til með owner-readable-only file permi
     </message>
     <message>
         <location line="+1"/>
-        <source>Auroracoin Core Daemon</source>
-        <translation>Auroracoin Kjarni Daemon</translation>
+        <source>Smileycoin Core Daemon</source>
+        <translation>Smileycoin Kjarni Daemon</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Auroracoin Core RPC client version</source>
-        <translation>Auroracoin kjarna RPC hugbúnaðarútgáfa</translation>
+        <source>Smileycoin Core RPC client version</source>
+        <translation>Smileycoin kjarna RPC hugbúnaðarútgáfa</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -3692,8 +3692,8 @@ Ef skráin er ekki til, skaltu búa hana til með owner-readable-only file permi
     </message>
     <message>
         <location line="+1"/>
-        <source>Error loading wallet.dat: Wallet requires newer version of Auroracoin</source>
-        <translation>Villa við að keyar upp wallet.dat: Verskið þarfnast nýrri útgáfu af Auroracoin</translation>
+        <source>Error loading wallet.dat: Wallet requires newer version of Smileycoin</source>
+        <translation>Villa við að keyar upp wallet.dat: Verskið þarfnast nýrri útgáfu af Smileycoin</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -4027,8 +4027,8 @@ Ef skráin er ekki til, skaltu búa hana til með owner-readable-only file permi
     </message>
     <message>
         <location line="+1"/>
-        <source>Send command to Auroracoin Core</source>
-        <translation>Senda skipun til Auroracoin kjarnanns</translation>
+        <source>Send command to Smileycoin Core</source>
+        <translation>Senda skipun til Smileycoin kjarnanns</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -4117,8 +4117,8 @@ Ef skráin er ekki til, skaltu búa hana til með owner-readable-only file permi
     </message>
     <message>
         <location line="+1"/>
-        <source>Specify pid file (default: auroracoind.pid)</source>
-        <translation>Sérstök pid skrá (sjálfgefið: auroracoind.pid)</translation>
+        <source>Specify pid file (default: smileycoind.pid)</source>
+        <translation>Sérstök pid skrá (sjálfgefið: smileycoind.pid)</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -4137,8 +4137,8 @@ Ef skráin er ekki til, skaltu búa hana til með owner-readable-only file permi
     </message>
     <message>
         <location line="+1"/>
-        <source>Start Auroracoin Core Daemon</source>
-        <translation>Ræsa Auroracoin Kjarna Deamon</translation>
+        <source>Start Smileycoin Core Daemon</source>
+        <translation>Ræsa Smileycoin Kjarna Deamon</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -4202,8 +4202,8 @@ Ef skráin er ekki til, skaltu búa hana til með owner-readable-only file permi
     </message>
     <message>
         <location line="+1"/>
-        <source>Usage (deprecated, use auroracoin-cli):</source>
-        <translation>Notkun (virðislækkun, nota auroracoin-cli:)</translation>
+        <source>Usage (deprecated, use smileycoin-cli):</source>
+        <translation>Notkun (virðislækkun, nota smileycoin-cli:)</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -4257,8 +4257,8 @@ Ef skráin er ekki til, skaltu búa hana til með owner-readable-only file permi
     </message>
     <message>
         <location line="+1"/>
-        <source>Wallet needed to be rewritten: restart Auroracoin to complete</source>
-        <translation>Það þarf að endurskrifa veskið: ednurræsa Auroracoin</translation>
+        <source>Wallet needed to be rewritten: restart Smileycoin to complete</source>
+        <translation>Það þarf að endurskrifa veskið: ednurræsa Smileycoin</translation>
     </message>
     <message>
         <location line="+1"/>

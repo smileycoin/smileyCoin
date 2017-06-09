@@ -14,11 +14,11 @@ bin_PROGRAMS =
 sbin_PROGRAMS =
 
 if BUILD_BITCOIND
-  sbin_PROGRAMS += auroracoind
+  sbin_PROGRAMS += smileycoind
 endif
 
 if BUILD_BITCOIN_CLI
-  bin_PROGRAMS += auroracoin-cli
+  bin_PROGRAMS += smileycoin-cli
 endif
 
 SUBDIRS = . $(BUILD_QT) $(BUILD_TEST)
@@ -180,35 +180,35 @@ nodist_libbitcoin_common_a_SOURCES = $(top_srcdir)/src/obj/build.h
 #
 
 # bitcoind binary #
-auroracoind_LDADD = \
+smileycoind_LDADD = \
   libbitcoin_server.a \
   libbitcoin_cli.a \
   libbitcoin_common.a \
   $(LIBLEVELDB) \
   $(LIBMEMENV)
 if ENABLE_WALLET
-auroracoind_LDADD += libbitcoin_wallet.a
+smileycoind_LDADD += libbitcoin_wallet.a
 endif
-auroracoind_SOURCES = bitcoind.cpp
+smileycoind_SOURCES = bitcoind.cpp
 #
 
 if TARGET_WINDOWS
-auroracoind_SOURCES += bitcoind-res.rc
+smileycoind_SOURCES += bitcoind-res.rc
 endif
 
 AM_CPPFLAGS += $(BDB_CPPFLAGS)
-auroracoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS)
+smileycoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS)
 
 # bitcoin-cli binary #
-auroracoin_cli_LDADD = \
+smileycoin_cli_LDADD = \
   libbitcoin_cli.a \
   libbitcoin_common.a \
   $(BOOST_LIBS)
-auroracoin_cli_SOURCES = bitcoin-cli.cpp
+smileycoin_cli_SOURCES = bitcoin-cli.cpp
 #
 
 if TARGET_WINDOWS
-auroracoin_cli_SOURCES += bitcoin-cli-res.rc
+smileycoin_cli_SOURCES += bitcoin-cli-res.rc
 endif
 
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race

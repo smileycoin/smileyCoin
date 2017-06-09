@@ -1,4 +1,4 @@
-Auroracoin
+Smileycoin
 =====================
 
 Copyright (c) 2016 Auroracoin Developers
@@ -6,30 +6,30 @@ Copyright (c) 2016 Auroracoin Developers
 
 Running
 ---------------------
-The following are some helpful notes on how to run Auroracoin on your native platform.
+The following are some helpful notes on how to run Smileycoin on your native platform.
 
 ### Unix
 
-You need the Qt4 run-time libraries to run Auroracoin-Qt. On Debian or Ubuntu:
+You need the Qt4 run-time libraries to run Smileycoin-Qt. On Debian or Ubuntu:
 
 	sudo apt-get install libqtgui4
 
 Unpack the files into a directory and run:
 
-- bin/32/auroracoin-qt (GUI, 32-bit) or bin/32/auroracoind (headless, 32-bit)
-- bin/64/auroracoin-qt (GUI, 64-bit) or bin/64/auroracoind (headless, 64-bit)
+- bin/32/smileycoin-qt (GUI, 32-bit) or bin/32/smileycoind (headless, 32-bit)
+- bin/64/smileycoin-qt (GUI, 64-bit) or bin/64/smileycoind (headless, 64-bit)
 
 ### Windows
 
-Unpack the files into a directory, and then run auroracoin-qt.exe.
+Unpack the files into a directory, and then run smileycoin-qt.exe.
 
 ### OSX
 
-Drag Auroracoin-Qt to your applications folder, and then run Auroracoin-Qt.
+Drag Smileycoin-Qt to your applications folder, and then run Smileycoin-Qt.
 
 Building
 ---------------------
-The following are developer notes on how to build Auroracoin on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
+The following are developer notes on how to build Smileycoin on your native platform. They are not complete guides, but include notes on the necessary libraries, compile flags, etc.
 
 - [OSX Build Notes](build-osx.md)
 - [Unix Build Notes](build-unix.md)
@@ -37,7 +37,7 @@ The following are developer notes on how to build Auroracoin on your native plat
 
 Development
 ---------------------
-The Auroracoin repo's [root README](https://github.com/aurarad/Auroracoin/blob/master/README.md) contains relevant information on the development process and automated testing.
+The Smileycoin repo's [root README](https://github.com/smlyarad/Smileycoin/blob/master/README.md) contains relevant information on the development process and automated testing.
 
 - [Coding Guidelines](coding.md)
 

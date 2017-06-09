@@ -47,10 +47,10 @@
 using namespace boost;
 
 const int BITCOIN_IPC_CONNECT_TIMEOUT = 1000; // milliseconds
-const QString BITCOIN_IPC_PREFIX("auroracoin:");
-const char* BITCOIN_REQUEST_MIMETYPE = "application/auroracoin-paymentrequest";
-const char* BITCOIN_PAYMENTACK_MIMETYPE = "application/auroracoin-paymentack";
-const char* BITCOIN_PAYMENTACK_CONTENTTYPE = "application/auroracoin-payment";
+const QString BITCOIN_IPC_PREFIX("smileycoin:");
+const char* BITCOIN_REQUEST_MIMETYPE = "application/smileycoin-paymentrequest";
+const char* BITCOIN_PAYMENTACK_MIMETYPE = "application/smileycoin-paymentack";
+const char* BITCOIN_PAYMENTACK_CONTENTTYPE = "application/smileycoin-payment";
 
 X509_STORE* PaymentServer::certStore = NULL;
 void PaymentServer::freeCertStore()
@@ -69,7 +69,7 @@ void PaymentServer::freeCertStore()
 //
 static QString ipcServerName()
 {
-    QString name("AuroracoinQt");
+    QString name("SmileycoinQt");
 
     // Append a simple hash of the datadir
     QString ddir(QString::fromStdString(GetDataDir(true).string()));
@@ -288,7 +288,7 @@ PaymentServer::PaymentServer(QObject* parent, bool startLocalServer) :
         if (!uriServer->listen(name)) {
             // constructor is called early in init, so don't use "emit message()" here
             QMessageBox::critical(0, tr("Payment request error"),
-                tr("Cannot start auroracoin: click-to-pay handler"));
+                tr("Cannot start smileycoin: click-to-pay handler"));
         }
         else {
             connect(uriServer, SIGNAL(newConnection()), this, SLOT(handleURIConnection()));
@@ -412,7 +412,7 @@ void PaymentServer::handleURIOrFile(const QString& s)
                 emit receivedPaymentRequest(recipient);
             else
                 emit message(tr("URI handling"),
-                    tr("URI can not be parsed! This can be caused by an invalid Auroracoin address or malformed URI parameters."),
+                    tr("URI can not be parsed! This can be caused by an invalid Smileycoin address or malformed URI parameters."),
                     CClientUIInterface::ICON_WARNING);
 
             return;

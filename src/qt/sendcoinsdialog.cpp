@@ -561,7 +561,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString& text)
         }
         else if (!addr.IsValid()) // Invalid address
         {
-            ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid Auroracoin address"));
+            ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid Smileycoin address"));
         }
         else // Valid address
         {

@@ -1,6 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
     <qresource prefix="/icons">
-        <file alias="bitcoin">../../media/pixmaps/auroracoin.png</file>
+        <file alias="bitcoin">../../media/pixmaps/smileycoin.png</file>
         <file alias="address-book">../../media/pixmaps/address-book.png</file>
         <file alias="quit">../../media/pixmaps/quit.png</file>
         <file alias="send">../../media/pixmaps/send.png</file>
@@ -23,7 +23,7 @@
         <file alias="editpaste">../../media/pixmaps/editpaste.png</file>
         <file alias="editcopy">../../media/pixmaps/editcopy.png</file>
         <file alias="add">../../media/pixmaps/add.png</file>
-        <file alias="bitcoin_testnet">../../media/pixmaps/auroracoin_testnet.png</file>
+        <file alias="bitcoin_testnet">../../media/pixmaps/smileycoin_testnet.png</file>
         <file alias="toolbar_testnet">../../media/pixmaps/toolbar_testnet.png</file>
         <file alias="edit">../../media/pixmaps/edit.png</file>
         <file alias="history">../../media/pixmaps/history.png</file>

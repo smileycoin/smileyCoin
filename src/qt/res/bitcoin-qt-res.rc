@@ -1,6 +1,6 @@
 // Copyright (c) 2015-2017 The Auroracoin developers
 
-IDI_ICON1 ICON DISCARDABLE "../../../media/pixmaps/auroracoin.ico"
+IDI_ICON1 ICON DISCARDABLE "../../../media/pixmaps/smileycoin.ico"
 // IDI_ICON2 ICON DISCARDABLE "../../../media/old/icons/bitcoin_testnet.ico"
 
 #include <windows.h>             // needed for VERSIONINFO
@@ -15,7 +15,7 @@ IDI_ICON1 ICON DISCARDABLE "../../../media/pixmaps/auroracoin.ico"
 #define VER_PRODUCTVERSION_STR STRINGIZE(CLIENT_VERSION_MAJOR) "." STRINGIZE(CLIENT_VERSION_MINOR) "." STRINGIZE(CLIENT_VERSION_REVISION) "." STRINGIZE(CLIENT_VERSION_BUILD)
 #define VER_FILEVERSION        VER_PRODUCTVERSION
 #define VER_FILEVERSION_STR    VER_PRODUCTVERSION_STR
-#define COPYRIGHT_STR          "2009-" STRINGIZE(COPYRIGHT_YEAR) " The Auroracoin developers"
+#define COPYRIGHT_STR          "2009-" STRINGIZE(COPYRIGHT_YEAR) " The Smileycoin developers"
 
 VS_VERSION_INFO VERSIONINFO
 FILEVERSION     VER_FILEVERSION
@@ -27,14 +27,14 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "Auroracoin Foundation"
-            VALUE "FileDescription",    "Auroracoin Core (OSS GUI client for Auroracoin)"
+            VALUE "CompanyName",        "Smileycoin Foundation"
+            VALUE "FileDescription",    "Smileycoin Core (OSS GUI client for Smileycoin)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
-            VALUE "InternalName",       "auroracoin-qt"
+            VALUE "InternalName",       "smileycoin-qt"
             VALUE "LegalCopyright",     COPYRIGHT_STR
             VALUE "LegalTrademarks1",   "Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php."
-            VALUE "OriginalFilename",   "auroracoin-qt.exe"
-            VALUE "ProductName",        "Auroracoin Core"
+            VALUE "OriginalFilename",   "smileycoin-qt.exe"
+            VALUE "ProductName",        "Smileycoin Core"
             VALUE "ProductVersion",     VER_PRODUCTVERSION_STR
         END
     END

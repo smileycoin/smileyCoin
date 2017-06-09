@@ -519,7 +519,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
   uint256 hashBlock = pblock->GetHash();
 
   //// debug print
-  LogPrintf("AuroracoinMiner:\n");
+  LogPrintf("SmileycoinMiner:\n");
   LogPrintf("proof-of-work found  \n  block-hash: %s\n  pow-hash: %s\ntarget: %s\n",
   hashBlock.GetHex(),
   hashPoW.GetHex(),
@@ -531,7 +531,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
   {
     LOCK(cs_main);
     if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
-    return error("AuroracoinMiner : generated block is stale");
+    return error("SmileycoinMiner : generated block is stale");
 
     // Remove key from key pool
     reservekey.KeepKey();
@@ -545,7 +545,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
     // Process this block the same as if we had received it from another node
     CValidationState state;
     if (!ProcessBlock(state, NULL, pblock))
-    return error("AuroracoinMiner : ProcessBlock, block not accepted");
+    return error("SmileycoinMiner : ProcessBlock, block not accepted");
   }
 
   return true;
@@ -919,7 +919,7 @@ void static BitcoinMiner(CWallet *pwallet)
 
   void static ThreadBitcoinMiner(CWallet *pwallet)
   {
-    LogPrintf("Auroracoin miner started\n");
+    LogPrintf("Smileycoin miner started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
     RenameThread("bitcoin-miner");
 
@@ -946,7 +946,7 @@ void static BitcoinMiner(CWallet *pwallet)
     }
     catch (boost::thread_interrupted)
     {
-      LogPrintf("Auroracoin miner terminated\n");
+      LogPrintf("Smileycoin miner terminated\n");
       throw;
     }
   }

@@ -29,7 +29,7 @@ using namespace std;
 using namespace boost;
 
 #if defined(NDEBUG)
-# error "Auroracoin cannot be compiled without assertions."
+# error "Smileycoin cannot be compiled without assertions."
 #endif
 
 //
@@ -107,7 +107,7 @@ map<uint256, set<uint256> > mapOrphanTransactionsByPrev;
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "Auroracoin Signed Message:\n";
+const string strMessageMagic = "Smileycoin Signed Message:\n";
 
 // Settings
 int miningAlgo = ALGO_SCRYPT;
@@ -3673,7 +3673,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 			pfrom->cleanSubVer = SanitizeString(pfrom->strSubVer);
 
 			if (
-					(pfrom->cleanSubVer == "/Aurora:1.3.0/") ||
+					(pfrom->cleanSubVer == "/Smlyora:1.3.0/") ||
 					(pfrom->cleanSubVer == "/Arngrímur Jónsson:0.8.7.5/") ||
 					(pfrom->cleanSubVer == "/Satoshi:0.8.7.5/")
 			)

@@ -914,7 +914,7 @@ static std::string FormatException(std::exception* pex, const char* pszThread)
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(NULL, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "auroracoin";
+    const char* pszModule = "smileycoin";
 #endif
     if (pex)
         return strprintf(
@@ -941,16 +941,16 @@ void PrintExceptionContinue(std::exception* pex, const char* pszThread)
 boost::filesystem::path GetDefaultDataDir(bool fWalletDirUpgrade)
 {
     namespace fs = boost::filesystem;
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Auroracoin
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Auroracoin
-    // Mac: ~/Library/Application Support/Auroracoin
-    // Unix: ~/.auroracoin
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Smileycoin
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Smileycoin
+    // Mac: ~/Library/Application Support/Smileycoin
+    // Unix: ~/.smileycoin
 #ifdef WIN32
     // Windows
     if (fWalletDirUpgrade)
-        return GetSpecialFolderPath(CSIDL_APPDATA) / "AuroraCoin";
+        return GetSpecialFolderPath(CSIDL_APPDATA) / "Smileycoin";
     else
-        return GetSpecialFolderPath(CSIDL_APPDATA) / "Auroracoin";
+        return GetSpecialFolderPath(CSIDL_APPDATA) / "Smileycoin";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -963,15 +963,15 @@ boost::filesystem::path GetDefaultDataDir(bool fWalletDirUpgrade)
     pathRet /= "Library/Application Support";
     TryCreateDirectory(pathRet);
     if (fWalletDirUpgrade)
-        return pathRet / "AuroraCoin";
+        return pathRet / "Smileycoin";
     else
-        return pathRet / "Auroracoin";
+        return pathRet / "Smileycoin";
 #else
     // Unix
     if (fWalletDirUpgrade)
-        return pathRet / ".AuroraCoin";
+        return pathRet / ".Smileycoin";
     else
-        return pathRet / ".auroracoin";
+        return pathRet / ".smileycoin";
 #endif
 #endif
 }
@@ -1002,23 +1002,23 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
             return path;
         }
     } else {
-        // AUR-BioMike: We need to push our upgrade magic here.
-        // Check if the old .AuroraCoin dir exists, and rename it if it does.
+        // SMLY-BioMike: We need to push our upgrade magic here.
+        // Check if the old .Smileycoin dir exists, and rename it if it does.
 
         fs::path pathOld;
 
-        // AUR-BioMike: Get the new default data dir.
+        // SMLY-BioMike: Get the new default data dir.
         path = GetDefaultDataDir(false);
-        // AUR-BioMike: And the old one.
+        // SMLY-BioMike: And the old one.
         pathOld = GetDefaultDataDir(true);
-        // AUR-BioMike: Only move the data dir if the old is present and the new one is not.
+        // SMLY-BioMike: Only move the data dir if the old is present and the new one is not.
         if (!fs::exists(path) && fs::exists(pathOld)) {
            fs::rename(pathOld, path);
-           // AUR-BioMike: AuroraCoin.conf renaming if present
+           // SMLY-BioMike: Smileycoin.conf renaming if present
            fs::path confOld;
            fs::path confNew;
-           confOld = path / "AuroraCoin.conf";
-           confNew = path / "auroracoin.conf";
+           confOld = path / "Smileycoin.conf";
+           confNew = path / "smileycoin.conf";
            if(fs::exists(confOld)) {
                fs::rename(confOld, confNew);
            }
@@ -1040,7 +1040,7 @@ void ClearDatadirCache()
 
 boost::filesystem::path GetConfigFile()
 {
-    boost::filesystem::path pathConfigFile(GetArg("-conf", "auroracoin.conf"));
+    boost::filesystem::path pathConfigFile(GetArg("-conf", "smileycoin.conf"));
     if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir(false) / pathConfigFile;
     return pathConfigFile;
 }
@@ -1073,7 +1073,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 
 boost::filesystem::path GetPidFile()
 {
-    boost::filesystem::path pathPidFile(GetArg("-pid", "auroracoind.pid"));
+    boost::filesystem::path pathPidFile(GetArg("-pid", "smileycoind.pid"));
     if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
     return pathPidFile;
 }
@@ -1306,7 +1306,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
                 if (!fMatch)
                 {
                     fDone = true;
-                    string strMessage = _("Warning: Please check that your computer's date and time are correct! If your clock is wrong Auroracoin will not work properly.");
+                    string strMessage = _("Warning: Please check that your computer's date and time are correct! If your clock is wrong Smileycoin will not work properly.");
                     strMiscWarning = strMessage;
                     LogPrintf("*** %s\n", strMessage);
                     uiInterface.ThreadSafeMessageBox(strMessage, "", CClientUIInterface::MSG_WARNING);
