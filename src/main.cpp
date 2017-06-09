@@ -83,7 +83,7 @@ bool fReindex = false;
 bool fBenchmark = false;
 bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
-uint256 hashGenesisBlock("0x2a8e100939494904af825b488596ddd536b3a96226ad02e0f7ab7ae472b27a8e");
+uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
 
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
 int64_t CTransaction::nMinTxFee = 100000;  // Override with -mintxfee

@@ -17,7 +17,11 @@ namespace Checkpoints
 {
     typedef std::map<int, uint256> MapCheckpoints;
 
-    // How many times we expect transactions after the last checkpoint to be slower.
+    // How many times we expect transactions after the last checkpoint to
+    // be slower. This number is a compromise, as it can't be accurate for
+    // every system. When reindexing from a fast disk with a slow CPU, it
+    // can be up to 20, while when downloading from a slow network with a
+    // fast multicore CPU, it won't be much higher than 1.
     static const double SIGCHECK_VERIFICATION_FACTOR = 5.0;
 
     struct CCheckpointData {
@@ -29,39 +33,25 @@ namespace Checkpoints
 
     bool fEnabled = true;
 
+    // What makes a good checkpoint block?
+    // + Is surrounded by blocks with reasonable timestamps
+    //   (no blocks before with a timestamp after, none after with
+    //    timestamp before)
+    // + Contains no strange transactions
     static MapCheckpoints mapCheckpoints =
         boost::assign::map_list_of
-        (     0, uint256("0x2a8e100939494904af825b488596ddd536b3a96226ad02e0f7ab7ae472b27a8e"))
-        (     1, uint256("0xf54c0f8ed0b8ba85f99525d37e7cc9a5107bd752a54d8778d6cfb4f36cb51131"))
-        (     2, uint256("0x2e739d971f02265b83895c04854fcb4deb48806126097b5feaf92ffd4d2341d6"))
-        (   123, uint256("0x76b2378c0cd904584d9c226d9ef7a4a91a4ed701f2da36e4bd486d0c7a27b1fd"))
-        (  5810, uint256("0x71517f8219449fd56ade24c888bbfd7d228c898d2aac8a078fd655be4182e813"))
-        (  6350, uint256("0x76afd9f23e61b513e0c5224754943a1b1a6ddbed73586416363095808ac12eb1"))
-        ( 19849, uint256("0xe6708808d1fa5b187345c92931737995c5bc41ca7fddbbc7bd90ee905029799e"))
-        ( 42396, uint256("0x86d59ee30e3fc01ef9f51394e6d8efc271e5efa383a4f4d39b4d1a0dd1ee1934"))
-        ( 94979, uint256("0xf07ff3f01f2eac70a1068843d341640013d4f7e4c8987b9b8c873914a3093426"))
-        (111689, uint256("0x0808656fd09d52260cc96c891595ee2739dd96440d1c2e1e670b2063f0c4133c"))
-        (135631, uint256("0xb15221d956ce4fbeed1ca974fccd12ee1d89a1810ae409be1118dc1b73985d12"))
-        (154582, uint256("0x5a6c6b21f3a10fac0b28768e5dc38dd0432e868a22a23650f37d170790a4e7e7"))
-        (187609, uint256("0xf28d78c7af8ef0564ca2d4685c8fe4d316fab3602c95f97773ab04cc488aa457"))
-        (201541, uint256("0x79338645e77ed3187795c39ff19c7e7f169315f8d2e70406f7e1843a1797d29e"))
-        (222159, uint256("0x7e77c7e7a3821c8f8ad7e8606c7eef9f5800621879d336a42f58354d37901338"))
-        (225000, uint256("0x8a9bc32401341e43ea791192426baca7163ff1c30f57fdd6c682bddab3fef7cb"))
-        (225322, uint256("0x21f073cc0f1c2abc5c36003c37f4cdbde0a9387a23af9d123331a7cf7907ced5"))
-        (230868, uint256("0x000000000000027d4eb492a0d4c56dbd8226748a6cab75a8dfa5709f2bcc128c"))
-        (240071, uint256("0x000000000000011f5021a4f8bc788c844eafbff8bc52401b3b38b42c83e12a7b"))
-        (301521, uint256("0xe39f7f6e72802d1135a9e86cea2f3ec1eaac25ff053f299558fdafaaa52586a1"))
-        (400108, uint256("0x09f3ef490abfd61036d8402ab4ab2af9fbe7a93700cac73712889efb4e820d28"))
-        (500494, uint256("0xae948205889a686abecacc3c29d6b9be5a2aa5ad863c2c5acbdaf3f6436b0117"))
-        (600241, uint256("0x3560c08ae21baece1e82decb25aaf7142fbe3f717ee240e506bf0e12e20854cf"))
+        (     0, uint256("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd"))
+        (  2000, uint256("0x6c75adede20c70a18ad60bd5f2184f9154edcf94db01514ff9d2d57699d7cbc6"))
+        (  4000, uint256("0x2bf98d7022a4af00395b3e6d59c979939c5bb368505fe2c47e4552e7aa586424"))
+        (  6000, uint256("0xe7310e1f05efae70f0265a156fa9d39151349d27f969b6f94f31cfb8a16af95a"))
         ;
 
     static const CCheckpointData data = {
         &mapCheckpoints,
-        1483213161, // * UNIX timestamp of last checkpoint block
-        1106236,   // * total number of transactions between genesis and last checkpoint
+        1416395161, // * UNIX timestamp of last checkpoint block
+        6022,       // * total number of transactions between genesis and last checkpoint
                     //   (the tx=... number in the SetBestChain debug.log lines)
-        2000.0     // * estimated number of transactions per day after checkpoint
+        1.0         // * estimated number of transactions per day after checkpoint
     };
 
     const CCheckpointData &Checkpoints() {
