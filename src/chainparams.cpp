@@ -29,10 +29,10 @@ class CMainParams : public CChainParams {
 public:
     CMainParams() {
         // The message start string is designed to be unlikely to occur in normal data.
-        pchMessageStart[0] = 0xfd;
-        pchMessageStart[1] = 0xa4;
-        pchMessageStart[2] = 0xdc;
-        pchMessageStart[3] = 0x6c;
+        pchMessageStart[0] = 0xfb;
+        pchMessageStart[1] = 0xc0;
+        pchMessageStart[2] = 0xb6;
+        pchMessageStart[3] = 0xdb;
         vAlertPubKey = ParseHex("04d1832d7d0c59634d67d3023379403014c2878d0c2372d175219063a48fa06e6d429e09f36d3196ec544c2cfdd12d6fe510a399595f75ebb6da238eb5f70f2072");
         nDefaultPort = 11337;
         nRPCPort = 14242;
@@ -44,35 +44,35 @@ public:
         bnProofOfWorkLimit[ALGO_QUBIT]   = CBigNum(~uint256(0) >> 20); // 0.00097655
 
         // Build the genesis block.
-        const char* pszTimestamp = "Visir 10. oktober 2008 Gjaldeyrishoft sett a Islendinga";
+        const char* pszTimestamp = "NY Times 18/Aug/2014 Bitcoin's Price Falls 12%, to Lowest Value Since May";
         CTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
-        txNew.vout[0].nValue = 1 * COIN;
-        txNew.vout[0].scriptPubKey = CScript() << ParseHex("04a5814813115273a109cff99907ba4a05d951873dae7acb6c973d0c9e7c88911a3dbc9aa600deac241b91707e7b4ffb30ad91c8e56e695a1ddf318592988afe0a") << OP_CHECKSIG;
+        txNew.vout[0].nValue = 10000 * COIN;
+        txNew.vout[0].scriptPubKey = CScript() << ParseHex("040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9") << OP_CHECKSIG;
         genesis.vtx.push_back(txNew);
         genesis.hashPrevBlock = 0;
         genesis.hashMerkleRoot = genesis.BuildMerkleTree();
         genesis.nVersion = 1;
-        genesis.nTime    = 1390598806;
+        genesis.nTime    = 1408974288;
         genesis.nBits    = Params().ProofOfWorkLimit(ALGO_SCRYPT).GetCompact();
         //genesis.nBits = 0x1e0fffff;
-        genesis.nNonce   = 538548;
+        genesis.nNonce   = 386703170;
 
         hashGenesisBlock = genesis.GetHash();
 
-        assert(hashGenesisBlock == uint256("0x2a8e100939494904af825b488596ddd536b3a96226ad02e0f7ab7ae472b27a8e"));
-        assert(genesis.hashMerkleRoot == uint256("0x8957e5e8d2f0e90c42e739ec62fcc5dd21064852da64b6528ebd46567f222169"));
+        assert(hashGenesisBlock == uint256("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd"));
+        assert(genesis.hashMerkleRoot == uint256("0xe9441ec39c399c76ea734ea31827e1895a82c5a1f9b2c6252b5dacada768ec8b"));
 
-        vSeeds.push_back(CDNSSeedData("luxembourgh", "s1.smlyoraseed.net"));
-        vSeeds.push_back(CDNSSeedData("united-states-west", "smlyseed1.criptoe.com"));
-        vSeeds.push_back(CDNSSeedData("united-states-east", "s1.smlyoraseed.com"));
-        vSeeds.push_back(CDNSSeedData("iceland", "s1.smlyoraseed.org"));
-        vSeeds.push_back(CDNSSeedData("the-netherlands", "s1.smlyoraseed.eu"));
-        vSeeds.push_back(CDNSSeedData("electrum2", "electrum2.smlyorcoin.is"));
-        vSeeds.push_back(CDNSSeedData("electrum3", "electrum3.smileycoin.is"));
-        vSeeds.push_back(CDNSSeedData("electrum4", "electrum4.smileycoin.is"));
+        //vSeeds.push_back(CDNSSeedData("luxembourgh", "s1.smlyoraseed.net"));
+        //vSeeds.push_back(CDNSSeedData("united-states-west", "smlyseed1.criptoe.com"));
+        //vSeeds.push_back(CDNSSeedData("united-states-east", "s1.smlyoraseed.com"));
+        //vSeeds.push_back(CDNSSeedData("iceland", "s1.smlyoraseed.org"));
+        //vSeeds.push_back(CDNSSeedData("the-netherlands", "s1.smlyoraseed.eu"));
+        //vSeeds.push_back(CDNSSeedData("electrum2", "electrum2.smlyorcoin.is"));
+        //vSeeds.push_back(CDNSSeedData("electrum3", "electrum3.smileycoin.is"));
+        //vSeeds.push_back(CDNSSeedData("electrum4", "electrum4.smileycoin.is"));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,23);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
