@@ -3425,7 +3425,7 @@ for example: alertnotify=echo %%s | mail -s &quot;Smileycoin Alert&quot; admin@f
     </message>
     <message>
         <location line="+3"/>
-        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8332 or testnet: 18332)</source>
+        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 9332 or testnet: 18332)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3602,7 +3602,7 @@ If the file does not exist, create it with owner-readable-only file permissions.
     </message>
     <message>
         <location line="+1"/>
-        <source>Connect to JSON-RPC on &lt;port&gt; (default: 8332 or testnet: 18332)</source>
+        <source>Connect to JSON-RPC on &lt;port&gt; (default: 9332 or testnet: 18332)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3867,7 +3867,7 @@ If the file does not exist, create it with owner-readable-only file permissions.
     </message>
     <message>
         <location line="+1"/>
-        <source>Listen for connections on &lt;port&gt; (default: 12340 or testnet: 14321)</source>
+        <source>Listen for connections on &lt;port&gt; (default: 11337 or testnet: 14321)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

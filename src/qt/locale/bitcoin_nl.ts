@@ -3439,8 +3439,8 @@ for example: alertnotify=echo %%s | mail -s &quot;Smileycoin Alert&quot; admin@f
     </message>
     <message>
         <location line="+3"/>
-        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8332 or testnet: 18332)</source>
-        <translation>Luister naar JSON-RPC verbindingen op &lt;poort&gt; (standaard: 8332 of testnet: 18332)</translation>
+        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 9332 or testnet: 18332)</source>
+        <translation>Luister naar JSON-RPC verbindingen op &lt;poort&gt; (standaard: 9332 of testnet: 18332)</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -3618,8 +3618,8 @@ Als het bestand niet bestaat, maak het dan aan, met een alleen-lezen-permissie.<
     </message>
     <message>
         <location line="+1"/>
-        <source>Connect to JSON-RPC on &lt;port&gt; (default: 8332 or testnet: 18332)</source>
-        <translation>Verbind met JSON-RPC op &lt;poort&gt; (standaard: 8332 of testnet: 18332)</translation>
+        <source>Connect to JSON-RPC on &lt;port&gt; (default: 9332 or testnet: 18332)</source>
+        <translation>Verbind met JSON-RPC op &lt;poort&gt; (standaard: 9332 of testnet: 18332)</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -3883,8 +3883,8 @@ Als het bestand niet bestaat, maak het dan aan, met een alleen-lezen-permissie.<
     </message>
     <message>
         <location line="+1"/>
-        <source>Listen for connections on &lt;port&gt; (default: 12340 or testnet: 14321)</source>
-        <translation>Luister naar verbindingen op &lt;poort&gt; (standaard:12340 of testnet:14321)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 11337 or testnet: 14321)</source>
+        <translation>Luister naar verbindingen op &lt;poort&gt; (standaard:11337 of testnet:14321)</translation>
     </message>
     <message>
         <location line="+1"/>

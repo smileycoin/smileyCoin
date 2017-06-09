@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE(bignum_SetCompact)
 
     num.SetCompact(0x02123456);
     BOOST_CHECK_EQUAL(num.GetHex(), "1234");
-    BOOST_CHECK_EQUAL(num.GetCompact(), 0x02123400U);
+    BOOST_CHECK_EQUAL(num.GetCompact(), 0x02113370U);
 
     num.SetCompact(0x03123456);
     BOOST_CHECK_EQUAL(num.GetHex(), "123456");

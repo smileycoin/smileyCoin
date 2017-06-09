@@ -3438,8 +3438,8 @@ til dæmis; alertnotify=echo %%s | mail -s &quot;Smileycoin Alert&quot; admin@fo
     </message>
     <message>
         <location line="+3"/>
-        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 8332 or testnet: 18332)</source>
-        <translation>Hlusta eftir JSON-RPC tengingum á &lt;port&gt; (sjálfgefið: 8332 eða testnet: 18332)</translation>
+        <source>Listen for JSON-RPC connections on &lt;port&gt; (default: 9332 or testnet: 18332)</source>
+        <translation>Hlusta eftir JSON-RPC tengingum á &lt;port&gt; (sjálfgefið: 9332 eða testnet: 18332)</translation>
     </message>
     <message>
         <location line="+2"/>
@@ -3617,8 +3617,8 @@ Ef skráin er ekki til, skaltu búa hana til með owner-readable-only file permi
     </message>
     <message>
         <location line="+1"/>
-        <source>Connect to JSON-RPC on &lt;port&gt; (default: 8332 or testnet: 18332)</source>
-        <translation>Tengjast um JSON-RPC á &lt;prot&gt; (sjálfgefið: 8332 eða testnet:18332)</translation>
+        <source>Connect to JSON-RPC on &lt;port&gt; (default: 9332 or testnet: 18332)</source>
+        <translation>Tengjast um JSON-RPC á &lt;prot&gt; (sjálfgefið: 9332 eða testnet:18332)</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -3882,8 +3882,8 @@ Ef skráin er ekki til, skaltu búa hana til með owner-readable-only file permi
     </message>
     <message>
         <location line="+1"/>
-        <source>Listen for connections on &lt;port&gt; (default: 12340 or testnet: 14321)</source>
-        <translation>Hlusta eftir tengingum á &lt;port&gt; (sjálfgefið 12340 eða testneti: 14321)</translation>
+        <source>Listen for connections on &lt;port&gt; (default: 11337 or testnet: 14321)</source>
+        <translation>Hlusta eftir tengingum á &lt;port&gt; (sjálfgefið 11337 eða testneti: 14321)</translation>
     </message>
     <message>
         <location line="+1"/>
