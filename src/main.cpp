@@ -36,8 +36,16 @@ using namespace boost;
 // Global state
 //
 
-static const int64_t nTargetTimespan =  8 * 10 * 60; // Legacy 4800
-static const int64_t nTargetSpacing = 10 * 60; // 60 seconds 600
+/* Acutal code from smileycoin
+int64 GetTargetTimespan(int nHeight)
+{
+	return nHeight >= 97050 ? 3 * 60 * 60 // 3 hours after 97050 fork
+				: 5 * 24 * 60 * 60; // 5 days before
+}
+*/
+
+static const int64_t nTargetTimespan =  3 * 60 * 60; // 3 hours
+static const int64_t nTargetSpacing = 3 * 60; // 60 seconds 180
 static const int64_t nInterval = nTargetTimespan / nTargetSpacing; // 8
 //static const int64_t nTargetTimespanMulti = 1 * 61; // 61 Seconds
 //static const int64_t nTargetSpacingMulti = 1 * 61; // 61 seconds
@@ -45,11 +53,11 @@ static const int64_t nInterval = nTargetTimespan / nTargetSpacing; // 8
 
 //MultiAlgo Target updates
 static const int64_t multiAlgoNum = 5; // Amount of algos
-static const int64_t multiAlgoTimespan = 61; // Time per block per algo
-static const int64_t multiAlgoTargetSpacing = multiAlgoNum * multiAlgoTimespan; // NUM_ALGOS * 61 seconds
+static const int64_t multiAlgoTimespan = 36; // Time per block per algo
+static const int64_t multiAlgoTargetSpacing = multiAlgoNum * multiAlgoTimespan; // NUM_ALGOS * 36 seconds
 
 static const int64_t nAveragingInterval = 10; // 10 blocks
-static const int64_t nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 10* NUM_ALGOS * 61
+static const int64_t nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 10* NUM_ALGOS * 36
 
 static const int64_t nMaxAdjustDown = 40; // 40% adjustment down
 static const int64_t nMaxAdjustUp = 20; // 20% adjustment up
@@ -1252,27 +1260,16 @@ const CBlockIndex* GetLastBlockIndexForAlgo(const CBlockIndex* pindex, int algo)
 
 int64_t GetBlockValue(int nHeight, int64_t nFees)
 {
-	int64_t nSubsidy = 25 * COIN;  //Legacy
+	int64_t nSubsidy = 10000 * COIN;
 
-	if (nHeight > 5450)
-		{
-		// Multi-algo changes to 2.5 * COIN per algo
-		if (nHeight > multiAlgoDiffChangeTarget)
-			{
-			nSubsidy = 2.5 * COIN;
-			}
-		else
-			{
-			nSubsidy = 12.5 * COIN;
-			}
-		}
+    if(nHeight <= 1000)
+        // Premine: First 1K blocks@24M SMLY will give 24 billion SMLY
+        nSubsidy= 24000000 * COIN;
+    else
+        // Subsidy is cut in half every 1226400 blocks, which will occur approximately every 7 years
+        nSubsidy >>= (nHeight / 1226400);
 
-	if (nHeight == 1)
-		nSubsidy = 10500000 * COIN;
-
-	nSubsidy >>= (nHeight / 2100000); // Reward halves every 4 years
-
-	return nSubsidy + nFees;
+    return nSubsidy + nFees;
 }
 
 //

@@ -22,7 +22,7 @@ using namespace boost::assign;
 
 unsigned int pnSeed[] =
 {
-    0xA2F39055, 0x5EF2E56F, 0x57D54ADA, 0x50F812B0, 0x256187D5, 0x9FCBD468, 0x92B9AB35, 0x8AC586B4
+    0xcb47d082
 };
 
 class CMainParams : public CChainParams {
@@ -56,7 +56,8 @@ public:
         genesis.hashMerkleRoot = genesis.BuildMerkleTree();
         genesis.nVersion = 1;
         genesis.nTime    = 1408974288;
-        genesis.nBits    = Params().ProofOfWorkLimit(ALGO_SCRYPT).GetCompact();
+        genesis.nBits	 = 0x1e0ffff0;
+        //genesis.nBits    = Params().ProofOfWorkLimit(ALGO_SCRYPT).GetCompact();
         //genesis.nBits = 0x1e0fffff;
         genesis.nNonce   = 386703170;
 
@@ -64,21 +65,12 @@ public:
 
         assert(hashGenesisBlock == uint256("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd"));
         assert(genesis.hashMerkleRoot == uint256("0xe9441ec39c399c76ea734ea31827e1895a82c5a1f9b2c6252b5dacada768ec8b"));
+	
+		vSeeds.push_back(CDNSSeedData("smileyco.in", "dnsseed.smileyco.in"));
 
-        vFixedSeeds.clear();
-		vSeeds.clear();
-        //vSeeds.push_back(CDNSSeedData("luxembourgh", "s1.smlyoraseed.net"));
-        //vSeeds.push_back(CDNSSeedData("united-states-west", "smlyseed1.criptoe.com"));
-        //vSeeds.push_back(CDNSSeedData("united-states-east", "s1.smlyoraseed.com"));
-        //vSeeds.push_back(CDNSSeedData("iceland", "s1.smlyoraseed.org"));
-        //vSeeds.push_back(CDNSSeedData("the-netherlands", "s1.smlyoraseed.eu"));
-        //vSeeds.push_back(CDNSSeedData("electrum2", "electrum2.smlyorcoin.is"));
-        //vSeeds.push_back(CDNSSeedData("electrum3", "electrum3.smileycoin.is"));
-        //vSeeds.push_back(CDNSSeedData("electrum4", "electrum4.smileycoin.is"));
-
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,86);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,9);
-        base58Prefixes[SECRET_KEY]     = std::vector<unsigned char>(1,198);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,25); // Smileycoin addresses start with S
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
+        base58Prefixes[SECRET_KEY]     = std::vector<unsigned char>(1,153); // 25 + 128
         base58Prefixes[SECRET_KEY_OLD] = std::vector<unsigned char>(1,151);
         base58Prefixes[EXT_PUBLIC_KEY] = list_of(0x1E)(0x56)(0x2D)(0x9A).convert_to_container<std::vector<unsigned char> >();
         base58Prefixes[EXT_SECRET_KEY] = list_of(0x1E)(0x56)(0x31)(0xBC).convert_to_container<std::vector<unsigned char> >();
