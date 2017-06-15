@@ -46,28 +46,18 @@ static int64_t nInterval;
 //MultiAlgo Target updates
 static const int64_t multiAlgoNum = 5; // Amount of algos
 static const int64_t multiAlgoTimespan = 36; // Time per block per algo
-static const int64_t multiAlgoTargetSpacing = multiAlgoNum * multiAlgoTimespan; // NUM_ALGOS * 36 seconds
+static const int64_t multiAlgoTargetSpacing = multiAlgoNum * multiAlgoTimespan; // NUM_ALGOS * 36 seconds = 180 seconds
 
-static const int64_t nAveragingInterval = 10; // 10 blocks
+static const int64_t nAveragingInterval = 60; // 60 blocks
 static const int64_t nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 10* NUM_ALGOS * 36
 
-static const int64_t nMaxAdjustDown = 40; // 40% adjustment down  40 -> 400
-static const int64_t nMaxAdjustUp = 20; // 20% adjustment up 20 -> 400
-static const int64_t nMaxAdjustDownV3 = 16; // 16% adjustment down  16 -> 400
-static const int64_t nMaxAdjustUpV3 = 8; // 8% adjustment up 8 -> 400
-static const int64_t nMaxAdjustDownV4 = 16;  // 16 -> 400
-static const int64_t nMaxAdjustUpV4 = 8; // 8 -> 400
+static const int64_t nMaxAdjustDown = 20; // 20% adjustment down
+static const int64_t nMaxAdjustUp = 20; // 20% adjustment up
 static const int64_t nLocalDifficultyAdjustment = 4; //difficulty adjustment per algo
 static const int64_t nLocalTargetAdjustment = 4; //target adjustment per algo
 
 static const int64_t nMinActualTimespan = nAveragingTargetTimespan * (100 - nMaxAdjustUp) / 100;
 static const int64_t nMaxActualTimespan = nAveragingTargetTimespan * (100 + nMaxAdjustDown) / 100;
-
-static const int64_t nMinActualTimespanV3 = nAveragingTargetTimespan * (100 - nMaxAdjustUpV3) / 100;
-static const int64_t nMaxActualTimespanV3 = nAveragingTargetTimespan * (100 + nMaxAdjustDownV3) / 100;
-
-static const int64_t nMinActualTimespanV4 = nAveragingTargetTimespan * (100 - nMaxAdjustUpV4) / 100;
-static const int64_t nMaxActualTimespanV4 = nAveragingTargetTimespan * (100 + nMaxAdjustDownV4) / 100;
 
 CCriticalSection cs_main;
 
@@ -1318,7 +1308,7 @@ unsigned int static GetNextWorkRequired_Original(const CBlockIndex* pindexLast, 
             int64_t nActualTimespanMin = ((nTargetTimespan*50)/75);
 
             // Before block 225000 we allowed maximum of 400% change of difficulty between intervals
-      		if (pindex->nHeight < 225000) {
+      		if (pindexLast->nHeight < 225000) {
       			int64_t nActualTimespanMax = nTargetTimespan*4;
       			int64_t nActualTimespanMin = nTargetTimespan/4;
       		}
@@ -1456,10 +1446,10 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 
 	//LogPrintf("nActualTimespan = %d before bounds\n", nActualTimespan);
 
-	if (nActualTimespan < nMinActualTimespanV4)
-		nActualTimespan = nMinActualTimespanV4;
-	if (nActualTimespan > nMaxActualTimespanV4)
-		nActualTimespan = nMaxActualTimespanV4;
+	if (nActualTimespan < nMinActualTimespan)
+		nActualTimespan = nMinActualTimespan;
+	if (nActualTimespan > nMaxActualTimespan)
+		nActualTimespan = nMaxActualTimespan;
 
 	//Global retarget
 	CBigNum bnNew;
