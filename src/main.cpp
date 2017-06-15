@@ -1309,8 +1309,8 @@ unsigned int static GetNextWorkRequired_Original(const CBlockIndex* pindexLast, 
 
             // Before block 225000 we allowed maximum of 400% change of difficulty between intervals
       		if (pindexLast->nHeight < 225000) {
-      			int64_t nActualTimespanMax = nTargetTimespan*4;
-      			int64_t nActualTimespanMin = nTargetTimespan/4;
+      			nActualTimespanMax = nTargetTimespan*4;
+      			nActualTimespanMin = nTargetTimespan/4;
       		}
                   
       if (nActualTimespan < nActualTimespanMin)
