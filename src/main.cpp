@@ -36,17 +36,9 @@ using namespace boost;
 // Global state
 //
 
-/* Acutal code from smileycoin
-int64 GetTargetTimespan(int nHeight)
-{
-	return nHeight >= 97050 ? 3 * 60 * 60 // 3 hours after 97050 fork
-				: 5 * 24 * 60 * 60; // 5 days before
-}
-*/
-
-static const int64_t nTargetTimespan =  3 * 60 * 60; // 3 hours
-static const int64_t nTargetSpacing = 3 * 60; // 60 seconds 180
-static const int64_t nInterval = nTargetTimespan / nTargetSpacing; // 8
+static int64_t nTargetTimespan;
+static const int64_t nTargetSpacing = 3 * 60; // 3 minutes for smileycoin
+static int64_t nInterval;
 //static const int64_t nTargetTimespanMulti = 1 * 61; // 61 Seconds
 //static const int64_t nTargetSpacingMulti = 1 * 61; // 61 seconds
 //static const int64_t nIntervalMulti = nTargetTimespanMulti / nTargetSpacingMulti; // 1 block
@@ -59,12 +51,12 @@ static const int64_t multiAlgoTargetSpacing = multiAlgoNum * multiAlgoTimespan; 
 static const int64_t nAveragingInterval = 10; // 10 blocks
 static const int64_t nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 10* NUM_ALGOS * 36
 
-static const int64_t nMaxAdjustDown = 40; // 40% adjustment down
-static const int64_t nMaxAdjustUp = 20; // 20% adjustment up
-static const int64_t nMaxAdjustDownV3 = 16; // 16% adjustment down
-static const int64_t nMaxAdjustUpV3 = 8; // 8% adjustment up
-static const int64_t nMaxAdjustDownV4 = 16;
-static const int64_t nMaxAdjustUpV4 = 8;
+static const int64_t nMaxAdjustDown = 40; // 40% adjustment down  40 -> 400
+static const int64_t nMaxAdjustUp = 20; // 20% adjustment up 20 -> 400
+static const int64_t nMaxAdjustDownV3 = 16; // 16% adjustment down  16 -> 400
+static const int64_t nMaxAdjustUpV3 = 8; // 8% adjustment up 8 -> 400
+static const int64_t nMaxAdjustDownV4 = 16;  // 16 -> 400
+static const int64_t nMaxAdjustUpV4 = 8; // 8 -> 400
 static const int64_t nLocalDifficultyAdjustment = 4; //difficulty adjustment per algo
 static const int64_t nLocalTargetAdjustment = 4; //target adjustment per algo
 
@@ -1293,6 +1285,14 @@ unsigned int static GetNextWorkRequired_Original(const CBlockIndex* pindexLast, 
       if (pindexLast->nHeight+1 < 135)
           return nProofOfWorkLimit;
 
+
+      nTargetTimespan =  3 * 60 * 60; // 3 hours
+
+      if (pindexLast->nHeight < 97050) {
+      	  nTargetTimespan =  5 * 24 * 60 * 60; // 5 days before block 97050
+      }
+      nInterval = nTargetTimespan / nTargetSpacing; // 8
+
       // Only change once per interval
       if ((pindexLast->nHeight+1) % nInterval != 0)
       {
@@ -1314,9 +1314,15 @@ unsigned int static GetNextWorkRequired_Original(const CBlockIndex* pindexLast, 
       int64_t nActualTimespan = pindexLast->GetBlockTime() - pindexFirst->GetBlockTime();
       LogPrintf("  nActualTimespan = %d  before bounds\n", nActualTimespan);
 
-           int64_t nActualTimespanMax = ((nTargetTimespan*75)/50);
-           int64_t nActualTimespanMin = ((nTargetTimespan*50)/75);
+      		int64_t nActualTimespanMax = ((nTargetTimespan*75)/50); 
+            int64_t nActualTimespanMin = ((nTargetTimespan*50)/75);
 
+            // Before block 225000 we allowed maximum of 400% change of difficulty between intervals
+      		if (pindex->nHeight < 225000) {
+      			int64_t nActualTimespanMax = nTargetTimespan*4;
+      			int64_t nActualTimespanMin = nTargetTimespan/4;
+      		}
+                  
       if (nActualTimespan < nActualTimespanMin)
           nActualTimespan = nActualTimespanMin;
       if (nActualTimespan > nActualTimespanMax)
@@ -1410,7 +1416,7 @@ unsigned int static KimotoGravityWell(const CBlockIndex* pindexLast, const CBloc
 
   unsigned int static GetNextWorkRequired_KGW(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo)
   {
-          static const int64_t BlocksTargetSpacing = 5 * 60; // 1 Minute
+          static const int64_t BlocksTargetSpacing = 5 * 60 * 3; // 3 Minute
           unsigned int TimeDaySeconds = 60 * 60 * 24;
           int64_t PastSecondsMin = TimeDaySeconds * 0.5;
           int64_t PastSecondsMax = TimeDaySeconds * 14;
@@ -1496,7 +1502,7 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 unsigned int GetNextWorkRequired(const CBlockIndex * pindexLast, const CBlockHeader * pblock, int algo){
     int DiffMode = 1;
 
-    if (pindexLast->nHeight+1 <= 5400) { DiffMode = 1;
+    if (pindexLast->nHeight+1 <= 225000) { DiffMode = 1;
       } else if (pindexLast->nHeight + 1 <= multiAlgoDiffChangeTarget) {
         DiffMode = 2;
       } else {

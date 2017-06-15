@@ -21,7 +21,7 @@
 #define CLIENT_VERSION_BUILD       0
 
 // Set to true for release, false for prerelease or test build
-#define CLIENT_VERSION_IS_RELEASE  true
+#define CLIENT_VERSION_IS_RELEASE  false
 
 // Copyright year (2009-this)
 #define COPYRIGHT_YEAR 2017
@@ -55,16 +55,16 @@ extern const std::string CLIENT_DATE;
 // network protocol versioning
 //
 
-static const int PROTOCOL_VERSION = 3000000;
+static const int PROTOCOL_VERSION = 70002;
 
 // intial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;
 
 // disconnect from peers older than this proto version before the algo change
-static const int MIN_PEER_PROTO_VERSION = 2000000;
+static const int MIN_PEER_PROTO_VERSION = 70002;
 
 // disconnect from peers older than this proto version after the algo change
-static const int MIN_PEER_PROTO_VERSION_POST_CHANGE = 3000000;
+static const int MIN_PEER_PROTO_VERSION_POST_CHANGE = 70002;
 
 // nTime field added to CAddress, starting with this version;
 // if possible, avoid requesting addresses nodes older than this
