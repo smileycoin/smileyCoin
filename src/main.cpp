@@ -1308,7 +1308,7 @@ unsigned int static GetNextWorkRequired_Original(const CBlockIndex* pindexLast, 
             int64_t nActualTimespanMin = ((nTargetTimespan*50)/75);
 
             // Before block 225000 we allowed maximum of 400% change of difficulty between intervals
-      		if (pindexLast->nHeight < 225000) {
+      		if (pindexLast->nHeight <= 225000) {
       			nActualTimespanMax = nTargetTimespan*4;
       			nActualTimespanMin = nTargetTimespan/4;
       		}
@@ -1406,7 +1406,7 @@ unsigned int static KimotoGravityWell(const CBlockIndex* pindexLast, const CBloc
 
   unsigned int static GetNextWorkRequired_KGW(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo)
   {
-          static const int64_t BlocksTargetSpacing = 5 * 60 * 3; // 3 Minute
+          static const int64_t BlocksTargetSpacing = 5 * 60 * 3; // 3 Minutes for smileycoin
           unsigned int TimeDaySeconds = 60 * 60 * 24;
           int64_t PastSecondsMin = TimeDaySeconds * 0.5;
           int64_t PastSecondsMax = TimeDaySeconds * 14;

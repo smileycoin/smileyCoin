@@ -1,32 +1,50 @@
-# Smileycoin SMLY
+Smileycoin SMLY
+===============
 
-http://smileycoin.is
-
-Follow [@OfficialSMLY](https://twitter.com/OfficialSMLY)
+https://tutor-web.info/smileycoin
 
 Copyright (c) 2014-2016 Auroracoin Developers
 
-
-## What is Smileycoin?
-
-Smileycoin is a cryptocurrency for Iceland. It is based on Litecoin and is 50% premined. The premined coins will be distributed to the entire population of Iceland, commencing on midnight 25th of March 2014.
+Copyright (c) 2017-2017 Smileycoin Developers
 
 
-## Community
+What is Smileycoin?
+-------------------
 
-Forums: http://smlyoraspjall.is/
+Smileycoin is based on the Auroracoin source, so using SHA256, scrypt, skein, groestl and qubit as proof-of-work algorithms.
+ - 3 minute block targets
+ - subsidy halves in ~1.22m blocks (~7 years)
+ - ~50 billion (50 * 10^9) total coins
+ - 10000 coins per block
 
-Irc: #smly on freenode
+For more information, as well as an immediately useable, binary version of
+the Smileycoin client sofware, see http://www.tutor-web.info/smileycoin
 
-http://www.reddit.com/r/smileycoin
+License
+-------
 
-http://www.reddit.com/r/SMLYmarket
+Smileycoin is released under the terms of the MIT license. See `COPYING` for more
+information or see http://opensource.org/licenses/MIT.
 
-https://bitcointalk.org/index.php?topic=1044432.0
+Development process
+-------------------
 
+Developers work in their own trees, then submit pull requests when they think
+their feature or bug fix is ready.
 
-## Developers
+If it is a simple/trivial/non-controversial change, then one of the Smileycoin
+development team members simply pulls it.
 
-Developers are encouraged to create tools for Smileycoin to support the adoption of Smileycoin. Such software, e.g. for payments, will help Icelanders start using the currency in their daily lives.
+The patch will be accepted if there is broad consensus that it is a good thing.
+Developers should expect to rework and resubmit patches if the code doesn't
+match the project's coding conventions (see `doc/coding.txt`) or are
+controversial.
 
-Interested in helping out? Please email smileycoin@smileycoin.is, and let us know how you can help.
+The `master` branch is regularly built and tested, but is not guaranteed to be
+completely stable. [Tags](https://github.com/bitcoin/bitcoin/tags) are created
+regularly to indicate new official, stable release versions of Smileycoin.
+
+Community
+---------
+
+https://bitcointalk.org/index.php?topic=845761.0;all
