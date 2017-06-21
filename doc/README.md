@@ -1,8 +1,9 @@
 Smileycoin
-=====================
+==========
 
 Copyright (c) 2016 Auroracoin Developers
 
+Copyright (c) 2017-2017 Smileycoin Developers
 
 Running
 ---------------------
@@ -37,12 +38,12 @@ The following are developer notes on how to build Smileycoin on your native plat
 
 Development
 ---------------------
-The Smileycoin repo's [root README](https://github.com/smlyarad/Smileycoin/blob/master/README.md) contains relevant information on the development process and automated testing.
+The Smileycoin repo's [root README](https://github.com/tutor-web/Smileycoin/blob/master/README.md) contains relevant information on the development process and automated testing.
 
 - [Coding Guidelines](coding.md)
 
 ### Resources
-* Discuss on the [BitcoinTalk](https://bitcointalk.org/index.php?topic=1467050.0) thread.
+* Discuss on the [BitcoinTalk](https://bitcointalk.org/index.php?topic=845761.0;all) thread.
 
 ### Miscellaneous
 - [Files](files.md)
