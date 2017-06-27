@@ -66,7 +66,7 @@ qint64 BitcoinUnits::factor(int unit)
     default:   return 100000000;
     }
 }
-50000000000
+
 qint64 BitcoinUnits::maxAmount(int unit)
 {
     switch(unit)
