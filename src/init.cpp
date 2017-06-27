@@ -22,6 +22,8 @@
 #include "db.h"
 #include "wallet.h"
 #include "walletdb.h"
+#include "richlistdb.cpp"
+#include "base58.h"
 #endif
 
 #include <stdint.h>
@@ -52,6 +54,11 @@ CWallet* pwalletMain;
 #else
 #define MIN_CORE_FILEDESCRIPTORS 150
 #endif
+
+std::map<CBitcoinAddress,std::pair<int64_t,int> > AddressMap;
+std::vector<std::pair<CBitcoinAddress,std::pair<int64_t,int> > > AddressVec;
+std::map<CScript,std::pair<int64_t,int> > PubkeyMap;
+std::vector<std::pair<CScript,std::pair<int64_t,int> > > PubkeyVec;
 
 // Used to pass flags to the Bind() function
 enum BindFlags {
@@ -919,6 +926,102 @@ bool AppInit2(boost::thread_group& threadGroup)
         if (nFound == 0)
             LogPrintf("No blocks matching %s were found\n", strMatch);
         return false;
+    }
+//************************************************************** Step 7.5 load/make richlist
+        filesystem::path richpath = GetDataDir() / "richlist.dat";
+        if(!boost::filesystem::exists(richpath))
+    {
+        CRichListDB rich("richlist.dat","cr+");
+        std::cout << "HEY" << std::endl;
+        // or pcoinsTip instead of pcoinsdbview ???
+        CCoinsViewCache view(*pcoinsdbview, true);
+        CCoinsViewCache view2 (*pcoinsTip, true);
+        CBlockIndex *ind = mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second;
+        CBlock b;
+        int ctr = 0;
+        while (ind!=NULL)
+        {
+            ReadBlockFromDisk(b,ind);
+            b.BuildMerkleTree();
+            for(int j=0; j<b.vtx.size(); j++)
+            {
+                CCoins money;
+                view.GetCoins(b.GetTxHash(j),money);
+                money.Cleanup();
+                for (int m=0; m<money.vout.size(); m++)
+                {
+                    if(money.IsAvailable(m))
+                    {
+                        CScript scriptp = money.vout[m].scriptPubKey;
+                        CTxDestination des;
+                        if (ExtractDestination(scriptp,des))
+                        {
+                            bool isthere = AddressMap.count(CBitcoinAddress(des));
+                            if (isthere)
+                            {
+                                AddressMap[CBitcoinAddress(des)].first = AddressMap[CBitcoinAddress(des)].first + (money.vout[m].nValue);
+                                PubkeyMap[scriptp].first += (money.vout[m].nValue);
+                            }
+                            else if(!isthere)
+                            {
+                                AddressMap.insert(make_pair(CBitcoinAddress(des),(make_pair((money.vout[m].nValue),ind->nHeight))));
+                                AddressVec.insert(AddressVec.begin(),make_pair(CBitcoinAddress(des),(make_pair((money.vout[m].nValue),ind->nHeight))));
+                                PubkeyMap.insert(make_pair(scriptp,(make_pair((money.vout[m].nValue),ind->nHeight))));
+                                PubkeyVec.insert(PubkeyVec.begin(),make_pair(scriptp,(make_pair((money.vout[m].nValue),ind->nHeight))));
+                            }
+                        }
+                    }
+                }
+                for (int m=0; m<b.vtx[j].vin.size(); m++)
+                {
+                    CTransaction trans;
+                    uint256 bhash=0;
+                    if(GetTransaction(b.vtx[j].vin[m].prevout.hash, trans, bhash,true))
+                    {
+                        CScript prufa;
+                        CTxDestination des;
+
+                        ExtractDestination(trans.vout[b.vtx[j].vin[m].prevout.n].scriptPubKey,des);
+                        bool isthere2 = AddressMap.count(CBitcoinAddress(des));
+                        if(!isthere2)
+                        {
+                            AddressMap.insert(make_pair(CBitcoinAddress(des),(make_pair(0,ind->nHeight))));
+                            AddressVec.insert(AddressVec.begin(),make_pair(CBitcoinAddress(des),(make_pair(0,ind->nHeight))));
+                        }
+                        
+                    }
+                }
+            }
+            ind = ind->pprev;
+            ctr++;
+        }
+        CScript testpubkey;
+        bool test = true;
+        for (std::vector<std::pair<CScript,std::pair<int64_t,int> > >::iterator it=PubkeyVec.begin(); it!=PubkeyVec.end(); ++it)
+        {
+            CScript pubkey = it->first;
+            if(test)
+            {
+                testpubkey = pubkey;
+                test = false;
+            }
+
+            int64_t val = PubkeyMap[pubkey].first;
+            int height = it->second.second;
+            
+
+            std::pair<int64_t, int> valheight = std::make_pair(val, height);
+            if(val > 0)
+            {
+                rich.WriteAddress(pubkey, valheight);
+            }
+        }
+        std::pair<int64_t, int> valueandheight;
+        
+        CScript nextrichpubkey = rich.NextRichPubkey();
+        rich.ReadAddress(nextrichpubkey, valueandheight);
+       
+        std::cout << nextrichpubkey.ToString() << std::endl;
     }
 
     // ********************************************************* Step 8: load wallet
