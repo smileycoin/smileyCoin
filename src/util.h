@@ -492,6 +492,7 @@ inline void SetThreadPriority(int nPriority)
 #define THREAD_PRIORITY_BELOW_NORMAL    2
 #define THREAD_PRIORITY_NORMAL          0
 #define THREAD_PRIORITY_ABOVE_NORMAL    (-2)
+#define loop                            for(;;)
 
 inline void SetThreadPriority(int nPriority)
 {

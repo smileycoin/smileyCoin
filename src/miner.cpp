@@ -5,9 +5,11 @@
 
 #include "miner.h"
 
+#include "base58.h"
 #include "core.h"
 #include "main.h"
 #include "net.h"
+#include "richlistdb.cpp"
 #ifdef ENABLE_WALLET
 #include "wallet.h"
 #endif
@@ -111,6 +113,19 @@ static unsigned int GetMaxBlockSize(unsigned int height)
 
 CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
 {
+    CScript EIASPubkeys[10];
+    EIASPubkeys[0].SetDestination(CBitcoinAddress("BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73").Get());
+    EIASPubkeys[1].SetDestination(CBitcoinAddress("BDwfNiAvpb4ipNfPkdAXcPGExWHeeMdRcK").Get());
+    EIASPubkeys[2].SetDestination(CBitcoinAddress("BPVuYwyeJiXExEmEXHfCwPtRXDRqxBxTNW").Get());
+    EIASPubkeys[3].SetDestination(CBitcoinAddress("B4gB18iZWZ8nTuAvi9kq9cWbavCj6xSmny").Get());
+    EIASPubkeys[4].SetDestination(CBitcoinAddress("BGFEYswtWfo5nrKRT53ToGwZWyuRvwC8xs").Get());
+    EIASPubkeys[5].SetDestination(CBitcoinAddress("B7WWgP1fnPDHTL2z9vSHTpGqptP53t1UCB").Get());
+    EIASPubkeys[6].SetDestination(CBitcoinAddress("BEtL36SgjYuxHuU5dg8omJUAyTXDQL3Z8V").Get());
+    EIASPubkeys[7].SetDestination(CBitcoinAddress("BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd").Get());
+    EIASPubkeys[8].SetDestination(CBitcoinAddress("BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc").Get());
+    EIASPubkeys[9].SetDestination(CBitcoinAddress("BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy").Get());
+    CRichListDB rich("richlist.dat");
+    
   // Create new block
   auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
   if(!pblocktemplate.get())
@@ -147,12 +162,14 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     return NULL;
   }
 
-  // Create coinbase tx
-  CTransaction txNew;
-  txNew.vin.resize(1);
-  txNew.vin[0].prevout.SetNull();
-  txNew.vout.resize(1);
-  txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+    // Create coinbase tx
+    CTransaction txNew;
+    txNew.vin.resize(1);
+    txNew.vin[0].prevout.SetNull();
+    txNew.vout.resize(3);
+    txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+    txNew.vout[1].scriptPubKey = rich.NextRichPubkey();
+    txNew.vout[2].scriptPubKey = EIASPubkeys[(pindexPrev->nHeight % 10) + 1];
 
   // Add our coinbase tx as first transaction
   pblock->vtx.push_back(txNew);
@@ -366,6 +383,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
 
     pblock->vtx[0].vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
     pblocktemplate->vTxFees[0] = -nFees;
+    pblock->vtx[0].vout[1].nValue = GetBlockValueRich(pindexPrev->nHeight+1);
+    pblock->vtx[0].vout[2].nValue = GetBlockValueRich(pindexPrev->nHeight+1);
 
     // Fill in header
     pblock->hashPrevBlock  = pindexPrev->GetBlockHash();

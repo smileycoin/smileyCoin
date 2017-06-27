@@ -932,7 +932,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         if(!boost::filesystem::exists(richpath))
     {
         CRichListDB rich("richlist.dat","cr+");
-        std::cout << "HEY" << std::endl;
+        //std::cout << "HEY" << std::endl;
         // or pcoinsTip instead of pcoinsdbview ???
         CCoinsViewCache view(*pcoinsdbview, true);
         CCoinsViewCache view2 (*pcoinsTip, true);

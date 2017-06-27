@@ -32,21 +32,21 @@ public:
         return Erase(scriptPubKey);
     }
 
-	bool WriteAddress(CScript &scriptPubKey, std::pair<int64,int> & par)
+	bool WriteAddress(CScript &scriptPubKey, std::pair<int64_t,int> & par)
     {
-    	//std::pair<int64, int> bh = std::make_pair(balance,height);
-    	//int64 r = balance; 
+    	//std::pair<int64_t, int> bh = std::make_pair(balance,height);
+    	//int64_t r = balance; 
         return Write(scriptPubKey, par);// std::make_pair(balance, height));
     }
    
-    bool ReadAddress(CScript &scriptPubKey, std::pair <int64,int>& par)// int64& balance, int &height)
+    bool ReadAddress(CScript &scriptPubKey, std::pair <int64_t,int>& par)// int64_t& balance, int &height)
     {
-        //std::pair<int64, int> balanceheight = std::make_pair(balance, height);
-        //int64 kk = balance;
+        //std::pair<int64_t, int> balanceheight = std::make_pair(balance, height);
+        //int64_t kk = balance;
         return Read(scriptPubKey,par);
     }
     //Add new address, with its balance and height of block when last used:
-    bool UpdateAddressBalance(std::string address, int64 balance)
+    bool UpdateAddressBalance(std::string address, int64_t balance)
 {
     //EraseAddress(address);
     //mymap[address].first = balance;
@@ -63,7 +63,7 @@ bool UpdateAddressHeight(std::string address, int height)
 CScript NextRichPubkey()
 {
     bool fAllAccounts = true;
-    std::cout<< "KK" << std::endl;
+    //std::cout<< "KK" << std::endl;
     Dbc* pcursor = GetCursor();
     if (!pcursor)
     {
@@ -146,7 +146,7 @@ CScript NextRichPubkey()
         // Unserialize
         CScript pubkeytoprint;
         ssKey >> pubkeytoprint;
-        std::pair<int64, int> balanceandheight;
+        std::pair<int64_t, int> balanceandheight;
         this->ReadAddress(pubkeytoprint, balanceandheight);
         //ssValue >> balanceandheight;
         if(balanceandheight.first >= 2500000000000000 && balanceandheight.second < minheight && balanceandheight.second > 0)
@@ -173,7 +173,7 @@ CScript NextRichPubkey()
         // Unserialize
        /* std::string strType;
         ssKey >> strType;
-        std:: pair <int64,int> acentry;
+        std:: pair <int64_t,int> acentry;
         //ssKey >> acentry.strAccount;
         //if (!fAllAccounts && acentry.strAccount != strAccount)
         //    break;
@@ -204,7 +204,7 @@ bool Exist(CScript s)
     pathRichList = GetDataDir() / "richlist.dat";
 
 }
-bool CRichListDB::UpdateAddressBalance(CBitcoinAddress address, int64 balance)
+bool CRichListDB::UpdateAddressBalance(CBitcoinAddress address, int64_t balance)
 {
     EraseAddress(address, mymap[address].first, mymap[address].second);
     mymap[address].first = balance;

@@ -7,11 +7,13 @@
 
 #include "addrman.h"
 #include "alert.h"
+#include "base58.h"
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "checkqueue.h"
 #include "init.h"
 #include "net.h"
+#include "richlistdb.cpp"
 #include "txdb.h"
 #include "txmempool.h"
 #include "ui_interface.h"
@@ -74,6 +76,8 @@ bool fBenchmark = false;
 bool fTxIndex = true;
 unsigned int nCoinCacheSize = 5000;
 uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
+
+CScript EIASPubkeys[10];
 
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
 int64_t CTransaction::nMinTxFee = 100000;  // Override with -mintxfee
@@ -1243,6 +1247,8 @@ const CBlockIndex* GetLastBlockIndexForAlgo(const CBlockIndex* pindex, int algo)
 int64_t GetBlockValue(int nHeight, int64_t nFees)
 {
 	int64_t nSubsidy = 10000 * COIN;
+    if(nHeight >= 215000)
+        nSubsidy = 1000 * COIN;
 
     if(nHeight <= 1000)
         // Premine: First 1K blocks@24M SMLY will give 24 billion SMLY
@@ -1252,6 +1258,18 @@ int64_t GetBlockValue(int nHeight, int64_t nFees)
         nSubsidy >>= (nHeight / 1226400);
 
     return nSubsidy + nFees;
+}
+
+int64_t GetBlockValueRich(int nHeight)
+{
+    int64_t nSubsidy = 0;
+    if(nHeight >= 215000)
+        nSubsidy = 4500 * COIN;
+    
+    // Subsidy is cut in half every 1226400 blocks, which will occur approximately every 7 years
+    nSubsidy >>= (nHeight / 1226400);
+    
+    return nSubsidy;
 }
 
 //
@@ -2121,8 +2139,10 @@ void static UpdateTip(CBlockIndex *pindexNew) {
 }
 
 // Disconnect chainActive's tip.
-bool static DisconnectTip(CValidationState &state) {
-	CBlockIndex *pindexDelete = chainActive.Tip();
+bool static DisconnectTip(CValidationState &state)
+{
+    CRichListDB rich("richlist.dat");
+    CBlockIndex *pindexDelete = chainActive.Tip();
 	assert(pindexDelete);
 	mempool.check(pcoinsTip);
 	// Read block from disk.
@@ -2155,15 +2175,58 @@ bool static DisconnectTip(CValidationState &state) {
 	// Update chainActive and related variables.
 	UpdateTip(pindexDelete->pprev);
 	// Let wallets know transactions went from 1-confirmed to 0-confirmed or conflicted:
-	BOOST_FOREACH(const CTransaction &tx, block.vtx) {
+	BOOST_FOREACH(const CTransaction &tx, block.vtx)
+    {
 		SyncWithWallets(tx.GetHash(), tx, NULL);
+        //Undo richlist update
+        for(int j = 0; j < tx.vout.size(); j++)
+        {
+            CScript scriptp = tx.vout[j].scriptPubKey;
+            std::pair<int64_t, int> valueandheight;
+            rich.ReadAddress(scriptp,valueandheight);
+            int64_t newvalue = valueandheight.first - tx.vout[j].nValue;
+            int newheight = pindexDelete->nHeight;
+            rich.EraseAddress(scriptp);
+            std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
+            if(newvalueandheight.first > 0)
+                rich.WriteAddress(scriptp, newvalueandheight);
+        }
+        for(int j = 0; j < tx.vin.size(); j++)
+        {
+            CTransaction trans;
+            uint256 bhash=0;
+            if(GetTransaction(tx.vin[j].prevout.hash, trans, bhash,true))
+            {
+                CScript scriptp = trans.vout[tx.vin[j].prevout.n].scriptPubKey;
+                if(rich.Exist(scriptp))
+                {
+                    std::pair<int64_t, int> valueandheight;
+                    rich.ReadAddress(scriptp,valueandheight);
+                    int64_t newvalue = valueandheight.first + trans.vout[tx.vin[j].prevout.n].nValue;
+                    int newheight = pindexDelete->nHeight;
+                    rich.EraseAddress(scriptp);
+                    std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
+                    rich.WriteAddress(scriptp, newvalueandheight);
+                }
+                else
+                {
+                    int64_t newvalue = trans.vout[tx.vin[j].prevout.n].nValue;
+                    int newheight = pindexDelete->nHeight;
+                    std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
+                    rich.WriteAddress(scriptp, newvalueandheight);
+                }
+                
+            }
+        }
 	}
 	return true;
 }
 
 // Connect a new block to chainActive.
-bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
-	assert(pindexNew->pprev == chainActive.Tip());
+bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
+{
+	CRichListDB rich("richlist.dat");
+    assert(pindexNew->pprev == chainActive.Tip());
 	mempool.check(pcoinsTip);
 	// Read block from disk.
 	CBlock block;
@@ -2203,10 +2266,58 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew) {
 		SyncWithWallets(tx.GetHash(), tx, NULL);
 	}
 	// ... and about transactions that got confirmed:
-	BOOST_FOREACH(const CTransaction &tx, block.vtx) {
+	BOOST_FOREACH(const CTransaction &tx, block.vtx)
+    {
 		SyncWithWallets(tx.GetHash(), tx, &block);
+        //Update rich list
+        for(int j = 0; j < tx.vout.size(); j++)
+        {
+            CScript scriptp = tx.vout[j].scriptPubKey;
+            if(rich.Exist(scriptp))
+            {
+                std::pair<int64_t, int> valueandheight;
+                rich.ReadAddress(scriptp,valueandheight);
+                int64_t newvalue = valueandheight.first + tx.vout[j].nValue;
+                int newheight = pindexNew->nHeight;
+                rich.EraseAddress(scriptp);
+                std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
+                rich.WriteAddress(scriptp, newvalueandheight);
+            }
+            else
+            {
+                int64_t newvalue = tx.vout[j].nValue;
+                int newheight = pindexNew->nHeight;
+                std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
+                rich.WriteAddress(scriptp, newvalueandheight);
+            }
+        }
+        for(int j = 0; j < tx.vin.size(); j++)
+        {
+            CTransaction trans;
+            uint256 bhash=0;
+            if(GetTransaction(tx.vin[j].prevout.hash, trans, bhash,true))
+            {
+                CScript scriptp = trans.vout[tx.vin[j].prevout.n].scriptPubKey;
+                std::pair<int64_t, int> valueandheight;
+                rich.ReadAddress(scriptp,valueandheight);
+                int64_t newvalue = valueandheight.first - trans.vout[tx.vin[j].prevout.n].nValue;
+                int newheight = pindexNew->nHeight;
+                rich.EraseAddress(scriptp);
+                std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
+                rich.WriteAddress(scriptp, newvalueandheight);
+            }
+        }
 	}
-	return true;
+    /*CScript nrp = rich.NextRichPubkey();
+    CTxDestination dest;
+    if(ExtractDestination(nrp,dest))
+        std::cout << CBitcoinAddress(dest).ToString() << "\n";
+    std::pair<int64_t, int> vah;
+    rich.ReadAddress(nrp,vah);
+    vah.second = pindexNew->nHeight;
+    rich.EraseAddress(nrp);
+    rich.WriteAddress(nrp,vah);
+	return true;*/
 }
 
 // Make chainMostWork correspond to the chain with the most work in it, that isn't known to be invalid
@@ -2618,7 +2729,18 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 {
-	AssertLockHeld(cs_main);
+    EIASPubkeys[0].SetDestination(CBitcoinAddress("BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73").Get());
+    EIASPubkeys[1].SetDestination(CBitcoinAddress("BDwfNiAvpb4ipNfPkdAXcPGExWHeeMdRcK").Get());
+    EIASPubkeys[2].SetDestination(CBitcoinAddress("BPVuYwyeJiXExEmEXHfCwPtRXDRqxBxTNW").Get());
+    EIASPubkeys[3].SetDestination(CBitcoinAddress("B4gB18iZWZ8nTuAvi9kq9cWbavCj6xSmny").Get());
+    EIASPubkeys[4].SetDestination(CBitcoinAddress("BGFEYswtWfo5nrKRT53ToGwZWyuRvwC8xs").Get());
+    EIASPubkeys[5].SetDestination(CBitcoinAddress("B7WWgP1fnPDHTL2z9vSHTpGqptP53t1UCB").Get());
+    EIASPubkeys[6].SetDestination(CBitcoinAddress("BEtL36SgjYuxHuU5dg8omJUAyTXDQL3Z8V").Get());
+    EIASPubkeys[7].SetDestination(CBitcoinAddress("BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd").Get());
+    EIASPubkeys[8].SetDestination(CBitcoinAddress("BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc").Get());
+    EIASPubkeys[9].SetDestination(CBitcoinAddress("BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy").Get());
+    CRichListDB rich("richlist.dat");
+    AssertLockHeld(cs_main);
 	// Check for duplicate
 	uint256 hash = block.GetHash();
 	//LogPrintf("AcceptBlock(): hash = %s\n", hash.ToString());
@@ -2691,6 +2813,18 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 			}
 		}
 	}
+    
+    //Check if rich address to be payed matches my richlist
+    if (block.vtx[0].vout[1].scriptPubKey != rich.NextRichPubkey() && pindexPrev->nHeight+1 >= 215000)
+    {
+        std::cout << "LL" << std::endl;
+        return state.DoS(100, error("CheckBlock() : rich address does not match"));
+    }
+    if (block.vtx[0].vout[2].scriptPubKey != EIASPubkeys[(pindexPrev->nHeight % 10) + 1] && pindexPrev->nHeight+1 >= 215000)
+    {
+        std::cout << "MM" << std::endl;
+        return state.DoS(100, error("CheckBlock() : EIAS address does not match"));
+    }
 
 	// Write block to history file
 	try {
