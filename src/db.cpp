@@ -44,7 +44,7 @@ void CDBEnv::EnvShutdown()
     if (ret != 0)
         LogPrintf("CDBEnv::EnvShutdown : Error %d shutting down database environment: %s\n", ret, DbEnv::strerror(ret));
     if (!fMockDb)
-        DbEnv(0).remove(path.string().c_str(), 0);
+        DbEnv((u_int32_t)0).remove(path.string().c_str(), (u_int32_t)0);
 }
 
 CDBEnv::CDBEnv() : dbenv(DB_CXX_NO_EXCEPTIONS)

@@ -71,7 +71,7 @@ int nScriptCheckThreads = 0;
 bool fImporting = false;
 bool fReindex = false;
 bool fBenchmark = false;
-bool fTxIndex = false;
+bool fTxIndex = true;
 unsigned int nCoinCacheSize = 5000;
 uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
 
@@ -3240,7 +3240,7 @@ bool InitBlockIndex() {
 		return true;
 
 	// Use the provided setting for -txindex in the new database
-	fTxIndex = GetBoolArg("-txindex", false);
+	fTxIndex = GetBoolArg("-txindex", true);
 	pblocktree->WriteFlag("txindex", fTxIndex);
 	LogPrintf("Initializing databases...\n");
 
