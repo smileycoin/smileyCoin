@@ -74,6 +74,7 @@ bool fImporting = false;
 bool fReindex = false;
 bool fBenchmark = false;
 bool fTxIndex = true;
+int nRichForkHeight = 208957; //For testing. Will be changed to 215000
 unsigned int nCoinCacheSize = 5000;
 uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
 
@@ -1247,7 +1248,7 @@ const CBlockIndex* GetLastBlockIndexForAlgo(const CBlockIndex* pindex, int algo)
 int64_t GetBlockValue(int nHeight, int64_t nFees)
 {
 	int64_t nSubsidy = 10000 * COIN;
-    if(nHeight >= 215000)
+    if(nHeight >= nRichForkHeight)
         nSubsidy = 1000 * COIN;
 
     if(nHeight <= 1000)
@@ -1263,7 +1264,7 @@ int64_t GetBlockValue(int nHeight, int64_t nFees)
 int64_t GetBlockValueRich(int nHeight)
 {
     int64_t nSubsidy = 0;
-    if(nHeight >= 215000)
+    if(nHeight >= nRichForkHeight)
         nSubsidy = 4500 * COIN;
     
     // Subsidy is cut in half every 1226400 blocks, which will occur approximately every 7 years
@@ -2815,12 +2816,12 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 	}
     
     //Check if rich address to be payed matches my richlist
-    if (block.vtx[0].vout[1].scriptPubKey != rich.NextRichPubkey() && pindexPrev->nHeight+1 >= 215000)
+    if (block.vtx[0].vout[1].scriptPubKey != rich.NextRichPubkey() && pindexPrev->nHeight+1 >= nRichForkHeight)
     {
         std::cout << "LL" << std::endl;
         return state.DoS(100, error("CheckBlock() : rich address does not match"));
     }
-    if (block.vtx[0].vout[2].scriptPubKey != EIASPubkeys[(pindexPrev->nHeight % 10) + 1] && pindexPrev->nHeight+1 >= 215000)
+    if (block.vtx[0].vout[2].scriptPubKey != EIASPubkeys[(pindexPrev->nHeight % 10) + 1] && pindexPrev->nHeight+1 >= nRichForkHeight)
     {
         std::cout << "MM" << std::endl;
         return state.DoS(100, error("CheckBlock() : EIAS address does not match"));
