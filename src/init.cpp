@@ -927,13 +927,11 @@ bool AppInit2(boost::thread_group& threadGroup)
             LogPrintf("No blocks matching %s were found\n", strMatch);
         return false;
     }
-//************************************************************** Step 7.5 load/make richlist
-        filesystem::path richpath = GetDataDir() / "richlist.dat";
-        if(!boost::filesystem::exists(richpath))
+//************************************************************** Step 8 load/make richlist
+    filesystem::path richpath = GetDataDir() / "richlist.dat";
+    if(!boost::filesystem::exists(richpath))
     {
         CRichListDB rich("richlist.dat","cr+");
-        //std::cout << "HEY" << std::endl;
-        // or pcoinsTip instead of pcoinsdbview ???
         CCoinsViewCache view(*pcoinsdbview, true);
         CCoinsViewCache view2 (*pcoinsTip, true);
         CBlockIndex *ind = mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second;
@@ -986,7 +984,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                         if(!isthere2)
                         {
                             AddressMap.insert(make_pair(CBitcoinAddress(des),(make_pair(0,ind->nHeight))));
-                            AddressVec.insert(AddressVec.begin(),make_pair(CBitcoinAddress(des),(make_pair(0,ind->nHeight))));
+                            AddressVec.push_back(AddressVec.begin(),make_pair(CBitcoinAddress(des),(make_pair(0,ind->nHeight))));
                         }
                         
                     }
@@ -995,21 +993,11 @@ bool AppInit2(boost::thread_group& threadGroup)
             ind = ind->pprev;
             ctr++;
         }
-        CScript testpubkey;
-        bool test = true;
         for (std::vector<std::pair<CScript,std::pair<int64_t,int> > >::iterator it=PubkeyVec.begin(); it!=PubkeyVec.end(); ++it)
         {
             CScript pubkey = it->first;
-            if(test)
-            {
-                testpubkey = pubkey;
-                test = false;
-            }
-
             int64_t val = PubkeyMap[pubkey].first;
             int height = it->second.second;
-            
-
             std::pair<int64_t, int> valheight = std::make_pair(val, height);
             if(val > 0)
             {
@@ -1017,14 +1005,11 @@ bool AppInit2(boost::thread_group& threadGroup)
             }
         }
         std::pair<int64_t, int> valueandheight;
-        
         CScript nextrichpubkey = rich.NextRichPubkey();
         rich.ReadAddress(nextrichpubkey, valueandheight);
-       
-        std::cout << nextrichpubkey.ToString() << std::endl;
     }
 
-    // ********************************************************* Step 8: load wallet
+    // ********************************************************* Step 9: load wallet
 #ifdef ENABLE_WALLET
     if (fDisableWallet) {
         pwalletMain = NULL;
@@ -1134,7 +1119,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 #else // ENABLE_WALLET
     LogPrintf("No wallet compiled in!\n");
 #endif // !ENABLE_WALLET
-    // ********************************************************* Step 9: import blocks
+    // ********************************************************* Step 10: import blocks
 
     // scan for better chains in the block chain database, that are not yet connected in the active best chain
     CValidationState state;
@@ -1149,7 +1134,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
     threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles));
 
-    // ********************************************************* Step 10: load peers
+    // ********************************************************* Step 11: load peers
 
     uiInterface.InitMessage(_("Loading addresses..."));
 
@@ -1164,7 +1149,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     LogPrintf("Loaded %i addresses from peers.dat  %dms\n",
            addrman.size(), GetTimeMillis() - nStart);
 
-    // ********************************************************* Step 11: start node
+    // ********************************************************* Step 12: start node
 
     if (!CheckDiskSpace())
         return false;
@@ -1195,7 +1180,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain, GetArg("-genproclimit", -1));
 #endif
 
-    // ********************************************************* Step 12: finished
+    // ********************************************************* Step 13: finished
 
     uiInterface.InitMessage(_("Done loading"));
 
