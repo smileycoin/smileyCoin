@@ -984,7 +984,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                         if(!isthere2)
                         {
                             AddressMap.insert(make_pair(CBitcoinAddress(des),(make_pair(0,ind->nHeight))));
-                            AddressVec.push_back(AddressVec.begin(),make_pair(CBitcoinAddress(des),(make_pair(0,ind->nHeight))));
+                            AddressVec.push_back(make_pair(CBitcoinAddress(des),(make_pair(0,ind->nHeight))));
                         }
                         
                     }
