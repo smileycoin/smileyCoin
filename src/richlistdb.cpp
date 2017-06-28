@@ -71,62 +71,8 @@ CScript NextRichPubkey()
 		//return;
 	}
     unsigned int fFlags = DB_SET_RANGE;
-    /* loop
-    {
-        std::cout<< "KK1" << std::endl;
-        // Read next record
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-
-        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
-        int ret = ReadAtCursor(pcursor, ssKey, ssValue);
-        fFlags = DB_NEXT;
-        if(ret==DB_NOTFOUND){
-            std::cout << "LL "<< std::endl;
-            return;
-                 }
-
-        else if (ret != 0)
-        {
-            std::cout<< "KK2" << std::endl; 
-            pcursor->close();
-            return;
-        }
-     }*/
-
-    /*try
-    {
-        // Database open omitted for clarity
-        // Get a cursor
-        Dbt key, data;
-        int ret;
-        // Iterate over the database, retrieving each record in turn.
-        while ((ret = pcursor->get(&key, &data, DB_NEXT)) == 0)
-        {
-            //str d[10] = key.det_data();
-            //	std::cout << (std::string*)key.data<<std::endl;
-            // Do interesting things with the Dbts here.
-            std::cout << "MM" << std::endl;
-            CScript pubkeytoprint;
-            pubkeytoprint.deserialize(key.get_data());
-            //void *pubkeytovoid = key.get_data();
-            //char *pubkeytostring = (char *)pubkeytovoid;
-            //std::vector<unsigned char> pubkeyfromhex = ParseHex(pubkeytostring);
-            //PrintHex(*pubkeyfromhex);
-            //HexStr(*pubkeytoprint).c_str()
-            std::cout << pubkeytoprint.ToString() << std::endl;
-            //CScript *pubkeytoprint = (CScript *)pubkeytovoid;
-            //std::cout << ParseHex(pubkeytostring) << std::endl;
-         }
-         if (ret != DB_NOTFOUND)
-         {
-             // ret should be DB_NOTFOUND upon exiting the loop.
-             // Dbc::get() will by default throw an exception if any
-             // significant errors occur, so by default this if block
-             // can never be reached.
-             std::cout << "LL" << std::endl;
-         }
-    }*/
-    int minheight = 1000000;
+    int minheight;
+    bool first = true;
     CScript nextrichpubkey;
     loop
     {
@@ -148,6 +94,11 @@ CScript NextRichPubkey()
         ssKey >> pubkeytoprint;
         std::pair<int64_t, int> balanceandheight;
         this->ReadAddress(pubkeytoprint, balanceandheight);
+        if(first)
+        {
+            first = false;
+            minheight = balanceandheight.second;
+        }
         //ssValue >> balanceandheight;
         if(balanceandheight.first >= 2500000000000000 && balanceandheight.second < minheight && balanceandheight.second > 0)
         {

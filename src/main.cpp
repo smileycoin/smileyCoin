@@ -2818,12 +2818,10 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
     //Check if rich address to be payed matches my richlist
     if (block.vtx[0].vout[1].scriptPubKey != rich.NextRichPubkey() && pindexPrev->nHeight+1 >= nRichForkHeight)
     {
-        std::cout << "LL" << std::endl;
         return state.DoS(100, error("CheckBlock() : rich address does not match"));
     }
     if (block.vtx[0].vout[2].scriptPubKey != EIASPubkeys[(pindexPrev->nHeight % 10) + 1] && pindexPrev->nHeight+1 >= nRichForkHeight)
     {
-        std::cout << "MM" << std::endl;
         return state.DoS(100, error("CheckBlock() : EIAS address does not match"));
     }
 
