@@ -78,7 +78,7 @@ int nRichForkHeight = 208957; //For testing. Will be changed to 215000
 unsigned int nCoinCacheSize = 5000;
 uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
 
-CScript EIASPubkeys[10];
+//CScript EIASPubkeys[10];
 
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
 int64_t CTransaction::nMinTxFee = 100000;  // Override with -mintxfee
@@ -2735,6 +2735,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 {
+    CScript EIASPubkeys[10];
     EIASPubkeys[0].SetDestination(CBitcoinAddress("BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73").Get());
     EIASPubkeys[1].SetDestination(CBitcoinAddress("BDwfNiAvpb4ipNfPkdAXcPGExWHeeMdRcK").Get());
     EIASPubkeys[2].SetDestination(CBitcoinAddress("BPVuYwyeJiXExEmEXHfCwPtRXDRqxBxTNW").Get());
@@ -2819,17 +2820,18 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 			}
 		}
 	}
-    
-    //Check if rich address to be payed matches my richlist
-    if (block.vtx[0].vout[1].scriptPubKey != rich.NextRichPubkey() && pindexPrev->nHeight+1 >= nRichForkHeight)
+    if(pindexPrev->nHeight + 1 >= nRichForkHeight)
     {
-        return state.DoS(100, error("CheckBlock() : rich address does not match"));
+        //Check if rich address to be payed matches my richlist
+        if (block.vtx[0].vout[1].scriptPubKey != rich.NextRichPubkey())
+        {
+            return state.DoS(100, error("CheckBlock() : rich address does not match"));
+        }
+        if (block.vtx[0].vout[2].scriptPubKey != EIASPubkeys[(pindexPrev->nHeight % 10) + 1])
+        {
+            return state.DoS(100, error("CheckBlock() : EIAS address does not match"));
+        }
     }
-    if (block.vtx[0].vout[2].scriptPubKey != EIASPubkeys[(pindexPrev->nHeight % 10) + 1] && pindexPrev->nHeight+1 >= nRichForkHeight)
-    {
-        return state.DoS(100, error("CheckBlock() : EIAS address does not match"));
-    }
-
 	// Write block to history file
 	try {
 		unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);

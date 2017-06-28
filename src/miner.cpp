@@ -164,13 +164,23 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
 
     // Create coinbase tx
     CTransaction txNew;
-    txNew.vin.resize(1);
-    txNew.vin[0].prevout.SetNull();
-    txNew.vout.resize(3);
-    txNew.vout[0].scriptPubKey = scriptPubKeyIn;
-    txNew.vout[1].scriptPubKey = rich.NextRichPubkey();
-    txNew.vout[2].scriptPubKey = EIASPubkeys[(pindexPrev->nHeight % 10) + 1];
-
+    if(pindexPrev->nHeight + 1 >= nRichForkHeight)
+    {
+        txNew.vin.resize(1);
+        txNew.vin[0].prevout.SetNull();
+        txNew.vout.resize(3);
+        txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+        txNew.vout[1].scriptPubKey = rich.NextRichPubkey();
+        txNew.vout[2].scriptPubKey = EIASPubkeys[(pindexPrev->nHeight % 10) + 1];
+    }
+    else
+    {
+        txNew.vin.resize(1);
+        txNew.vin[0].prevout.SetNull();
+        txNew.vout.resize(1);
+        txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+        
+    }
   // Add our coinbase tx as first transaction
   pblock->vtx.push_back(txNew);
   pblocktemplate->vTxFees.push_back(-1); // updated at end
@@ -381,11 +391,13 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     nLastBlockSize = nBlockSize;
     LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
 
-    pblock->vtx[0].vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
-    pblocktemplate->vTxFees[0] = -nFees;
-    pblock->vtx[0].vout[1].nValue = GetBlockValueRich(pindexPrev->nHeight+1);
-    pblock->vtx[0].vout[2].nValue = GetBlockValueRich(pindexPrev->nHeight+1);
-
+      pblock->vtx[0].vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
+      pblocktemplate->vTxFees[0] = -nFees;
+      if(pindexPrev->nHeight + 1 >= nRichForkHeight)
+      {
+        pblock->vtx[0].vout[1].nValue = GetBlockValueRich(pindexPrev->nHeight+1);
+        pblock->vtx[0].vout[2].nValue = GetBlockValueRich(pindexPrev->nHeight+1);
+      }
     // Fill in header
     pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
     UpdateTime(*pblock, pindexPrev);

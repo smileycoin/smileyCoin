@@ -101,6 +101,7 @@ extern int nScriptCheckThreads;
 extern bool fTxIndex;
 extern unsigned int nCoinCacheSize;
 extern int miningAlgo;
+extern int nRichForkHeight;
 
 
 // Minimum disk space required - used in CheckDiskSpace()
