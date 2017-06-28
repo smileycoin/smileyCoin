@@ -2207,14 +2207,16 @@ bool static DisconnectTip(CValidationState &state)
                     int newheight = pindexDelete->nHeight;
                     rich.EraseAddress(scriptp);
                     std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                    rich.WriteAddress(scriptp, newvalueandheight);
+                    if(newvalueandheight.first > 0)
+                        rich.WriteAddress(scriptp, newvalueandheight);
                 }
                 else
                 {
                     int64_t newvalue = trans.vout[tx.vin[j].prevout.n].nValue;
                     int newheight = pindexDelete->nHeight;
                     std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                    rich.WriteAddress(scriptp, newvalueandheight);
+                    if(newvalueandheight.first > 0)
+                        rich.WriteAddress(scriptp, newvalueandheight);
                 }
                 
             }
@@ -2282,14 +2284,16 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
                 int newheight = pindexNew->nHeight;
                 rich.EraseAddress(scriptp);
                 std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                rich.WriteAddress(scriptp, newvalueandheight);
+                if(newvalueandheight.first > 0)
+                    rich.WriteAddress(scriptp, newvalueandheight);
             }
             else
             {
                 int64_t newvalue = tx.vout[j].nValue;
                 int newheight = pindexNew->nHeight;
                 std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                rich.WriteAddress(scriptp, newvalueandheight);
+                if(newvalueandheight.first > 0)
+                    rich.WriteAddress(scriptp, newvalueandheight);
             }
         }
         for(int j = 0; j < tx.vin.size(); j++)
@@ -2305,7 +2309,8 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
                 int newheight = pindexNew->nHeight;
                 rich.EraseAddress(scriptp);
                 std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                rich.WriteAddress(scriptp, newvalueandheight);
+                if(newvalueandheight.first > 0)
+                    rich.WriteAddress(scriptp, newvalueandheight);
             }
         }
 	}

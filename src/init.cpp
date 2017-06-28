@@ -804,7 +804,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     else if (nTotalCache > (nMaxDbCache << 20))
         nTotalCache = (nMaxDbCache << 20); // total cache cannot be greater than nMaxDbCache
     size_t nBlockTreeDBCache = nTotalCache / 8;
-    if (nBlockTreeDBCache > (1 << 21) && !GetBoolArg("-txindex", false))
+    if (nBlockTreeDBCache > (1 << 21) && !GetBoolArg("-txindex", true))
         nBlockTreeDBCache = (1 << 21); // block tree db cache shouldn't be larger than 2 MiB
     nTotalCache -= nBlockTreeDBCache;
     size_t nCoinDBCache = nTotalCache / 2; // use half of the remaining cache for coindb cache
@@ -963,9 +963,9 @@ bool AppInit2(boost::thread_group& threadGroup)
                             else if(!isthere)
                             {
                                 AddressMap.insert(make_pair(CBitcoinAddress(des),(make_pair((money.vout[m].nValue),ind->nHeight))));
-                                AddressVec.insert(AddressVec.begin(),make_pair(CBitcoinAddress(des),(make_pair((money.vout[m].nValue),ind->nHeight))));
+                                AddressVec.push_back(make_pair(CBitcoinAddress(des),(make_pair((money.vout[m].nValue),ind->nHeight))));
                                 PubkeyMap.insert(make_pair(scriptp,(make_pair((money.vout[m].nValue),ind->nHeight))));
-                                PubkeyVec.insert(PubkeyVec.begin(),make_pair(scriptp,(make_pair((money.vout[m].nValue),ind->nHeight))));
+                                PubkeyVec.push_back(make_pair(scriptp,(make_pair((money.vout[m].nValue),ind->nHeight))));
                             }
                         }
                     }
