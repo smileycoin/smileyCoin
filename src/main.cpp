@@ -2050,10 +2050,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	if (fBenchmark)
 		LogPrintf("- Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin)\n", (unsigned)block.vtx.size(), 0.001 * nTime, 0.001 * nTime / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * nTime / (nInputs-1));
 
-	if (block.vtx[0].GetValueOut() > GetBlockValue(pindex->nHeight, nFees))
+	if (block.vtx[0].GetValueOut() > 10*GetBlockValue(pindex->nHeight, nFees)) //REMOVE THIS 10 when time for hard fork
 		return state.DoS(100,
 				error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
-						block.vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees)),
+						block.vtx[0].GetValueOut(), 10*GetBlockValue(pindex->nHeight, nFees)),
 						REJECT_INVALID, "bad-cb-amount");
 
 	if (!control.Wait())
