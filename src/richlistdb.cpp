@@ -60,7 +60,7 @@ bool UpdateAddressHeight(std::string address, int height)
     //WriteAddress(address, mymap[address].first, mymap[address].second);
     return true;
 }
-void SaveToMap(std::map<CScript,std::pair<int64_t,int> > pubmap)
+void SaveToMap(std::map<CScript,std::pair<int64_t,int> > pubmap, CScript heighestpubkey)
 {
     bool fAllAccounts = true;
     //std::cout<< "KK" << std::endl;
@@ -71,9 +71,7 @@ void SaveToMap(std::map<CScript,std::pair<int64_t,int> > pubmap)
 		return;
 	}
     unsigned int fFlags = DB_SET_RANGE;
-    //int minheight;
-    bool first = true;
-    CScript nextrichpubkey;
+    int maxheight = 0;
     loop
     {
         // Read next record
@@ -94,6 +92,10 @@ void SaveToMap(std::map<CScript,std::pair<int64_t,int> > pubmap)
         ssKey >> pubkeytosave;
         std::pair<int64_t, int> balanceandheight;
         this->ReadAddress(pubkeytosave, balanceandheight);
+        if(balanceandheight.second > maxheight)
+        {
+            heighestpubkey = pubkeytosave;
+        }
         std::pair<CScript, std::pair<int64_t, int> > pairtosave = std::make_pair(pubkeytosave, balanceandheight);
         pubmap.insert(pairtosave);
     }

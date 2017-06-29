@@ -115,14 +115,15 @@ void Shutdown()
 {
     LogPrintf("Shutdown : In progress...\n");
     //Write map to richlist
-    /*CRichListDB rich("richlist.dat","cr+");
+    bitdb.RemoveDb("richlist.dat");
+    CRichListDB rich("richlist.dat","cr+");
     map<CScript, std::pair<int64_t, int> >::iterator it;
-    CScript publickey = it->first;
-    std::pair<int64_t, int> writepair = it->second;
     for (it = PubkeyMap.begin(); it != PubkeyMap.end(); it++)
     {
+        CScript publickey = it->first;
+        std::pair<int64_t, int> writepair = it->second;
         rich.WriteAddress(publickey, writepair);
-    }*/
+    }
     static CCriticalSection cs_Shutdown;
     TRY_LOCK(cs_Shutdown, lockShutdown);
     if (!lockShutdown) return;
@@ -455,6 +456,14 @@ bool AppInit2(boost::thread_group& threadGroup)
     signal(SIGPIPE, SIG_IGN);
 #endif
 #endif
+    
+    //Read rich list if there is one, find how up to date it is
+    
+    filesystem::path richpath = GetDataDir() / "richlist.dat";
+    CRichListDB rich("richlist.dat","cr+");
+    CScript heighestpubkey;
+    rich.SaveToMap(PubkeyMap, heighestpubkey);
+    
 
     // ********************************************************* Step 2: parameter interactions
 
@@ -935,9 +944,60 @@ bool AppInit2(boost::thread_group& threadGroup)
         return false;
     }
 //************************************************************** Step 8 load/make richlist
-    filesystem::path richpath = GetDataDir() / "richlist.dat";
-    CRichListDB rich("richlist.dat","cr+");
-    rich.SaveToMap(PubkeyMap);
+    
+    CCoinsViewCache view(*pcoinsdbview, true);
+    CCoinsViewCache view2 (*pcoinsTip, true);
+    if(PubkeyMap[heighestpubkey].second < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
+    {
+        CBlockIndex *ind = chainActive[PubkeyMap[heighestpubkey].second];
+        //mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second;
+        CBlock block;
+        int ctr = 0;
+        while (ind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
+        {
+            ReadBlockFromDisk(block,ind);
+            block.BuildMerkleTree();
+            BOOST_FOREACH(const CTransaction &tx, block.vtx)
+            {
+                for(int j = 0; j < tx.vout.size(); j++)
+                {
+                    CScript scriptp = tx.vout[j].scriptPubKey;
+                    if(PubkeyMap.count(scriptp))
+                    {
+                        PubkeyMap[scriptp].first += tx.vout[j].nValue;
+                        PubkeyMap[scriptp].second = ind->nHeight;
+                    }
+                    else
+                    {
+                        int64_t newvalue = tx.vout[j].nValue;
+                        int newheight = ind->nHeight;
+                        std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
+                        if(newvalueandheight.first > 0)
+                        {
+                            std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
+                            PubkeyMap.insert(newpair);
+                        }
+                    }
+                }
+                for(int j = 0; j < tx.vin.size(); j++)
+                {
+                    CTransaction trans;
+                    uint256 bhash=0;
+                    if(GetTransaction(tx.vin[j].prevout.hash, trans, bhash,true))
+                    {
+                        CScript scriptp = trans.vout[tx.vin[j].prevout.n].scriptPubKey;
+                        PubkeyMap[scriptp].first -= trans.vout[tx.vin[j].prevout.n].nValue;
+                        PubkeyMap[scriptp].second = ind->nHeight;
+                        if(PubkeyMap[scriptp].first == 0)
+                        {
+                            PubkeyMap.erase(scriptp);
+                        }
+                    }
+                }
+            }
+            ind = chainActive[ind->nHeight + 1];
+        }
+    }
     //if(!boost::filesystem::exists(richpath)) //or less than 3 lines
     /*if(true)
     {

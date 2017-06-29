@@ -2333,17 +2333,17 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
             }
         }
     }
-    if(pindexNew->nHeight == 208000)
+    /*if(pindexNew->nHeight == 208000)
     {
         CRichListDB rich("richlist.dat","cr+");
         map<CScript, std::pair<int64_t, int> >::iterator it;
-        CScript publickey = it->first;
-        std::pair<int64_t, int> writepair = it->second;
         for (it = PubkeyMap.begin(); it != PubkeyMap.end(); it++)
         {
+            CScript publickey = it->first;
+            std::pair<int64_t, int> writepair = it->second;
             rich.WriteAddress(publickey, writepair);
         }
-    }
+    }*/
     /*CScript nrp = rich.NextRichPubkey();
     CTxDestination dest;
     if(ExtractDestination(nrp,dest))
