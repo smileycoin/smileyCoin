@@ -102,15 +102,6 @@ volatile bool fRequestShutdown = false;
 
 void StartShutdown()
 {
-    //Write map to richlist
-    CRichListDB rich("richlist.dat","cr+");
-    map<CScript, std::pair<int64_t, int> >::iterator it;
-    CScript publickey = it->first;
-    std::pair<int64_t, int> writepair = it->second;
-    for (it = PubkeyMap.begin(); it != PubkeyMap.end(); it++)
-    {
-        rich.WriteAddress(publickey, writepair);
-    }
     fRequestShutdown = true;
 }
 bool ShutdownRequested()
@@ -123,6 +114,15 @@ static CCoinsViewDB *pcoinsdbview;
 void Shutdown()
 {
     LogPrintf("Shutdown : In progress...\n");
+    //Write map to richlist
+    /*CRichListDB rich("richlist.dat","cr+");
+    map<CScript, std::pair<int64_t, int> >::iterator it;
+    CScript publickey = it->first;
+    std::pair<int64_t, int> writepair = it->second;
+    for (it = PubkeyMap.begin(); it != PubkeyMap.end(); it++)
+    {
+        rich.WriteAddress(publickey, writepair);
+    }*/
     static CCriticalSection cs_Shutdown;
     TRY_LOCK(cs_Shutdown, lockShutdown);
     if (!lockShutdown) return;
