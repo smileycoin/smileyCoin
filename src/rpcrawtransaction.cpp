@@ -307,6 +307,12 @@ Value listunspent(const Array& params, bool fHelp)
         results.push_back(entry);
     }
 
+    CScript nextrichpubkey = NextRichPubkey(PubkeyMap);
+    CTxDestination des;
+    ExtractDestination(nextrichpubkey, des);
+    CBitcoinAddress nextrichaddress = CBitcoinAddress(des);
+    std::cout << nextrichaddress.ToString() << std::endl;
+    
     return results;
 }
 #endif

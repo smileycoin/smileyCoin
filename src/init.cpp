@@ -461,8 +461,8 @@ bool AppInit2(boost::thread_group& threadGroup)
     
     filesystem::path richpath = GetDataDir() / "richlist.dat";
     CRichListDB rich("richlist.dat","cr+");
-    CScript heighestpubkey;
-    rich.SaveToMap(PubkeyMap, heighestpubkey);
+    int maxheight;
+    rich.SaveToMap(PubkeyMap, maxheight);
     
 
     // ********************************************************* Step 2: parameter interactions
@@ -947,9 +947,9 @@ bool AppInit2(boost::thread_group& threadGroup)
     
     CCoinsViewCache view(*pcoinsdbview, true);
     CCoinsViewCache view2 (*pcoinsTip, true);
-    if(PubkeyMap[heighestpubkey].second < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
+    if(maxheight < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
     {
-        CBlockIndex *ind = chainActive[PubkeyMap[heighestpubkey].second];
+        CBlockIndex *ind = chainActive[maxheight];
         //mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second;
         CBlock block;
         int ctr = 0;
@@ -995,6 +995,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                     }
                 }
             }
+            std::cout << std::to_string(ind->nHeight) << std::endl;
             ind = chainActive[ind->nHeight + 1];
         }
     }

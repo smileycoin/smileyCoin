@@ -2776,7 +2776,10 @@ CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap)
             first = false;
         }
         if(it->second.second <= minheight && it->second.first >= 25000000*COIN)
+        {
             ret = it->first;
+            minheight = it->second.second;
+        }
     }
     return ret;
 }
