@@ -7,6 +7,7 @@
 #define BITCOIN_INIT_H
 
 #include <string>
+#include "script.h"
 
 class CWallet;
 
@@ -16,6 +17,7 @@ namespace boost {
 
 extern std::string strWalletFile;
 extern CWallet* pwalletMain;
+extern std::map<CScript, std::pair<int64_t,int> > PubkeyMap;
 
 void StartShutdown();
 bool ShutdownRequested();

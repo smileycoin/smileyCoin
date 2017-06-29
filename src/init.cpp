@@ -815,7 +815,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     while (!fLoaded) {
         bool fReset = fReindex;
         std::string strLoadError;
-
+        std::cout << "HEY" << std::endl;
         uiInterface.InitMessage(_("Loading block index..."));
 
         nStart = GetTimeMillis();
@@ -829,13 +829,14 @@ bool AppInit2(boost::thread_group& threadGroup)
                 pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, fReindex);
                 pcoinsdbview = new CCoinsViewDB(nCoinDBCache, false, fReindex);
                 pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
-
+                std::cout << "HEYY" << std::endl;
                 if (fReindex) {
                     pblocktree->WriteReindexing(true);
                     }
 
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
+                    std::cout << "HEYYY" << std::endl;
                     break;
                 }
 
@@ -929,8 +930,10 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 //************************************************************** Step 8 load/make richlist
     filesystem::path richpath = GetDataDir() / "richlist.dat";
-    if(!boost::filesystem::exists(richpath))
+    //if(!boost::filesystem::exists(richpath)) //or less than 3 lines
+    if(true)
     {
+        std::cout << "HEYYYY" << std::endl;
         CRichListDB rich("richlist.dat","cr+");
         CCoinsViewCache view(*pcoinsdbview, true);
         CCoinsViewCache view2 (*pcoinsTip, true);
@@ -1004,9 +1007,15 @@ bool AppInit2(boost::thread_group& threadGroup)
                 rich.WriteAddress(pubkey, valheight);
             }
         }
-        std::pair<int64_t, int> valueandheight;
-        CScript nextrichpubkey = rich.NextRichPubkey();
-        rich.ReadAddress(nextrichpubkey, valueandheight);
+        //std::pair<int64_t, int> valueandheight;
+        //CScript nextrichpubkey = rich.NextRichPubkey();
+        //rich.ReadAddress(nextrichpubkey, valueandheight);
+    }
+    else
+    {
+        CRichListDB rich("richlist.dat","cr+");
+        rich.SaveToMap(PubkeyMap);
+        
     }
 
     // ********************************************************* Step 9: load wallet

@@ -197,6 +197,9 @@ void Misbehaving(NodeId nodeid, int howmuch);
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
                         bool* pfMissingInputs, bool fRejectInsaneFee=false);
 
+/** find next (oldest) rich address **/
+CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap);
+
 struct CNodeStateStats {
     int nMisbehavior;
 };

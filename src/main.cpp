@@ -2142,7 +2142,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
 // Disconnect chainActive's tip.
 bool static DisconnectTip(CValidationState &state)
 {
-    CRichListDB rich("richlist.dat");
+    //CRichListDB rich("richlist.dat");
     CBlockIndex *pindexDelete = chainActive.Tip();
 	assert(pindexDelete);
 	mempool.check(pcoinsTip);
@@ -2179,18 +2179,28 @@ bool static DisconnectTip(CValidationState &state)
 	BOOST_FOREACH(const CTransaction &tx, block.vtx)
     {
 		SyncWithWallets(tx.GetHash(), tx, NULL);
+    }
+    BOOST_FOREACH(const CTransaction &tx, block.vtx)
+    {
         //Undo richlist update
         for(int j = 0; j < tx.vout.size(); j++)
         {
             CScript scriptp = tx.vout[j].scriptPubKey;
-            std::pair<int64_t, int> valueandheight;
-            rich.ReadAddress(scriptp,valueandheight);
-            int64_t newvalue = valueandheight.first - tx.vout[j].nValue;
-            int newheight = pindexDelete->nHeight;
-            rich.EraseAddress(scriptp);
-            std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-            if(newvalueandheight.first > 0)
-                rich.WriteAddress(scriptp, newvalueandheight);
+            PubkeyMap[scriptp].first -= tx.vout[j].nValue;
+            PubkeyMap[scriptp].second = pindexDelete->nHeight;
+            if(PubkeyMap[scriptp].first == 0)
+                PubkeyMap.erase(scriptp);
+            //rich.ReadAddress(scriptp,valueandheight);
+            //int64_t newvalue = valueandheight.first - tx.vout[j].nValue;
+            //int newheight = pindexDelete->nHeight;
+            //rich.EraseAddress(scriptp);
+            //std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
+            //if(newvalueandheight.first > 0)
+            //{
+                //rich.WriteAddress(scriptp, newvalueandheight);
+            //    std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
+            //    PubkeyMap.insert(newpair)
+            //}
         }
         for(int j = 0; j < tx.vin.size(); j++)
         {
@@ -2199,36 +2209,37 @@ bool static DisconnectTip(CValidationState &state)
             if(GetTransaction(tx.vin[j].prevout.hash, trans, bhash,true))
             {
                 CScript scriptp = trans.vout[tx.vin[j].prevout.n].scriptPubKey;
-                if(rich.Exist(scriptp))
+                if(PubkeyMap.count(scriptp))
                 {
-                    std::pair<int64_t, int> valueandheight;
+                    PubkeyMap[scriptp].first += tx.vout[j].nValue;
+                    PubkeyMap[scriptp].second = pindexDelete->nHeight;
+                    /*std::pair<int64_t, int> valueandheight;
                     rich.ReadAddress(scriptp,valueandheight);
                     int64_t newvalue = valueandheight.first + trans.vout[tx.vin[j].prevout.n].nValue;
                     int newheight = pindexDelete->nHeight;
                     rich.EraseAddress(scriptp);
                     std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
                     if(newvalueandheight.first > 0)
-                        rich.WriteAddress(scriptp, newvalueandheight);
+                        rich.WriteAddress(scriptp, newvalueandheight);*/
                 }
                 else
                 {
                     int64_t newvalue = trans.vout[tx.vin[j].prevout.n].nValue;
                     int newheight = pindexDelete->nHeight;
                     std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                    if(newvalueandheight.first > 0)
-                        rich.WriteAddress(scriptp, newvalueandheight);
+                    std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
+                    PubkeyMap.insert(newpair);
                 }
-                
             }
         }
-	}
+    }
 	return true;
 }
 
 // Connect a new block to chainActive.
 bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
 {
-	CRichListDB rich("richlist.dat");
+    //CRichListDB rich("richlist.dat");
     assert(pindexNew->pprev == chainActive.Tip());
 	mempool.check(pcoinsTip);
 	// Read block from disk.
@@ -2272,20 +2283,27 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
 	BOOST_FOREACH(const CTransaction &tx, block.vtx)
     {
 		SyncWithWallets(tx.GetHash(), tx, &block);
+    }
+    BOOST_FOREACH(const CTransaction &tx, block.vtx)
+    {
+        
         //Update rich list
+        //CRichListDB rich("richlist.dat");
         for(int j = 0; j < tx.vout.size(); j++)
         {
             CScript scriptp = tx.vout[j].scriptPubKey;
-            if(rich.Exist(scriptp))
+            if(PubkeyMap.count(scriptp))
             {
-                std::pair<int64_t, int> valueandheight;
+                PubkeyMap[scriptp].first += tx.vout[j].nValue;
+                PubkeyMap[scriptp].second = pindexNew->nHeight;
+                /*std::pair<int64_t, int> valueandheight;
                 rich.ReadAddress(scriptp,valueandheight);
                 int64_t newvalue = valueandheight.first + tx.vout[j].nValue;
                 int newheight = pindexNew->nHeight;
                 rich.EraseAddress(scriptp);
                 std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
                 if(newvalueandheight.first > 0)
-                    rich.WriteAddress(scriptp, newvalueandheight);
+                    rich.WriteAddress(scriptp, newvalueandheight);*/
             }
             else
             {
@@ -2293,7 +2311,10 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
                 int newheight = pindexNew->nHeight;
                 std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
                 if(newvalueandheight.first > 0)
-                    rich.WriteAddress(scriptp, newvalueandheight);
+                {
+                    std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
+                    PubkeyMap.insert(newpair);
+                }
             }
         }
         for(int j = 0; j < tx.vin.size(); j++)
@@ -2303,17 +2324,16 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
             if(GetTransaction(tx.vin[j].prevout.hash, trans, bhash,true))
             {
                 CScript scriptp = trans.vout[tx.vin[j].prevout.n].scriptPubKey;
-                std::pair<int64_t, int> valueandheight;
-                rich.ReadAddress(scriptp,valueandheight);
-                int64_t newvalue = valueandheight.first - trans.vout[tx.vin[j].prevout.n].nValue;
-                int newheight = pindexNew->nHeight;
-                rich.EraseAddress(scriptp);
-                std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                if(newvalueandheight.first > 0)
-                    rich.WriteAddress(scriptp, newvalueandheight);
+                PubkeyMap[scriptp].first -= trans.vout[tx.vin[j].prevout.n].nValue;
+                PubkeyMap[scriptp].second = pindexNew->nHeight;
+                if(PubkeyMap[scriptp].first == 0)
+                {
+                    PubkeyMap.erase(scriptp);
+                }
             }
         }
-	}
+    }
+    
     /*CScript nrp = rich.NextRichPubkey();
     CTxDestination dest;
     if(ExtractDestination(nrp,dest))
@@ -2322,8 +2342,8 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
     rich.ReadAddress(nrp,vah);
     vah.second = pindexNew->nHeight;
     rich.EraseAddress(nrp);
-    rich.WriteAddress(nrp,vah);
-	return true;*/
+    rich.WriteAddress(nrp,vah);*/
+	return true;
 }
 
 // Make chainMostWork correspond to the chain with the most work in it, that isn't known to be invalid
@@ -2732,6 +2752,24 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 	//LogPrintf("CheckBlock() finished successful: hash = %s\n", hash.ToString());
 	return true;
 }
+CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap)
+{
+    bool first = true;
+    int minheight;
+    CScript ret;
+    map<CScript, std::pair<int64_t, int> >::iterator it;
+    for (it = pubmap.begin(); it != pubmap.end(); it++)
+    {
+        if(first && it->second.first >= 25000000*COIN)
+        {
+            minheight = it->second.second;
+            first = false;
+        }
+        if(it->second.second <= minheight && it->second.first >= 25000000*COIN)
+            ret = it->first;
+    }
+    return ret;
+}
 
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 {
@@ -2746,7 +2784,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
     EIASPubkeys[7].SetDestination(CBitcoinAddress("BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd").Get());
     EIASPubkeys[8].SetDestination(CBitcoinAddress("BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc").Get());
     EIASPubkeys[9].SetDestination(CBitcoinAddress("BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy").Get());
-    CRichListDB rich("richlist.dat");
+    //CRichListDB rich("richlist.dat");
+    
     AssertLockHeld(cs_main);
 	// Check for duplicate
 	uint256 hash = block.GetHash();
@@ -2820,10 +2859,10 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 			}
 		}
 	}
-    if(pindexPrev->nHeight + 1 >= nRichForkHeight)
+    if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight)
     {
         //Check if rich address to be payed matches my richlist
-        if (block.vtx[0].vout[1].scriptPubKey != rich.NextRichPubkey())
+        if (block.vtx[0].vout[1].scriptPubKey != NextRichPubkey(PubkeyMap))
         {
             return state.DoS(100, error("CheckBlock() : rich address does not match"));
         }
@@ -3232,13 +3271,14 @@ bool static LoadBlockIndexDB()
 	if (!pblocktree->LoadBlockIndexGuts())
 		return false;
 	boost::this_thread::interruption_point();
-
+    std::cout<<"HEYYYYYY"<<std::endl;
 	// Calculate nChainWork
 	vector<pair<int, CBlockIndex*> > vSortedByHeight;
 	vSortedByHeight.reserve(mapBlockIndex.size());
 	// The following FOREACH loads entries for ALL blocks in random order...
 	BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
 	{
+        std::cout<<"HEYYYYYYYYyy"<<std::endl;
 		CBlockIndex* pindex = item.second;
 		vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
 	}
@@ -3246,7 +3286,8 @@ bool static LoadBlockIndexDB()
 	sort(vSortedByHeight.begin(), vSortedByHeight.end());
 	BOOST_FOREACH(const PAIRTYPE(int, CBlockIndex*)& item, vSortedByHeight)
 	{
-		CBlockIndex* pindex = item.second;
+        std::cout<<"HEYYYYYYYYyyyy"<<std::endl;
+        CBlockIndex* pindex = item.second;
 		// Next command is taking most time
 		pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + pindex->GetBlockWorkAdjusted().getuint256();
 		pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;

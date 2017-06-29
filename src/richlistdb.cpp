@@ -60,18 +60,18 @@ bool UpdateAddressHeight(std::string address, int height)
     //WriteAddress(address, mymap[address].first, mymap[address].second);
     return true;
 }
-CScript NextRichPubkey()
+void SaveToMap(std::map<CScript,std::pair<int64_t,int> > pubmap)
 {
     bool fAllAccounts = true;
     //std::cout<< "KK" << std::endl;
     Dbc* pcursor = GetCursor();
     if (!pcursor)
     {
-    	std::cout<< "KK8" << std::endl;
-		//return;
+    	//std::cout<< "KK8" << std::endl;
+		return;
 	}
     unsigned int fFlags = DB_SET_RANGE;
-    int minheight;
+    //int minheight;
     bool first = true;
     CScript nextrichpubkey;
     loop
@@ -90,24 +90,12 @@ CScript NextRichPubkey()
         }
         
         // Unserialize
-        CScript pubkeytoprint;
-        ssKey >> pubkeytoprint;
+        CScript pubkeytosave;
+        ssKey >> pubkeytosave;
         std::pair<int64_t, int> balanceandheight;
-        this->ReadAddress(pubkeytoprint, balanceandheight);
-        if(first)
-        {
-            first = false;
-            minheight = balanceandheight.second;
-        }
-        //ssValue >> balanceandheight;
-        if(balanceandheight.first >= 2500000000000000 && balanceandheight.second < minheight && balanceandheight.second > 0)
-        {
-            //std::cout << "ASDF" << std::endl;
-            minheight = balanceandheight.second;
-            nextrichpubkey = pubkeytoprint;
-            //std::cout << nextrichpubkey.ToString() << std::endl;
-        }
-        //std::cout << pubkeytoprint.ToString() << " " << std::to_string(balanceandheight.first) << " " << std::to_string(balanceandheight.second) << std::endl;
+        this->ReadAddress(pubkeytosave, balanceandheight);
+        std::pair<CScript, std::pair<int64_t, int> > pairtosave = std::make_pair(pubkeytosave, balanceandheight);
+        pubmap.insert(pairtosave);
     }
     
     
@@ -136,7 +124,7 @@ CScript NextRichPubkey()
     }
 */
     pcursor->close();
-    return nextrichpubkey;
+    //return nextrichpubkey;
 }
 
 bool Exist(CScript s)

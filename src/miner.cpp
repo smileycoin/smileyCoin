@@ -124,7 +124,6 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     EIASPubkeys[7].SetDestination(CBitcoinAddress("BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd").Get());
     EIASPubkeys[8].SetDestination(CBitcoinAddress("BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc").Get());
     EIASPubkeys[9].SetDestination(CBitcoinAddress("BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy").Get());
-    CRichListDB rich("richlist.dat");
     
   // Create new block
   auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
@@ -166,11 +165,12 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     CTransaction txNew;
     if(pindexPrev->nHeight + 1 >= nRichForkHeight)
     {
+        //CRichListDB rich("richlist.dat");
         txNew.vin.resize(1);
         txNew.vin[0].prevout.SetNull();
         txNew.vout.resize(3);
         txNew.vout[0].scriptPubKey = scriptPubKeyIn;
-        txNew.vout[1].scriptPubKey = rich.NextRichPubkey();
+        txNew.vout[1].scriptPubKey = NextRichPubkey(PubkeyMap);
         txNew.vout[2].scriptPubKey = EIASPubkeys[(pindexPrev->nHeight % 10) + 1];
     }
     else
