@@ -2872,7 +2872,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 			}
 		}
 	}
-    if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight)
+    if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight+5000)
     {
         //Check if rich address to be payed matches my richlist
         if (block.vtx[0].vout[1].scriptPubKey != NextRichPubkey(PubkeyMap))
