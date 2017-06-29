@@ -102,6 +102,15 @@ volatile bool fRequestShutdown = false;
 
 void StartShutdown()
 {
+    //Write map to richlist
+    CRichListDB rich("richlist.dat","cr+");
+    map<CScript, std::pair<int64_t, int> >::iterator it;
+    CScript publickey = it->first;
+    std::pair<int64_t, int> writepair = it->second;
+    for (it = PubkeyMap.begin(); it != PubkeyMap.end(); it++)
+    {
+        rich.WriteAddress(publickey, writepair);
+    }
     fRequestShutdown = true;
 }
 bool ShutdownRequested()
@@ -815,7 +824,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     while (!fLoaded) {
         bool fReset = fReindex;
         std::string strLoadError;
-        std::cout << "HEY" << std::endl;
         uiInterface.InitMessage(_("Loading block index..."));
 
         nStart = GetTimeMillis();
@@ -829,14 +837,12 @@ bool AppInit2(boost::thread_group& threadGroup)
                 pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, fReindex);
                 pcoinsdbview = new CCoinsViewDB(nCoinDBCache, false, fReindex);
                 pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
-                std::cout << "HEYY" << std::endl;
                 if (fReindex) {
                     pblocktree->WriteReindexing(true);
                     }
 
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
-                    std::cout << "HEYYY" << std::endl;
                     break;
                 }
 
@@ -930,11 +936,12 @@ bool AppInit2(boost::thread_group& threadGroup)
     }
 //************************************************************** Step 8 load/make richlist
     filesystem::path richpath = GetDataDir() / "richlist.dat";
+    CRichListDB rich("richlist.dat","cr+");
+    rich.SaveToMap(PubkeyMap);
     //if(!boost::filesystem::exists(richpath)) //or less than 3 lines
-    if(true)
+    /*if(true)
     {
-        std::cout << "HEYYYY" << std::endl;
-        CRichListDB rich("richlist.dat","cr+");
+        //CRichListDB rich("richlist.dat","cr+");
         CCoinsViewCache view(*pcoinsdbview, true);
         CCoinsViewCache view2 (*pcoinsTip, true);
         CBlockIndex *ind = mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second;
@@ -1010,13 +1017,15 @@ bool AppInit2(boost::thread_group& threadGroup)
         //std::pair<int64_t, int> valueandheight;
         //CScript nextrichpubkey = rich.NextRichPubkey();
         //rich.ReadAddress(nextrichpubkey, valueandheight);
+        std::cout<<"Richlist created"<<std::endl;
     }
     else
     {
         CRichListDB rich("richlist.dat","cr+");
         rich.SaveToMap(PubkeyMap);
         
-    }
+    }*/
+    
 
     // ********************************************************* Step 9: load wallet
 #ifdef ENABLE_WALLET

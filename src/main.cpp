@@ -3271,14 +3271,12 @@ bool static LoadBlockIndexDB()
 	if (!pblocktree->LoadBlockIndexGuts())
 		return false;
 	boost::this_thread::interruption_point();
-    std::cout<<"HEYYYYYY"<<std::endl;
-	// Calculate nChainWork
+    // Calculate nChainWork
 	vector<pair<int, CBlockIndex*> > vSortedByHeight;
 	vSortedByHeight.reserve(mapBlockIndex.size());
 	// The following FOREACH loads entries for ALL blocks in random order...
 	BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
 	{
-        std::cout<<"HEYYYYYYYYyy"<<std::endl;
 		CBlockIndex* pindex = item.second;
 		vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
 	}
@@ -3286,7 +3284,6 @@ bool static LoadBlockIndexDB()
 	sort(vSortedByHeight.begin(), vSortedByHeight.end());
 	BOOST_FOREACH(const PAIRTYPE(int, CBlockIndex*)& item, vSortedByHeight)
 	{
-        std::cout<<"HEYYYYYYYYyyyy"<<std::endl;
         CBlockIndex* pindex = item.second;
 		// Next command is taking most time
 		pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + pindex->GetBlockWorkAdjusted().getuint256();
