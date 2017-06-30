@@ -74,7 +74,7 @@ bool fImporting = false;
 bool fReindex = false;
 bool fBenchmark = false;
 bool fTxIndex = true;
-int nRichForkHeight = 208957; //For testing. Will be changed to 215000
+int nRichForkHeight = 209925; //For testing. Will be changed to 215000
 unsigned int nCoinCacheSize = 5000;
 uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
 
@@ -2050,11 +2050,17 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	if (fBenchmark)
 		LogPrintf("- Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin)\n", (unsigned)block.vtx.size(), 0.001 * nTime, 0.001 * nTime / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * nTime / (nInputs-1));
 
-	if (block.vtx[0].GetValueOut() > 10*GetBlockValue(pindex->nHeight, nFees)) //REMOVE THIS 10 when time for hard fork
+	if (block.vtx[0].GetValueOut() > GetBlockValue(pindex->nHeight, nFees))
 		return state.DoS(100,
 				error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
-						block.vtx[0].GetValueOut(), 10*GetBlockValue(pindex->nHeight, nFees)),
+						block.vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees)),
 						REJECT_INVALID, "bad-cb-amount");
+    
+    if (pindex->nHeight >= nRichForkHeight && (block.vtx[1].GetValueOut() > GetBlockValueRich(pindex->nHeight) || block.vtx[2].GetValueOut() > GetBlockValueRich(pindex->nHeight)))
+        return state.DoS(100,
+                         error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
+                               block.vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees)),
+                         REJECT_INVALID, "bad-cb-amount");
 
 	if (!control.Wait())
 		return state.DoS(100, false);
@@ -2670,14 +2676,32 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 			}
 		}
 
-	// First transaction must be coinbase, the rest must not be
-	if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
-		return state.DoS(100, error("CheckBlock() : first tx is not coinbase"),
-				REJECT_INVALID, "bad-cb-missing");
-	for (unsigned int i = 1; i < block.vtx.size(); i++)
-		if (block.vtx[i].IsCoinBase())
-			return state.DoS(100, error("CheckBlock() : more than one coinbase"),
-					REJECT_INVALID, "bad-cb-multiple");
+	// First three transactions must be coinbase, the rest must not be
+    if(pindexPrev->nHeight + 1 >= nRichForkHeight)
+    {
+        if(block.vtx.empty() || block.vtx.size() < 3)
+        {
+            return state.DoS(100, error("CheckBlock() : first tx is not coinbase"),
+                             REJECT_INVALID, "bad-cb-missing");
+        }
+        if (!block.vtx[0].IsCoinBase() || !block.vtx[1].IsCoinBase() || !block.vtx[2].IsCoinBase())
+            return state.DoS(100, error("CheckBlock() : first tx is not coinbase"),
+                             REJECT_INVALID, "bad-cb-missing");
+        for (unsigned int i = 3; i < block.vtx.size(); i++)
+            if (block.vtx[i].IsCoinBase())
+                return state.DoS(100, error("CheckBlock() : more than three coinbase"),
+                        REJECT_INVALID, "bad-cb-multiple");
+    }
+    else
+    {
+        if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
+            return state.DoS(100, error("CheckBlock() : first tx is not coinbase"),
+                             REJECT_INVALID, "bad-cb-missing");
+        for (unsigned int i = 1; i < block.vtx.size(); i++)
+            if (block.vtx[i].IsCoinBase())
+                return state.DoS(100, error("CheckBlock() : more than one coinbase"),
+                                 REJECT_INVALID, "bad-cb-multiple");
+    }
 
 	// Check transactions
 	BOOST_FOREACH(const CTransaction& tx, block.vtx)
@@ -2827,14 +2851,14 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		}
 	}
     // The coinbase tx must be split: 10% to the miner, 45% to the correct rich address and 45% to one of the EIAS addresses
-    if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight+5000)
+    if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight)
     {
         //Check if rich address to be payed matches my richlist
-        if (block.vtx[0].vout[1].scriptPubKey != NextRichPubkey(PubkeyMap))
+        if (block.vtx[1].vout[0].scriptPubKey != NextRichPubkey(PubkeyMap))
         {
             return state.DoS(100, error("CheckBlock() : rich address does not match"));
         }
-        if (block.vtx[0].vout[2].scriptPubKey != EIASPubkeys[(pindexPrev->nHeight % 10) + 1])
+        if (block.vtx[2].vout[0].scriptPubKey != EIASPubkeys[(pindexPrev->nHeight % 10) + 1])
         {
             return state.DoS(100, error("CheckBlock() : EIAS address does not match"));
         }

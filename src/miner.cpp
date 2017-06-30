@@ -163,35 +163,38 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
 
     // Create coinbase tx
     CTransaction txNew;
-    /*if(pindexPrev->nHeight + 1 >= nRichForkHeight)
+    txNew.vin.resize(1);
+    txNew.vin[0].prevout.SetNull();
+    txNew.vout.resize(1);
+    txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+        /*else
     {
-        //CRichListDB rich("richlist.dat");
-        txNew.vin.resize(1);
-        txNew.vin[0].prevout.SetNull();
-        //txNew.vout.resize(3);
-        //txNew.vout[0].scriptPubKey = scriptPubKeyIn;
-        CTxOut minerTxOut = CTxOut(0, scriptPubKeyIn);
-        CTxOut richTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),NextRichPubkey(PubkeyMap));
-        CTxOut EIASTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),EIASPubkeys[(pindexPrev->nHeight % 10) + 1]);
-        txNew.vout.push_back(minerTxOut);
-        txNew.vout.push_back(richTxOut);
-        txNew.vout.push_back(EIASTxOut);
-        //txNew.vout[1].scriptPubKey = NextRichPubkey(PubkeyMap);
-        //txNew.vout[2].scriptPubKey = EIASPubkeys[(pindexPrev->nHeight % 10) + 1];
-        
-    }*/
-    //else
-    //{
         txNew.vin.resize(1);
         txNew.vin[0].prevout.SetNull();
         txNew.vout.resize(1);
         txNew.vout[0].scriptPubKey = scriptPubKeyIn;
         
-    //}
+    }*/
   // Add our coinbase tx as first transaction
-  pblock->vtx.push_back(txNew);
-  pblocktemplate->vTxFees.push_back(-1); // updated at end
-  pblocktemplate->vTxSigOps.push_back(-1); // updated at end
+    pblock->vtx.push_back(txNew);
+    if(pindexPrev->nHeight + 1 >= nRichForkHeight)
+    {
+        CTransaction txRich;
+        CTransaction txEIAS;
+        txRich.vin.resize(1);
+        txRich.vin[0].prevout.SetNull();
+        txRich.vout.resize(1);
+        txRich.vout[0].scriptPubKey = NextRichPubkey(PubkeyMap);
+        txEIAS.vin.resize(1);
+        txEIAS.vin[0].prevout.SetNull();
+        txEIAS.vout.resize(1);
+        txEIAS.vout[0].scriptPubKey = EIASPubkeys[(pindexPrev->nHeight % 10) + 1];
+        pblock->vtx.push_back(txRich);
+        pblock->vtx.push_back(txEIAS);
+    }
+
+    pblocktemplate->vTxFees.push_back(-1); // updated at end
+    pblocktemplate->vTxSigOps.push_back(-1); // updated at end
 
   int maxBlockSize;
 
@@ -398,16 +401,16 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     nLastBlockSize = nBlockSize;
     LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
 
-      if(true)
+      pblock->vtx[0].vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
+      pblocktemplate->vTxFees[0] = -nFees;
+      //CTxOut minerTxOut = CTxOut(0, scriptPubKeyIn);
+      /*CTxOut richTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),NextRichPubkey(PubkeyMap));
+      CTxOut EIASTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),EIASPubkeys[(pindexPrev->nHeight % 10) + 1]);*/
+      //txNew.vout.push_back(minerTxOut);
+      if(pindexPrev->nHeight + 1 >= nRichForkHeight)
       {
-          pblock->vtx[0].vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
-          pblocktemplate->vTxFees[0] = -nFees;
-          //CTxOut minerTxOut = CTxOut(0, scriptPubKeyIn);
-          CTxOut richTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),NextRichPubkey(PubkeyMap));
-          CTxOut EIASTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),EIASPubkeys[(pindexPrev->nHeight % 10) + 1]);
-          //txNew.vout.push_back(minerTxOut);
-          pblock->vtx[0].vout.push_back(richTxOut);
-          pblock->vtx[0].vout.push_back(EIASTxOut);
+          pblock->vtx[1].vout[0].nValue = GetBlockValueRich(pindexPrev->nHeight);
+          pblock->vtx[2].vout[0].nValue = GetBlockValueRich(pindexPrev->nHeight);
       }
       /*else
       {
@@ -422,7 +425,17 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, algo);
     pblock->nNonce         = 0;
     pblock->vtx[0].vin[0].scriptSig = CScript() << OP_0 << OP_0;
+      if(pindexPrev->nHeight + 1 >= nRichForkHeight)
+      {
+          pblock->vtx[1].vin[0].scriptSig = CScript() << OP_0 << OP_0;
+          pblock->vtx[2].vin[0].scriptSig = CScript() << OP_0 << OP_0;
+      }
     pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
+      if(pindexPrev->nHeight + 1 >= nRichForkHeight)
+      {
+          pblocktemplate->vTxSigOps[1] = GetLegacySigOpCount(pblock->vtx[1]);
+          pblocktemplate->vTxSigOps[2] = GetLegacySigOpCount(pblock->vtx[2]);
+      }
 
     CBlockIndex indexDummy(*pblock);
     indexDummy.pprev = pindexPrev;
