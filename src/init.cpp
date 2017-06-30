@@ -959,6 +959,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         CBlockIndex *ind = chainActive[maxheight];
         CBlock block;
         int ctr = 0;
+        std::cout << "Updating rich list... this may take a few minutes" << std::endl;
         while (ind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
         {
             ReadBlockFromDisk(block,ind);
@@ -1001,9 +1002,9 @@ bool AppInit2(boost::thread_group& threadGroup)
                     }
                 }
             }
-            std::cout << std::to_string(ind->nHeight) << std::endl;
             ind = chainActive[ind->nHeight + 1];
         }
+        std::cout << "Done!" << std::endl;
     }
     
     // ********************************************************* Step 9: load wallet

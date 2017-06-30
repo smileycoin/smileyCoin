@@ -78,11 +78,11 @@ public:
             if(balanceandheight.second > maxheight)
             {
                 maxheight = balanceandheight.second;
-                std::cout<< "MAX:" << std::to_string(maxheight) <<std::endl;
             }
             std::pair<CScript, std::pair<int64_t, int> > pairtosave = std::make_pair(pubkeytosave, balanceandheight);
             pubmap.insert(pairtosave);
         }
+        std::cout<< "Current richlist last updated at block " << std::to_string(maxheight) <<std::endl;
         pcursor->close();
     }
 
