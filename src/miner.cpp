@@ -163,7 +163,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
 
     // Create coinbase tx
     CTransaction txNew;
-    if(pindexPrev->nHeight + 1 >= nRichForkHeight)
+    /*if(pindexPrev->nHeight + 1 >= nRichForkHeight)
     {
         //CRichListDB rich("richlist.dat");
         txNew.vin.resize(1);
@@ -179,15 +179,15 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
         //txNew.vout[1].scriptPubKey = NextRichPubkey(PubkeyMap);
         //txNew.vout[2].scriptPubKey = EIASPubkeys[(pindexPrev->nHeight % 10) + 1];
         
-    }
-    else
-    {
+    }*/
+    //else
+    //{
         txNew.vin.resize(1);
         txNew.vin[0].prevout.SetNull();
         txNew.vout.resize(1);
         txNew.vout[0].scriptPubKey = scriptPubKeyIn;
         
-    }
+    //}
   // Add our coinbase tx as first transaction
   pblock->vtx.push_back(txNew);
   pblocktemplate->vTxFees.push_back(-1); // updated at end
@@ -402,6 +402,12 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
       {
           pblock->vtx[0].vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
           pblocktemplate->vTxFees[0] = -nFees;
+          //CTxOut minerTxOut = CTxOut(0, scriptPubKeyIn);
+          CTxOut richTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),NextRichPubkey(PubkeyMap));
+          CTxOut EIASTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),EIASPubkeys[(pindexPrev->nHeight % 10) + 1]);
+          //txNew.vout.push_back(minerTxOut);
+          pblock->vtx[0].vout.push_back(richTxOut);
+          pblock->vtx[0].vout.push_back(EIASTxOut);
       }
       /*else
       {
