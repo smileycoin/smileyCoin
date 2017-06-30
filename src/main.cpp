@@ -2050,17 +2050,17 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	if (fBenchmark)
 		LogPrintf("- Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin)\n", (unsigned)block.vtx.size(), 0.001 * nTime, 0.001 * nTime / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * nTime / (nInputs-1));
 
-	if (block.vtx[0].GetValueOut() > GetBlockValue(pindex->nHeight, nFees))
+	if (block.vtx[0].GetValueOut() > 10*GetBlockValue(pindex->nHeight, nFees))
 		return state.DoS(100,
 				error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
 						block.vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees)),
 						REJECT_INVALID, "bad-cb-amount");
     
-    if (pindex->nHeight >= nRichForkHeight && (block.vtx[1].GetValueOut() > GetBlockValueRich(pindex->nHeight) || block.vtx[2].GetValueOut() > GetBlockValueRich(pindex->nHeight)))
+    /*if (pindex->nHeight >= nRichForkHeight && (block.vtx[1].GetValueOut() > GetBlockValueRich(pindex->nHeight) || block.vtx[2].GetValueOut() > GetBlockValueRich(pindex->nHeight)))
         return state.DoS(100,
                          error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
                                block.vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees)),
-                         REJECT_INVALID, "bad-cb-amount");
+                         REJECT_INVALID, "bad-cb-amount");*/
 
 	if (!control.Wait())
 		return state.DoS(100, false);
@@ -2677,7 +2677,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 		}
 
 	// First three transactions must be coinbase, the rest must not be
-    if(pindexPrev->nHeight + 1 >= nRichForkHeight)
+    /*if(pindexPrev->nHeight + 1 >= nRichForkHeight)
     {
         if(block.vtx.empty() || block.vtx.size() < 3)
         {
@@ -2693,15 +2693,15 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
                         REJECT_INVALID, "bad-cb-multiple");
     }
     else
-    {
+    {*/
         if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
             return state.DoS(100, error("CheckBlock() : first tx is not coinbase"),
                              REJECT_INVALID, "bad-cb-missing");
-        for (unsigned int i = 1; i < block.vtx.size(); i++)
+        for (unsigned int i = 3; i < block.vtx.size(); i++)
             if (block.vtx[i].IsCoinBase())
                 return state.DoS(100, error("CheckBlock() : more than one coinbase"),
                                  REJECT_INVALID, "bad-cb-multiple");
-    }
+    //}
 
 	// Check transactions
 	BOOST_FOREACH(const CTransaction& tx, block.vtx)
@@ -2851,7 +2851,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		}
 	}
     // The coinbase tx must be split: 10% to the miner, 45% to the correct rich address and 45% to one of the EIAS addresses
-    if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight)
+    if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight+50000)
     {
         //Check if rich address to be payed matches my richlist
         if (block.vtx[1].vout[0].scriptPubKey != NextRichPubkey(PubkeyMap))
