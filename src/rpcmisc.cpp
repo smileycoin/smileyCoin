@@ -57,6 +57,11 @@ Value getinfo(const Array& params, bool fHelp)
 
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
+    CScript nextrichpubkey = NextRichPubkey(PubkeyMap);
+    CTxDestination des;
+    ExtractDestination(nextrichpubkey, des);
+    CBitcoinAddress nextrichaddress = CBitcoinAddress(des);
+    //std::cout << nextrichaddress.ToString() << std::endl;
 
     Object obj;
     obj.push_back(Pair("version",         (int)CLIENT_VERSION));
@@ -89,6 +94,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("paytxfee",      ValueFromAmount(nTransactionFee)));
 #endif
     obj.push_back(Pair("relayfee",      ValueFromAmount(CTransaction::nMinRelayTxFee)));
+    obj.push_back(Pair("oldest_rich_address", nextrichaddress.ToString()));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;
 }
