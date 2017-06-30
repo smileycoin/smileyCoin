@@ -114,7 +114,9 @@ static CCoinsViewDB *pcoinsdbview;
 void Shutdown()
 {
     LogPrintf("Shutdown : In progress...\n");
-    //Write map to richlist
+    
+    // Write a new richlist.dat file containing the most up to date information at shutdown.
+    // This will be saved back into the map at next startup.
     bitdb.RemoveDb("richlist.dat");
     CRichListDB rich("richlist.dat","cr+");
     map<CScript, std::pair<int64_t, int> >::iterator it;
@@ -124,6 +126,7 @@ void Shutdown()
         std::pair<int64_t, int> writepair = it->second;
         rich.WriteAddress(publickey, writepair);
     }
+    
     static CCriticalSection cs_Shutdown;
     TRY_LOCK(cs_Shutdown, lockShutdown);
     if (!lockShutdown) return;
@@ -457,7 +460,8 @@ bool AppInit2(boost::thread_group& threadGroup)
 #endif
 #endif
     
-    //Read rich list if there is one, find how up to date it is
+    // Read rich list if there is one, find how up to date it is; this should match the current best block.
+    // However, if it doesn't, we need to make it up to date before the map starts updating with the new blocks.
     
     filesystem::path richpath = GetDataDir() / "richlist.dat";
     CRichListDB rich("richlist.dat","cr+");
@@ -943,14 +947,16 @@ bool AppInit2(boost::thread_group& threadGroup)
             LogPrintf("No blocks matching %s were found\n", strMatch);
         return false;
     }
-//************************************************************** Step 8 load/make richlist
+//************************************************************** Step 8 make richlist up to date
+    /*This is only run if the last shutdown was unexpected and the richlist wasn't written to the disk properly, or
+      if this is the first time a node starts up after the update in August 2017. The richlist catches up with the
+      current heighest block.*/
     
     CCoinsViewCache view(*pcoinsdbview, true);
     CCoinsViewCache view2 (*pcoinsTip, true);
     if(maxheight < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
     {
         CBlockIndex *ind = chainActive[maxheight];
-        //mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second;
         CBlock block;
         int ctr = 0;
         while (ind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
@@ -999,95 +1005,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             ind = chainActive[ind->nHeight + 1];
         }
     }
-    //if(!boost::filesystem::exists(richpath)) //or less than 3 lines
-    /*if(true)
-    {
-        //CRichListDB rich("richlist.dat","cr+");
-        CCoinsViewCache view(*pcoinsdbview, true);
-        CCoinsViewCache view2 (*pcoinsTip, true);
-        CBlockIndex *ind = mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second;
-        CBlock b;
-        int ctr = 0;
-        while (ind!=NULL)
-        {
-            ReadBlockFromDisk(b,ind);
-            b.BuildMerkleTree();
-            for(int j=0; j<b.vtx.size(); j++)
-            {
-                CCoins money;
-                view.GetCoins(b.GetTxHash(j),money);
-                money.Cleanup();
-                for (int m=0; m<money.vout.size(); m++)
-                {
-                    if(money.IsAvailable(m))
-                    {
-                        CScript scriptp = money.vout[m].scriptPubKey;
-                        CTxDestination des;
-                        if (ExtractDestination(scriptp,des))
-                        {
-                            bool isthere = AddressMap.count(CBitcoinAddress(des));
-                            if (isthere)
-                            {
-                                AddressMap[CBitcoinAddress(des)].first = AddressMap[CBitcoinAddress(des)].first + (money.vout[m].nValue);
-                                PubkeyMap[scriptp].first += (money.vout[m].nValue);
-                            }
-                            else if(!isthere)
-                            {
-                                AddressMap.insert(make_pair(CBitcoinAddress(des),(make_pair((money.vout[m].nValue),ind->nHeight))));
-                                AddressVec.push_back(make_pair(CBitcoinAddress(des),(make_pair((money.vout[m].nValue),ind->nHeight))));
-                                PubkeyMap.insert(make_pair(scriptp,(make_pair((money.vout[m].nValue),ind->nHeight))));
-                                PubkeyVec.push_back(make_pair(scriptp,(make_pair((money.vout[m].nValue),ind->nHeight))));
-                            }
-                        }
-                    }
-                }
-                for (int m=0; m<b.vtx[j].vin.size(); m++)
-                {
-                    CTransaction trans;
-                    uint256 bhash=0;
-                    if(GetTransaction(b.vtx[j].vin[m].prevout.hash, trans, bhash,true))
-                    {
-                        CScript prufa;
-                        CTxDestination des;
-
-                        ExtractDestination(trans.vout[b.vtx[j].vin[m].prevout.n].scriptPubKey,des);
-                        bool isthere2 = AddressMap.count(CBitcoinAddress(des));
-                        if(!isthere2)
-                        {
-                            AddressMap.insert(make_pair(CBitcoinAddress(des),(make_pair(0,ind->nHeight))));
-                            AddressVec.push_back(make_pair(CBitcoinAddress(des),(make_pair(0,ind->nHeight))));
-                        }
-                        
-                    }
-                }
-            }
-            ind = ind->pprev;
-            ctr++;
-        }
-        for (std::vector<std::pair<CScript,std::pair<int64_t,int> > >::iterator it=PubkeyVec.begin(); it!=PubkeyVec.end(); ++it)
-        {
-            CScript pubkey = it->first;
-            int64_t val = PubkeyMap[pubkey].first;
-            int height = it->second.second;
-            std::pair<int64_t, int> valheight = std::make_pair(val, height);
-            if(val > 0)
-            {
-                rich.WriteAddress(pubkey, valheight);
-            }
-        }
-        //std::pair<int64_t, int> valueandheight;
-        //CScript nextrichpubkey = rich.NextRichPubkey();
-        //rich.ReadAddress(nextrichpubkey, valueandheight);
-        std::cout<<"Richlist created"<<std::endl;
-    }
-    else
-    {
-        CRichListDB rich("richlist.dat","cr+");
-        rich.SaveToMap(PubkeyMap);
-        
-    }*/
     
-
     // ********************************************************* Step 9: load wallet
 #ifdef ENABLE_WALLET
     if (fDisableWallet) {

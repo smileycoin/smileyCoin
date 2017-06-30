@@ -78,8 +78,6 @@ int nRichForkHeight = 208957; //For testing. Will be changed to 215000
 unsigned int nCoinCacheSize = 5000;
 uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
 
-//CScript EIASPubkeys[10];
-
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
 int64_t CTransaction::nMinTxFee = 100000;  // Override with -mintxfee
 
@@ -1245,6 +1243,8 @@ const CBlockIndex* GetLastBlockIndexForAlgo(const CBlockIndex* pindex, int algo)
 	return NULL;
 }
 
+/*After the fork, the miner's reward will be reduced by 90% and that 90% is split between the oldest rich address
+  on the richlist and one of the 10 EIAS addresses*/
 int64_t GetBlockValue(int nHeight, int64_t nFees)
 {
 	int64_t nSubsidy = 10000 * COIN;
@@ -2142,7 +2142,6 @@ void static UpdateTip(CBlockIndex *pindexNew) {
 // Disconnect chainActive's tip.
 bool static DisconnectTip(CValidationState &state)
 {
-    //CRichListDB rich("richlist.dat");
     CBlockIndex *pindexDelete = chainActive.Tip();
 	assert(pindexDelete);
 	mempool.check(pcoinsTip);
@@ -2180,6 +2179,8 @@ bool static DisconnectTip(CValidationState &state)
     {
 		SyncWithWallets(tx.GetHash(), tx, NULL);
     }
+    /*The richlist is updated every time a new block is connected. This update has to be undone if there is something 
+      to disconnect*/
     BOOST_FOREACH(const CTransaction &tx, block.vtx)
     {
         //Undo richlist update
@@ -2190,17 +2191,6 @@ bool static DisconnectTip(CValidationState &state)
             PubkeyMap[scriptp].second = pindexDelete->nHeight;
             if(PubkeyMap[scriptp].first == 0)
                 PubkeyMap.erase(scriptp);
-            //rich.ReadAddress(scriptp,valueandheight);
-            //int64_t newvalue = valueandheight.first - tx.vout[j].nValue;
-            //int newheight = pindexDelete->nHeight;
-            //rich.EraseAddress(scriptp);
-            //std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-            //if(newvalueandheight.first > 0)
-            //{
-                //rich.WriteAddress(scriptp, newvalueandheight);
-            //    std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
-            //    PubkeyMap.insert(newpair)
-            //}
         }
         for(int j = 0; j < tx.vin.size(); j++)
         {
@@ -2213,14 +2203,6 @@ bool static DisconnectTip(CValidationState &state)
                 {
                     PubkeyMap[scriptp].first += tx.vout[j].nValue;
                     PubkeyMap[scriptp].second = pindexDelete->nHeight;
-                    /*std::pair<int64_t, int> valueandheight;
-                    rich.ReadAddress(scriptp,valueandheight);
-                    int64_t newvalue = valueandheight.first + trans.vout[tx.vin[j].prevout.n].nValue;
-                    int newheight = pindexDelete->nHeight;
-                    rich.EraseAddress(scriptp);
-                    std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                    if(newvalueandheight.first > 0)
-                        rich.WriteAddress(scriptp, newvalueandheight);*/
                 }
                 else
                 {
@@ -2288,7 +2270,6 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
     {
         
         //Update rich list
-        //CRichListDB rich("richlist.dat");
         for(int j = 0; j < tx.vout.size(); j++)
         {
             CScript scriptp = tx.vout[j].scriptPubKey;
@@ -2296,14 +2277,6 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
             {
                 PubkeyMap[scriptp].first += tx.vout[j].nValue;
                 PubkeyMap[scriptp].second = pindexNew->nHeight;
-                /*std::pair<int64_t, int> valueandheight;
-                rich.ReadAddress(scriptp,valueandheight);
-                int64_t newvalue = valueandheight.first + tx.vout[j].nValue;
-                int newheight = pindexNew->nHeight;
-                rich.EraseAddress(scriptp);
-                std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                if(newvalueandheight.first > 0)
-                    rich.WriteAddress(scriptp, newvalueandheight);*/
             }
             else
             {
@@ -2333,27 +2306,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
             }
         }
     }
-    /*if(pindexNew->nHeight == 208000)
-    {
-        CRichListDB rich("richlist.dat","cr+");
-        map<CScript, std::pair<int64_t, int> >::iterator it;
-        for (it = PubkeyMap.begin(); it != PubkeyMap.end(); it++)
-        {
-            CScript publickey = it->first;
-            std::pair<int64_t, int> writepair = it->second;
-            rich.WriteAddress(publickey, writepair);
-        }
-    }*/
-    /*CScript nrp = rich.NextRichPubkey();
-    CTxDestination dest;
-    if(ExtractDestination(nrp,dest))
-        std::cout << CBitcoinAddress(dest).ToString() << "\n";
-    std::pair<int64_t, int> vah;
-    rich.ReadAddress(nrp,vah);
-    vah.second = pindexNew->nHeight;
-    rich.EraseAddress(nrp);
-    rich.WriteAddress(nrp,vah);*/
-	return true;
+    return true;
 }
 
 // Make chainMostWork correspond to the chain with the most work in it, that isn't known to be invalid
@@ -2762,6 +2715,8 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 	//LogPrintf("CheckBlock() finished successful: hash = %s\n", hash.ToString());
 	return true;
 }
+
+//Finds the oldest address that owns more than 25 million SMLY
 CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap)
 {
     bool first = true;
@@ -2797,7 +2752,6 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
     EIASPubkeys[7].SetDestination(CBitcoinAddress("BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd").Get());
     EIASPubkeys[8].SetDestination(CBitcoinAddress("BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc").Get());
     EIASPubkeys[9].SetDestination(CBitcoinAddress("BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy").Get());
-    //CRichListDB rich("richlist.dat");
     
     AssertLockHeld(cs_main);
 	// Check for duplicate
@@ -2872,6 +2826,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 			}
 		}
 	}
+    // The coinbase tx must be split: 10% to the miner, 45% to the correct rich address and 45% to one of the EIAS addresses
     if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight+5000)
     {
         //Check if rich address to be payed matches my richlist
