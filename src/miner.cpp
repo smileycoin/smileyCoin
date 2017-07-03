@@ -195,6 +195,10 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
 
     pblocktemplate->vTxFees.push_back(-1); // updated at end
     pblocktemplate->vTxSigOps.push_back(-1); // updated at end
+    pblocktemplate->vTxFees.push_back(0); //zero fee for rich tx
+    pblocktemplate->vTxSigOps.push_back(-1); //updated at end
+    pblocktemplate->vTxFees.push_back(0); //zero fee for EIAS tx
+    pblocktemplate->vTxSigOps.push_back(-1); //updated at end
 
   int maxBlockSize;
 
