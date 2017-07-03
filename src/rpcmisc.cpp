@@ -99,6 +99,23 @@ Value getinfo(const Array& params, bool fHelp)
     return obj;
 }
 
+Value getaddressbalance(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error("specify the address you want to know the balance of"
+                            );
+    
+    proxyType proxy;
+    GetProxy(NET_IPV4, proxy);
+    CScript pubkey;
+    pubkey.SetDestination(CBitcoinAddress(params[0].get_str()).Get());
+    
+    Object obj;
+    double balance = (double)(PubkeyMap[pubkey].first)/100000000;
+    obj.push_back(Pair("balance", balance));
+    return obj;
+}
+
 #ifdef ENABLE_WALLET
 class DescribeAddressVisitor : public boost::static_visitor<Object>
 {
