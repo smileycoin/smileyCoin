@@ -1263,14 +1263,14 @@ int64_t GetBlockValue(int nHeight, int64_t nFees)
 
 int64_t GetBlockValueRich(int nHeight)
 {
-    int64_t nSubsidy = 0;
+    /*int64_t nSubsidy = 0;
     if(nHeight >= nRichForkHeight)
         nSubsidy = 4500 * COIN;
     
     // Subsidy is cut in half every 1226400 blocks, which will occur approximately every 7 years
-    nSubsidy >>= (nHeight / 1226400);
+    nSubsidy >>= (nHeight / 1226400);*/
     
-    return nSubsidy;
+    return 4500 * COIN;
 }
 
 //
