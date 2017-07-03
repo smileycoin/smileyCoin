@@ -400,17 +400,15 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
 
       if(true)
       {
-          pblock->vtx[0].vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
-          pblocktemplate->vTxFees[0] = -nFees;
+          txNew.vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
           //CTxOut minerTxOut = CTxOut(0, scriptPubKeyIn);
           CTxOut richTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),NextRichPubkey(PubkeyMap));
           CTxOut EIASTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),EIASPubkeys[(pindexPrev->nHeight % 10) + 1]);
           //txNew.vout.push_back(minerTxOut);
-          pblock->vtx[0].vout.push_back(richTxOut);
-          pblock->vtx[0].vout.push_back(EIASTxOut);
-          CTxOut temp = pblock->vtx[0].vout[1];
-          pblock->vtx[0].vout[1] = pblock->vtx[0].vout[0];
-          pblock->vtx[0].vout[0] = temp;
+          txNew.vout.push_back(richTxOut);
+          txNew.vout.push_back(EIASTxOut);
+          pblock->vtx[0] = txNew;
+          pblocktemplate->vTxFees[0] = -nFees;
           
       }
       /*else
