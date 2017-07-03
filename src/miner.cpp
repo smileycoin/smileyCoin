@@ -195,10 +195,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
 
     pblocktemplate->vTxFees.push_back(-1); // updated at end
     pblocktemplate->vTxSigOps.push_back(-1); // updated at end
-    
     pblocktemplate->vTxFees.push_back(0); //zero fee for rich tx
     pblocktemplate->vTxSigOps.push_back(-1); //updated at end
-    
     pblocktemplate->vTxFees.push_back(0); //zero fee for EIAS tx
     pblocktemplate->vTxSigOps.push_back(-1); //updated at end
 
@@ -402,6 +400,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
         }
       }
     }
+
     nLastBlockTx = nBlockTx;
     nLastBlockSize = nBlockSize;
     LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
@@ -414,8 +413,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
       //txNew.vout.push_back(minerTxOut);
       if(pindexPrev->nHeight + 1 >= nRichForkHeight)
       {
-          pblock->vtx[1].vout[0].nValue = GetBlockValueRich(pindexPrev->nHeight+1);
-          pblock->vtx[2].vout[0].nValue = GetBlockValueRich(pindexPrev->nHeight+1);
+          pblock->vtx[1].vout[0].nValue = GetBlockValueRich(pindexPrev->nHeight);
+          pblock->vtx[2].vout[0].nValue = GetBlockValueRich(pindexPrev->nHeight);
       }
       /*else
       {
@@ -432,8 +431,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     pblock->vtx[0].vin[0].scriptSig = CScript() << OP_0 << OP_0;
       if(pindexPrev->nHeight + 1 >= nRichForkHeight)
       {
-          pblock->vtx[1].vin[0].scriptSig = CScript() << OP_0 << OP_1;
-          pblock->vtx[2].vin[0].scriptSig = CScript() << OP_0 << OP_2;
+          pblock->vtx[1].vin[0].scriptSig = CScript() << OP_0 << OP_0;
+          pblock->vtx[2].vin[0].scriptSig = CScript() << OP_0 << OP_0;
       }
     pblocktemplate->vTxSigOps[0] = GetLegacySigOpCount(pblock->vtx[0]);
       if(pindexPrev->nHeight + 1 >= nRichForkHeight)
