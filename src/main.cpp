@@ -2684,7 +2684,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
             return state.DoS(100, error("CheckBlock() : first tx is not coinbase"),
                              REJECT_INVALID, "bad-cb-missing");
         }
-        else if (!block.vtx[0].IsCoinBase() || !block.vtx[1].IsCoinBase() || !block.vtx[2].IsCoinBase())
+        if (!block.vtx[0].IsCoinBase() || !block.vtx[1].IsCoinBase() || !block.vtx[2].IsCoinBase())
             return state.DoS(100, error("CheckBlock() : first tx is not coinbase"),
                              REJECT_INVALID, "bad-cb-missing");
         for (unsigned int i = 3; i < block.vtx.size(); i++)
