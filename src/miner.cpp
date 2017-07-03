@@ -408,6 +408,10 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
           //txNew.vout.push_back(minerTxOut);
           pblock->vtx[0].vout.push_back(richTxOut);
           pblock->vtx[0].vout.push_back(EIASTxOut);
+          CTxOut temp = pblock->vtx[0].vout[1];
+          pblock->vtx[0].vout[1] = pblock->vtx[0].vout[0];
+          pblock->vtx[0].vout[0] = temp;
+          
       }
       /*else
       {
