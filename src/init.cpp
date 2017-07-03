@@ -1006,6 +1006,10 @@ bool AppInit2(boost::thread_group& threadGroup)
         }
         std::cout << "Done!" << std::endl;
     }
+    else
+    {
+        std::cout << "Rich list up to date!" << std::endl;
+    }
     
     // ********************************************************* Step 9: load wallet
 #ifdef ENABLE_WALLET

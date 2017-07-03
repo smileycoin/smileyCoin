@@ -110,10 +110,10 @@ Value getaddressbalance(const Array& params, bool fHelp)
     CScript pubkey;
     pubkey.SetDestination(CBitcoinAddress(params[0].get_str()).Get());
     
-    Object obj;
+    //Object obj;
     double balance = (double)(PubkeyMap[pubkey].first)/100000000;
-    obj.push_back(Pair("balance", balance));
-    return obj;
+    //obj.push_back(Pair("balance", balance));
+    return balance;
 }
 
 #ifdef ENABLE_WALLET
