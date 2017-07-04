@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "rpcserver.h"
+#include "base58.h"
 #include "chainparams.h"
 #include "init.h"
 #include "net.h"
@@ -564,7 +565,32 @@ Value getblocktemplate(const Array& params, bool fHelp)
     result.push_back(Pair("curtime", (int64_t)pblock->nTime));
     result.push_back(Pair("bits", HexBits(pblock->nBits)));
     result.push_back(Pair("height", (int64_t)(pindexPrev->nHeight+1)));
-
+    
+    if (pblock->vtx[0].vout.size() == 3)
+    {
+        Object richaddressObj;
+        CTxDestination des;
+        ExtractDestination(pblock->vtx[0].vout[1].scriptPubKey, des);
+        CBitcoinAddress address(des);
+        richaddressObj.push_back(Pair("payee", address.ToString().c_str()));
+        richaddressObj.push_back(Pair("script", HexStr(pblock->vtx[0].vout[1].scriptPubKey.begin(), pblock->vtx[0].vout[1].scriptPubKey.end())));
+        richaddressObj.push_back(Pair("amount", pblock->vtx[0].vout[1].nValue));
+        
+        result.push_back(Pair("richaddress", richaddressObj));
+    }
+    if (pblock->vtx[0].vout.size() == 3)
+    {
+        Object EIASaddressObj;
+        CTxDestination des;
+        ExtractDestination(pblock->vtx[0].vout[2].scriptPubKey, des);
+        CBitcoinAddress address(des);
+        EIASaddressObj.push_back(Pair("payee", address.ToString().c_str()));
+        EIASaddressObj.push_back(Pair("script", HexStr(pblock->vtx[0].vout[1].scriptPubKey.begin(), pblock->vtx[0].vout[1].scriptPubKey.end())));
+        EIASaddressObj.push_back(Pair("amount", pblock->vtx[0].vout[1].nValue));
+        
+        result.push_back(Pair("EIASaddress", EIASaddressObj));
+    }
+    
     return result;
 }
 
