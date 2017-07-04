@@ -28,9 +28,9 @@ extern int64_t nTransactionFee;
 extern bool bSpendZeroConfChange;
 
 // -paytxfee default
-static const int64_t DEFAULT_TRANSACTION_FEE = 0.0001;
+static const int64_t DEFAULT_TRANSACTION_FEE = 1 * COIN;
 // -paytxfee will warn if called with a higher fee than this amount (in satoshis) per KB
-static const int nHighTransactionFeeWarning = 0.1 * COIN;
+static const int64_t nHighTransactionFeeWarning = 100 * COIN;
 
 class CAccountingEntry;
 class CCoinControl;

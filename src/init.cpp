@@ -958,7 +958,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         CBlockIndex *ind = chainActive[maxheight];
         CBlock block;
-        int ctr = 0;
         std::cout << "Updating rich list... this may take a few minutes" << std::endl;
         while (ind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
         {
@@ -966,7 +965,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             block.BuildMerkleTree();
             BOOST_FOREACH(const CTransaction &tx, block.vtx)
             {
-                for(int j = 0; j < tx.vout.size(); j++)
+                for(unsigned int j = 0; j < tx.vout.size(); j++)
                 {
                     CScript scriptp = tx.vout[j].scriptPubKey;
                     if(PubkeyMap.count(scriptp))
@@ -986,7 +985,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                         }
                     }
                 }
-                for(int j = 0; j < tx.vin.size(); j++)
+                for(unsigned int j = 0; j < tx.vin.size(); j++)
                 {
                     CTransaction trans;
                     uint256 bhash=0;

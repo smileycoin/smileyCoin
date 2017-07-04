@@ -2184,7 +2184,7 @@ bool static DisconnectTip(CValidationState &state)
     BOOST_FOREACH(const CTransaction &tx, block.vtx)
     {
         //Undo richlist update
-        for(int j = 0; j < tx.vout.size(); j++)
+        for (unsigned int j = 0; j < tx.vout.size(); j++)
         {
             CScript scriptp = tx.vout[j].scriptPubKey;
             PubkeyMap[scriptp].first -= tx.vout[j].nValue;
@@ -2192,7 +2192,7 @@ bool static DisconnectTip(CValidationState &state)
             if(PubkeyMap[scriptp].first == 0)
                 PubkeyMap.erase(scriptp);
         }
-        for(int j = 0; j < tx.vin.size(); j++)
+        for (unsigned int j = 0; j < tx.vin.size(); j++)
         {
             CTransaction trans;
             uint256 bhash=0;
@@ -2270,7 +2270,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
     {
         
         //Update rich list
-        for(int j = 0; j < tx.vout.size(); j++)
+        for (unsigned int j = 0; j < tx.vout.size(); j++)
         {
             CScript scriptp = tx.vout[j].scriptPubKey;
             if(PubkeyMap.count(scriptp))
@@ -2290,7 +2290,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
                 }
             }
         }
-        for(int j = 0; j < tx.vin.size(); j++)
+        for (unsigned int j = 0; j < tx.vin.size(); j++)
         {
             CTransaction trans;
             uint256 bhash=0;
