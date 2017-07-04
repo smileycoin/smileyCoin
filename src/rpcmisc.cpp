@@ -102,7 +102,8 @@ Value getinfo(const Array& params, bool fHelp)
 Value getaddressbalance(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
-        throw runtime_error("specify the address you want to know the balance of"
+        throw runtime_error("getaddressbalance\n"
+                            "Returns the balance of a given address.\n"
                             );
     
     proxyType proxy;

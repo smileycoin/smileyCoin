@@ -55,7 +55,7 @@ static const int64_t nAveragingTargetTimespan = nAveragingInterval * multiAlgoTa
 
 static const int64_t nMaxAdjustDown = 20; // 20% adjustment down
 static const int64_t nMaxAdjustUp = 20; // 20% adjustment up
-static const int64_t nLocalDifficultyAdjustment = 4; //difficulty adjustment per algo
+//static const int64_t nLocalDifficultyAdjustment = 4; //difficulty adjustment per algo
 static const int64_t nLocalTargetAdjustment = 4; //target adjustment per algo
 
 static const int64_t nMinActualTimespan = nAveragingTargetTimespan * (100 - nMaxAdjustUp) / 100;
