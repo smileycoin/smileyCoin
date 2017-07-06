@@ -156,8 +156,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     return NULL;
   }
 
-  if (pindexPrev->nHeight < multiAlgoDiffChangeTarget && algo != ALGO_SCRYPT) {
-    error("MultiAlgo is not yet active. Current block height %d, height multialgo becomes active %d", pindexPrev->nHeight, multiAlgoDiffChangeTarget);
+  if (pindexPrev->nHeight < nRichForkHeight && algo != ALGO_SCRYPT) {
+    error("MultiAlgo is not yet active. Current block height %d, height multialgo becomes active %d", pindexPrev->nHeight, nRichForkHeight);
     return NULL;
   }
 

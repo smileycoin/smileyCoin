@@ -74,7 +74,7 @@ bool fImporting = false;
 bool fReindex = false;
 bool fBenchmark = false;
 bool fTxIndex = true;
-int nRichForkHeight = 208957; //For testing. Will be changed to 215000
+//int nRichForkHeight = 225000;
 unsigned int nCoinCacheSize = 5000;
 uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
 
@@ -1327,7 +1327,7 @@ unsigned int static GetNextWorkRequired_Original(const CBlockIndex* pindexLast, 
             int64_t nActualTimespanMin = ((nTargetTimespan*50)/75);
 
             // Before block 225000 we allowed maximum of 400% change of difficulty between intervals
-      		if (pindexLast->nHeight <= 225000) {
+      		if (pindexLast->nHeight <= nRichForkHeight) {
       			nActualTimespanMax = nTargetTimespan*4;
       			nActualTimespanMin = nTargetTimespan/4;
       		}
@@ -1511,8 +1511,8 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 unsigned int GetNextWorkRequired(const CBlockIndex * pindexLast, const CBlockHeader * pblock, int algo){
     int DiffMode = 1;
 
-    if (pindexLast->nHeight+1 <= 225000) { DiffMode = 1;
-      } else if (pindexLast->nHeight + 1 <= multiAlgoDiffChangeTarget) {
+    if (pindexLast->nHeight+1 <= nRichForkHeight) { DiffMode = 1;
+      } else if (pindexLast->nHeight + 1 <= nRichForkHeight) {
         DiffMode = 2;
       } else {
         DiffMode = 3;
@@ -1766,7 +1766,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, CCoinsViewCach
 
 			// If prev is coinbase, check that it's matured
 			if (coins.IsCoinBase()) {
-				if (coins.nHeight < multiAlgoDiffChangeTarget) {
+				if (coins.nHeight < nRichForkHeight) {
 					if (nSpendHeight - coins.nHeight < COINBASE_MATURITY)
 						return state.Invalid(error("CheckInputs() : tried coinbase at depth %d %d %d %d",
 								nSpendHeight - coins.nHeight, nSpendHeight, coins.nHeight, COINBASE_MATURITY));
@@ -2653,7 +2653,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 	// Check amount of algos in row 
 	if(pindexPrev) {
 		// Check count of sequence of same algo
-		if (nHeight > (multiAlgoDiffChangeTarget + nBlockSequentialAlgoMaxCount)) {
+		if (nHeight > (nRichForkHeight + nBlockSequentialAlgoMaxCount)) {
 			int nAlgo = block.GetAlgo();
 			int nAlgoCount = 1;
 			CBlockIndex* piPrev = pindexPrev;
@@ -2778,8 +2778,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		//	return state.DoS(100, error("AcceptBlock() : incorrect proof of work"), 
 		//				    REJECT_INVALID, "bad-diffbits");
 
-		if ( nHeight < multiAlgoDiffChangeTarget && block.GetAlgo() != ALGO_SCRYPT )
-			return state.Invalid(error("AcceptBlock() : incorrect hasing algo, only scrypt accepted until block %d", multiAlgoDiffChangeTarget),
+		if ( nHeight < nRichForkHeight && block.GetAlgo() != ALGO_SCRYPT )
+			return state.Invalid(error("AcceptBlock() : incorrect hasing algo, only scrypt accepted until block %d", nRichForkHeight),
 					REJECT_INVALID, "bad-hashalgo");
 
 		// Check timestamp against prev
@@ -3780,7 +3780,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 		uint64_t nNonce = 1;
 		vRecv >> pfrom->nVersion >> pfrom->nServices >> nTime >> addrMe;
 
-		if (GetHeight() < multiAlgoDiffChangeTarget)
+		if (GetHeight() < nRichForkHeight)
 		{
 		 if (pfrom->nVersion < MIN_PEER_PROTO_VERSION)
 		 {

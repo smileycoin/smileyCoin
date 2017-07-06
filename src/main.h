@@ -34,7 +34,7 @@ class CBloomFilter;
 class CInv;
 
 const int64_t nDiffChangeTarget = 5; // Patch effective @ block 5
-const int64_t multiAlgoDiffChangeTarget = 225000; // block 225000 where multi-algo work weighting starts 225000
+const int nRichForkHeight = 225000;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE 	  	= 1000000;
@@ -101,7 +101,7 @@ extern int nScriptCheckThreads;
 extern bool fTxIndex;
 extern unsigned int nCoinCacheSize;
 extern int miningAlgo;
-extern int nRichForkHeight;
+
 
 
 // Minimum disk space required - used in CheckDiskSpace()
@@ -835,7 +835,7 @@ public:
 
     int GetAlgoWorkFactor() const
     {
-        if (nHeight < multiAlgoDiffChangeTarget)
+        if (nHeight < nRichForkHeight)
         {
             return 1;
         }
@@ -859,7 +859,7 @@ public:
 
     CBigNum GetBlockWorkAdjusted() const
     {
-        if (nHeight <= multiAlgoDiffChangeTarget )
+        if (nHeight <= nRichForkHeight )
         {
             CBigNum bnRes;
             bnRes = GetBlockWork() * GetAlgoWorkFactor();
