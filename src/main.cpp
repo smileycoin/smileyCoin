@@ -2834,7 +2834,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
         {
             return state.DoS(100, error("CheckBlock() : rich address does not match"));
         }
-        if (block.vtx[0].vout[2].scriptPubKey != EIASPubkeys[(pindexPrev->nHeight % 10) + 1])
+        if (block.vtx[0].vout[2].scriptPubKey != EIASPubkeys[(pindexPrev->nHeight % 10)])
         {
             return state.DoS(100, error("CheckBlock() : EIAS address does not match"));
         }

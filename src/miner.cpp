@@ -163,35 +163,14 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
 
     // Create coinbase tx
     CTransaction txNew;
-    /*if(pindexPrev->nHeight + 1 >= nRichForkHeight)
-    {
-        //CRichListDB rich("richlist.dat");
-        txNew.vin.resize(1);
-        txNew.vin[0].prevout.SetNull();
-        //txNew.vout.resize(3);
-        //txNew.vout[0].scriptPubKey = scriptPubKeyIn;
-        CTxOut minerTxOut = CTxOut(0, scriptPubKeyIn);
-        CTxOut richTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),NextRichPubkey(PubkeyMap));
-        CTxOut EIASTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),EIASPubkeys[(pindexPrev->nHeight % 10) + 1]);
-        txNew.vout.push_back(minerTxOut);
-        txNew.vout.push_back(richTxOut);
-        txNew.vout.push_back(EIASTxOut);
-        //txNew.vout[1].scriptPubKey = NextRichPubkey(PubkeyMap);
-        //txNew.vout[2].scriptPubKey = EIASPubkeys[(pindexPrev->nHeight % 10) + 1];
-        
-    }*/
-    //else
-    //{
-        txNew.vin.resize(1);
-        txNew.vin[0].prevout.SetNull();
-        txNew.vout.resize(1);
-        txNew.vout[0].scriptPubKey = scriptPubKeyIn;
-        
-    //}
-  // Add our coinbase tx as first transaction
-  pblock->vtx.push_back(txNew);
-  pblocktemplate->vTxFees.push_back(-1); // updated at end
-  pblocktemplate->vTxSigOps.push_back(-1); // updated at end
+
+    txNew.vin.resize(1);
+    txNew.vin[0].prevout.SetNull();
+    txNew.vout.resize(1);
+    txNew.vout[0].scriptPubKey = scriptPubKeyIn;
+    pblock->vtx.push_back(txNew);
+    pblocktemplate->vTxFees.push_back(-1); // updated at end
+    pblocktemplate->vTxSigOps.push_back(-1); // updated at end
 
   int maxBlockSize;
 
@@ -398,26 +377,18 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     nLastBlockSize = nBlockSize;
     LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
 
-      if(true)
-      {
-          txNew.vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
-          //CTxOut minerTxOut = CTxOut(0, scriptPubKeyIn);
-          CTxOut richTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),NextRichPubkey(PubkeyMap));
-          CTxOut EIASTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),EIASPubkeys[(pindexPrev->nHeight % 10) + 1]);
-          //txNew.vout.push_back(minerTxOut);
-          txNew.vout.push_back(richTxOut);
-          txNew.vout.push_back(EIASTxOut);
-          pblock->vtx[0] = txNew;
-          pblocktemplate->vTxFees[0] = -nFees;
-          
-      }
-      /*else
-      {
-          pblock->vtx[0].vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
-          pblocktemplate->vTxFees[0] = -nFees;
-          pblock->vtx[0].vout[1].nValue = GetBlockValueRich(pindexPrev->nHeight+1);
-          pblock->vtx[0].vout[2].nValue = GetBlockValueRich(pindexPrev->nHeight+1);
-      }*/
+  
+      txNew.vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
+      //CTxOut minerTxOut = CTxOut(0, scriptPubKeyIn);
+      CTxOut richTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),NextRichPubkey(PubkeyMap));
+      CTxOut EIASTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),EIASPubkeys[(pindexPrev->nHeight % 10)]);
+      //txNew.vout.push_back(minerTxOut);
+      txNew.vout.push_back(richTxOut);
+      txNew.vout.push_back(EIASTxOut);
+      pblock->vtx[0] = txNew;
+      pblocktemplate->vTxFees[0] = -nFees;
+      
+      
     // Fill in header
     pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
     UpdateTime(*pblock, pindexPrev);
