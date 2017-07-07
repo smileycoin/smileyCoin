@@ -1248,7 +1248,7 @@ const CBlockIndex* GetLastBlockIndexForAlgo(const CBlockIndex* pindex, int algo)
 int64_t GetBlockValue(int nHeight, int64_t nFees)
 {
 	int64_t nSubsidy = 10000 * COIN;
-    if(nHeight >= nRichForkHeight)
+    if(nHeight >= nRichForkHeight - 20000)
         nSubsidy = 1000 * COIN;
 
     if(nHeight <= 1000)
