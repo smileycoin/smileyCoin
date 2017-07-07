@@ -117,6 +117,24 @@ Value getaddressbalance(const Array& params, bool fHelp)
     return balance;
 }
 
+Value getaddressheight(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error("getaddressbalance\n"
+                            "Returns the block number where a given address was last used.\n"
+                            );
+    
+    proxyType proxy;
+    GetProxy(NET_IPV4, proxy);
+    CScript pubkey;
+    pubkey.SetDestination(CBitcoinAddress(params[0].get_str()).Get());
+    
+    double balance = (double)(PubkeyMap[pubkey].first)/100000000;
+    int height = PubkeyMap[pubkey].second;
+    return height;
+}
+
+
 #ifdef ENABLE_WALLET
 class DescribeAddressVisitor : public boost::static_visitor<Object>
 {

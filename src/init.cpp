@@ -956,11 +956,22 @@ bool AppInit2(boost::thread_group& threadGroup)
     CCoinsViewCache view2 (*pcoinsTip, true);
     if(maxheight < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
     {
-        CBlockIndex *ind = chainActive[maxheight];
+        
+        CBlockIndex *ind;
+        if (maxheight > 0)
+            ind = chainActive[maxheight-1];
+        else if (maxheight == 0)
+            ind = chainActive[0];
         CBlock block;
         std::cout << "Updating rich list... this may take a few minutes" << std::endl;
         while (ind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
         {
+            if (maxheight > 0)
+                ind = chainActive[ind->nHeight + 1];
+            else if (maxheight == 0)
+            {
+                maxheight++;
+            }
             ReadBlockFromDisk(block,ind);
             block.BuildMerkleTree();
             BOOST_FOREACH(const CTransaction &tx, block.vtx)
@@ -1001,7 +1012,6 @@ bool AppInit2(boost::thread_group& threadGroup)
                     }
                 }
             }
-            ind = chainActive[ind->nHeight + 1];
         }
         std::cout << "Done!" << std::endl;
     }
