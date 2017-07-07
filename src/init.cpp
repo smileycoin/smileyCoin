@@ -963,7 +963,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         else if (maxheight == 0)
             ind = chainActive[0];
         CBlock block;
-        std::cout << "Updating rich list... this may take a few minutes" << std::endl;
+        std::cout << "Updating rich list – this may take a few minutes..." << std::endl;
         while (ind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
         {
             if (maxheight > 0)
@@ -1013,12 +1013,9 @@ bool AppInit2(boost::thread_group& threadGroup)
                 }
             }
         }
-        std::cout << "Done!" << std::endl;
+        std::cout << "Done." << std::endl;
     }
-    else
-    {
-        std::cout << "Rich list up to date!" << std::endl;
-    }
+    std::cout << "Rich list has caught up." << std::endl;
     
     // ********************************************************* Step 9: load wallet
 #ifdef ENABLE_WALLET
