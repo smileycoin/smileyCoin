@@ -2048,10 +2048,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	}
     
     // Ensure that the same rich address doesn't get paid twice
-    if (block.vtx[0].vout.size() >= 3)
+    for (unsigned int i = 0; i < block.vtx[0].vout.size(); i++)
     {
-        if (PubkeyMap[block.vtx[0].vout[1].scriptPubKey].second < pindex->nHeight)
-            PubkeyMap[block.vtx[0].vout[1].scriptPubKey].second = pindex->nHeight;
+        if (PubkeyMap[block.vtx[0].vout[i].scriptPubKey].second < pindex->nHeight)
+            PubkeyMap[block.vtx[0].vout[i].scriptPubKey].second = pindex->nHeight;
     }
     
 	int64_t nTime = GetTimeMicros() - nStart;
