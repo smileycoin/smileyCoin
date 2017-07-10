@@ -2046,6 +2046,12 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 		vPos.push_back(std::make_pair(block.GetTxHash(i), pos));
 		pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
 	}
+    
+    // Ensure that the same rich address doesn't get paid twice
+    if (block.vtx[0].vout.size() >= 3)
+        if (PubkeyMap[block.vtx[0].vout[1].scriptPubKey].second < pindex->nHeight)
+            PubkeyMap[block.vtx[0].vout[1].scriptPubKey].second = pindex->nHeight;
+    
 	int64_t nTime = GetTimeMicros() - nStart;
 	if (fBenchmark)
 		LogPrintf("- Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin)\n", (unsigned)block.vtx.size(), 0.001 * nTime, 0.001 * nTime / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * nTime / (nInputs-1));

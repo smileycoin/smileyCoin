@@ -408,9 +408,6 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     LogPrintf("CreateNewBlock() : ConnectBlock failed\n");
     return NULL;
     }
-      // Ensure rich list is updated properly
-      if (PubkeyMap[pblock->vtx[0].vout[1].scriptPubKey].second < pindexPrev->nHeight + 1)
-          PubkeyMap[pblock->vtx[0].vout[1].scriptPubKey].second = pindexPrev->nHeight + 1;
   }
 
   return pblocktemplate.release();
