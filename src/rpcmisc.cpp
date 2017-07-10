@@ -26,6 +26,7 @@ using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
 
+
 Value getinfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
@@ -57,7 +58,8 @@ Value getinfo(const Array& params, bool fHelp)
 
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
-    CScript nextrichpubkey = NextRichPubkey(PubkeyMap);
+    int prevheight;
+    CScript nextrichpubkey = NextRichPubkey(PubkeyMap, prevheight);
     CTxDestination des;
     ExtractDestination(nextrichpubkey, des);
     CBitcoinAddress nextrichaddress = CBitcoinAddress(des);
@@ -129,7 +131,6 @@ Value getaddressheight(const Array& params, bool fHelp)
     CScript pubkey;
     pubkey.SetDestination(CBitcoinAddress(params[0].get_str()).Get());
     
-    double balance = (double)(PubkeyMap[pubkey].first)/100000000;
     int height = PubkeyMap[pubkey].second;
     return height;
 }

@@ -198,7 +198,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
                         bool* pfMissingInputs, bool fRejectInsaneFee=false);
 
 /** find next (oldest) rich address **/
-CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap);
+CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap, int prevheight);
 
 struct CNodeStateStats {
     int nMisbehavior;

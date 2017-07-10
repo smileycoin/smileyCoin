@@ -380,7 +380,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
   
       txNew.vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
       //CTxOut minerTxOut = CTxOut(0, scriptPubKeyIn);
-      CTxOut richTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),NextRichPubkey(PubkeyMap));
+      int prevheight;
+      CTxOut richTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),NextRichPubkey(PubkeyMap, prevheight));
       CTxOut EIASTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),EIASPubkeys[(pindexPrev->nHeight % 10)]);
       //txNew.vout.push_back(minerTxOut);
       txNew.vout.push_back(richTxOut);
@@ -405,8 +406,9 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     if (!ConnectBlock(*pblock, state, &indexDummy, viewNew, true))
     {
     //throw std::runtime_error("CreateNewBlock() : ConnectBlock failed");
-    LogPrintf("CreateNewBlock() : ConnectBlock failed\n");
-    return NULL;
+        PubkeyMap[pblock->vtx[0].vout[1].scriptPubKey].second = prevheight;
+        LogPrintf("CreateNewBlock() : ConnectBlock failed\n");
+        return NULL;
     }
   }
 

@@ -2049,8 +2049,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     
     // Ensure that the same rich address doesn't get paid twice
     if (block.vtx[0].vout.size() >= 3)
+    {
         if (PubkeyMap[block.vtx[0].vout[1].scriptPubKey].second < pindex->nHeight)
             PubkeyMap[block.vtx[0].vout[1].scriptPubKey].second = pindex->nHeight;
+    }
     
 	int64_t nTime = GetTimeMicros() - nStart;
 	if (fBenchmark)
@@ -2723,7 +2725,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 }
 
 //Finds the oldest address that owns more than 25 million SMLY
-CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap)
+CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap, int prevheight)
 {
     bool first = true;
     int minheight;
@@ -2742,6 +2744,7 @@ CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap)
             minheight = it->second.second;
         }
     }
+    prevheight = pubmap[ret].second;
     return ret;
 }
 
@@ -2836,7 +2839,8 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
     if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight+50000)
     {
         //Check if rich address to be payed matches my richlist
-        if (block.vtx[0].vout[1].scriptPubKey != NextRichPubkey(PubkeyMap))
+        int prevheight;
+        if (block.vtx[0].vout[1].scriptPubKey != NextRichPubkey(PubkeyMap, prevheight))
         {
             return state.DoS(100, error("CheckBlock() : rich address does not match"));
         }
