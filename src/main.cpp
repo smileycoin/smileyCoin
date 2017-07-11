@@ -74,7 +74,6 @@ bool fImporting = false;
 bool fReindex = false;
 bool fBenchmark = false;
 bool fTxIndex = true;
-//int nRichForkHeight = 225000;
 unsigned int nCoinCacheSize = 5000;
 uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
 
@@ -1248,7 +1247,7 @@ const CBlockIndex* GetLastBlockIndexForAlgo(const CBlockIndex* pindex, int algo)
 int64_t GetBlockValue(int nHeight, int64_t nFees)
 {
 	int64_t nSubsidy = 10000 * COIN;
-    if(nHeight >= nRichForkHeight - 20000)
+    if(nHeight >= nRichForkHeight)
         nSubsidy = 1000 * COIN;
 
     if(nHeight <= 1000)
@@ -1264,7 +1263,7 @@ int64_t GetBlockValue(int nHeight, int64_t nFees)
 int64_t GetBlockValueRich(int nHeight)
 {
     int64_t nSubsidy = 0;
-    if(nHeight >= nRichForkHeight-20000)
+    if(nHeight >= nRichForkHeight)
         nSubsidy = 4500 * COIN;
     
     // Subsidy is cut in half every 1226400 blocks, which will occur approximately every 7 years
@@ -1326,8 +1325,8 @@ unsigned int static GetNextWorkRequired_Original(const CBlockIndex* pindexLast, 
       		int64_t nActualTimespanMax = ((nTargetTimespan*75)/50); 
             int64_t nActualTimespanMin = ((nTargetTimespan*50)/75);
 
-            // Before block 225000 we allowed maximum of 400% change of difficulty between intervals
-      		if (pindexLast->nHeight <= nRichForkHeight) {
+            // Before block 218000 we allowed maximum of 400% change of difficulty between intervals
+      		if (pindexLast->nHeight < nRichForkHeight) {
       			nActualTimespanMax = nTargetTimespan*4;
       			nActualTimespanMin = nTargetTimespan/4;
       		}
@@ -1511,8 +1510,8 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 unsigned int GetNextWorkRequired(const CBlockIndex * pindexLast, const CBlockHeader * pblock, int algo){
     int DiffMode = 1;
 
-    if (pindexLast->nHeight+1 <= nRichForkHeight) { DiffMode = 1;
-      } else if (pindexLast->nHeight + 1 <= nRichForkHeight) {
+    if (pindexLast->nHeight+1 < nRichForkHeight) { DiffMode = 1;
+      } else if (pindexLast->nHeight + 1 < nRichForkHeight) {
         DiffMode = 2;
       } else {
         DiffMode = 3;
@@ -2047,12 +2046,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 		pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
 	}
     
-    // Ensure that the same rich address doesn't get paid twice
-    /*for (unsigned int i = 0; i < block.vtx[0].vout.size(); i++)
-    {
-        if (PubkeyMap[block.vtx[0].vout[i].scriptPubKey].second < pindex->nHeight)
-            PubkeyMap[block.vtx[0].vout[i].scriptPubKey].second = pindex->nHeight;
-    }*/
+    
     
 	int64_t nTime = GetTimeMicros() - nStart;
 	if (fBenchmark)
@@ -2209,7 +2203,7 @@ bool static DisconnectTip(CValidationState &state)
                 CScript scriptp = trans.vout[tx.vin[j].prevout.n].scriptPubKey;
                 if(PubkeyMap.count(scriptp))
                 {
-                    PubkeyMap[scriptp].first += tx.vout[j].nValue;
+                    PubkeyMap[scriptp].first += trans.vout[tx.vin[j].prevout.n].nValue;
                     PubkeyMap[scriptp].second = pindexDelete->nHeight;
                 }
                 else
@@ -2661,7 +2655,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 	// Check amount of algos in row 
 	if(pindexPrev) {
 		// Check count of sequence of same algo
-		if (nHeight > (nRichForkHeight + nBlockSequentialAlgoMaxCount)) {
+		if (nHeight >= (nRichForkHeight + nBlockSequentialAlgoMaxCount)) {
 			int nAlgo = block.GetAlgo();
 			int nAlgoCount = 1;
 			CBlockIndex* piPrev = pindexPrev;
@@ -2836,7 +2830,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		}
 	}
     // The coinbase tx must be split: 10% to the miner, 45% to the correct rich address and 45% to one of the EIAS addresses
-    if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight+50000)
+    if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight)
     {
         //Check if rich address to be payed matches my richlist
         int prevheight;
