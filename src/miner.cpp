@@ -408,7 +408,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     {
     //throw std::runtime_error("CreateNewBlock() : ConnectBlock failed");
         PubkeyMap[richTxOut.scriptPubKey].second = prevheight;
-        std::cout << std::to_string(prevheight) << std::endl;
+        std::cout << (prevheight) << std::endl;
         LogPrintf("CreateNewBlock() : ConnectBlock failed\n");
         return NULL;
     }
