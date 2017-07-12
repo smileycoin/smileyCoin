@@ -953,76 +953,78 @@ bool AppInit2(boost::thread_group& threadGroup)
       current heighest block.*/
     
     CCoinsViewCache view(*pcoinsdbview, true);
-
-    if(maxheight < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
+    if(mapBlockIndex.count((pcoinsdbview->GetBestBlock())))
     {
-        
-        CBlockIndex *ind;
-        if (maxheight > 0)
-            ind = chainActive[maxheight-1];
-        else if (maxheight == 0)
-            ind = chainActive[0];
-        CBlock block;
-        std::cout << "Updating rich list – this may take a few minutes..." << std::endl;
-        while (ind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
+        if(maxheight < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
         {
+            
+            CBlockIndex *ind;
             if (maxheight > 0)
-                ind = chainActive[ind->nHeight + 1];
+                ind = chainActive[maxheight-1];
             else if (maxheight == 0)
+                ind = chainActive[0];
+            CBlock block;
+            std::cout << "Updating rich list – this may take a few minutes..." << std::endl;
+            while (ind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
             {
-                maxheight++;
-            }
-            ReadBlockFromDisk(block,ind);
-            block.BuildMerkleTree();
-            BOOST_FOREACH(const CTransaction &tx, block.vtx)
-            {
-                for(unsigned int j = 0; j < tx.vout.size(); j++)
+                if (maxheight > 0)
+                    ind = chainActive[ind->nHeight + 1];
+                else if (maxheight == 0)
                 {
-                    CScript scriptp = tx.vout[j].scriptPubKey;
-                    if(PubkeyMap.count(scriptp))
+                    maxheight++;
+                }
+                ReadBlockFromDisk(block,ind);
+                block.BuildMerkleTree();
+                BOOST_FOREACH(const CTransaction &tx, block.vtx)
+                {
+                    for(unsigned int j = 0; j < tx.vout.size(); j++)
                     {
-                        PubkeyMap[scriptp].first += tx.vout[j].nValue;
-                        PubkeyMap[scriptp].second = ind->nHeight;
-                    }
-                    else
-                    {
-                        int64_t newvalue = tx.vout[j].nValue;
-                        int newheight = ind->nHeight;
-                        std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                        if(newvalueandheight.first > 0)
+                        CScript scriptp = tx.vout[j].scriptPubKey;
+                        if(PubkeyMap.count(scriptp))
                         {
-                            std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
-                            PubkeyMap.insert(newpair);
+                            PubkeyMap[scriptp].first += tx.vout[j].nValue;
+                            PubkeyMap[scriptp].second = ind->nHeight;
+                        }
+                        else
+                        {
+                            int64_t newvalue = tx.vout[j].nValue;
+                            int newheight = ind->nHeight;
+                            std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
+                            if(newvalueandheight.first > 0)
+                            {
+                                std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
+                                PubkeyMap.insert(newpair);
+                            }
                         }
                     }
                 }
-            }
 
-            CBlockUndo undo;
-            CDiskBlockPos pos = ind->GetUndoPos();  
-            undo.ReadFromDisk(pos,ind->GetBlockHash());
+                CBlockUndo undo;
+                CDiskBlockPos pos = ind->GetUndoPos();  
+                undo.ReadFromDisk(pos,ind->GetBlockHash());
 
-            for (int i=0; i<undo.vtxundo.size(); i++)
-            {
-                for (int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
+                for (int i=0; i<undo.vtxundo.size(); i++)
                 {
-                    CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                    PubkeyMap[scriptp].first -= undo.vtxundo[i].vprevout[j].txout.nValue;
-                    PubkeyMap[scriptp].second = ind->nHeight;
-                    if(PubkeyMap[scriptp].first ==0)
+                    for (int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
                     {
-                        PubkeyMap.erase(scriptp);
-                    }   
+                        CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
+                        PubkeyMap[scriptp].first -= undo.vtxundo[i].vprevout[j].txout.nValue;
+                        PubkeyMap[scriptp].second = ind->nHeight;
+                        if(PubkeyMap[scriptp].first ==0)
+                        {
+                            PubkeyMap.erase(scriptp);
+                        }   
+                    }
                 }
-            }
 
 
-        }   
+            }   
+        }
 
-        std::cout << "Done." << std::endl;
+            std::cout << "Done." << std::endl;
     }
-    std::cout << "Rich list has caught up." << std::endl;
-     
+        std::cout << "Rich list has caught up." << std::endl;
+         
     // ********************************************************* Step 9: load wallet
 #ifdef ENABLE_WALLET
     if (fDisableWallet) {
