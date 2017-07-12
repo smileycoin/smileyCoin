@@ -953,7 +953,7 @@ bool AppInit2(boost::thread_group& threadGroup)
       current heighest block.*/
     
     CCoinsViewCache view(*pcoinsdbview, true);
-    CCoinsViewCache view2 (*pcoinsTip, true);
+
     if(maxheight < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
     {
         
@@ -999,7 +999,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             }
 
             CBlockUndo undo;
-            CDiskBlockPos pos = ind->GetUndoPos();
+            CDiskBlockPos pos = ind->GetUndoPos();  
             undo.ReadFromDisk(pos,ind->GetBlockHash());
 
             for (int i=0; i<undo.vtxundo.size(); i++)
@@ -1017,11 +1017,12 @@ bool AppInit2(boost::thread_group& threadGroup)
             }
 
 
-    }        
+        }   
+
         std::cout << "Done." << std::endl;
-    
-    std::cout << "Rich list has caught up." << std::endl;
     }
+    std::cout << "Rich list has caught up." << std::endl;
+     
     // ********************************************************* Step 9: load wallet
 #ifdef ENABLE_WALLET
     if (fDisableWallet) {
