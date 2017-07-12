@@ -115,6 +115,16 @@ For MacPorts, that means editing your macports.conf and setting
 
 ... and then uninstalling and re-installing, or simply rebuilding, all ports.
 
+Download and install this: qt-opensource-mac-x64-clang-5.4.0.dmg
+Run the following: 
+    
+    cd ~/Qt5.4.0/5.4/clang_64/include
+    for MODULE in $(find ../lib -type d -name Headers); do ln -s $MODULE $(echo $MODULE | cut -d"/" -f3 | cut -d"." -f1) ; done
+    export CXXFLAGS=-std=c++11
+    PKG_CONFIG_PATH=~/Qt5.4.0/5.4/clang_64/lib/pkgconfig ac_cv_path_MOC=~/Qt5.4.0/5.4/clang_64/bin/moc ac_cv_path_UIC=~/Qt5.4.0/5.4/clang_64/bin/uic ac_cv_path_RCC=~/Qt5.4.0/5.4/clang_64/bin/rcc ac_cv_path_LRELEASE=~/Qt5.4.0/5.4/clang_64/bin/lrelease ./configure --with-gui=qt5
+    make
+    make deploy
+
 As of December 2012, the `boost` port does not obey `macosx_deployment_target`.
 Download `http://gavinandresen-smileycoin.s3.amazonaws.com/boost_macports_fix.zip`
 for a fix.
