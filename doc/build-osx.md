@@ -30,11 +30,8 @@ available via Homebrew or MacPorts.
 
 You will also need to install [Homebrew](http://brew.sh)
 or [MacPorts](https://www.macports.org/) in order to install library
-dependencies. It's largely a religious decision which to choose, but, as of
-December 2012, MacPorts is a little easier because you can just install the
-dependencies immediately - no other work required. If you're unsure, read
-the instructions through first in order to assess what you want to do.
-Homebrew is a little more popular among those newer to OS X.
+dependencies. It is recommended to use MacPorts, it is a little easier because you can just install the
+dependencies immediately - no other work required.
 
 The installation of the actual dependencies is covered in the Instructions
 sections below.
@@ -46,7 +43,7 @@ Instructions: MacPorts
 
 Installing the dependencies using MacPorts is very straightforward.
 
-    sudo port install boost db48@+no_java openssl miniupnpc autoconf pkgconfig automake
+    sudo port install boost db53@+no_java openssl miniupnpc autoconf pkgconfig automake
 
 Optional: install Qt4
 
