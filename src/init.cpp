@@ -826,7 +826,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     else if (nTotalCache > (nMaxDbCache << 20))
         nTotalCache = (nMaxDbCache << 20); // total cache cannot be greater than nMaxDbCache
     size_t nBlockTreeDBCache = nTotalCache / 8;
-    if (nBlockTreeDBCache > (1 << 21) && !GetBoolArg("-txindex", true))
+    if (nBlockTreeDBCache > (1 << 21) && !GetBoolArg("-txindex", false))
         nBlockTreeDBCache = (1 << 21); // block tree db cache shouldn't be larger than 2 MiB
     nTotalCache -= nBlockTreeDBCache;
     size_t nCoinDBCache = nTotalCache / 2; // use half of the remaining cache for coindb cache
@@ -870,7 +870,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                 }
 
                 // Check for changed -txindex state
-                if (fTxIndex != GetBoolArg("-txindex", true)) {
+                if (fTxIndex != GetBoolArg("-txindex", false)) {
                     strLoadError = _("You need to rebuild the database using -reindex to change -txindex");
                     break;
                 }
@@ -953,7 +953,7 @@ bool AppInit2(boost::thread_group& threadGroup)
       current heighest block.*/
     
     CCoinsViewCache view(*pcoinsdbview, true);
-    CCoinsViewCache view2 (*pcoinsTip, true);
+
     if(maxheight < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
     {
         
@@ -996,27 +996,33 @@ bool AppInit2(boost::thread_group& threadGroup)
                         }
                     }
                 }
-                for(unsigned int j = 0; j < tx.vin.size(); j++)
+            }
+
+            CBlockUndo undo;
+            CDiskBlockPos pos = ind->GetUndoPos();  
+            undo.ReadFromDisk(pos,ind->GetBlockHash());
+
+            for (int i=0; i<undo.vtxundo.size(); i++)
+            {
+                for (int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
                 {
-                    CTransaction trans;
-                    uint256 bhash=0;
-                    if(GetTransaction(tx.vin[j].prevout.hash, trans, bhash,true))
+                    CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
+                    PubkeyMap[scriptp].first -= undo.vtxundo[i].vprevout[j].txout.nValue;
+                    PubkeyMap[scriptp].second = ind->nHeight;
+                    if(PubkeyMap[scriptp].first ==0)
                     {
-                        CScript scriptp = trans.vout[tx.vin[j].prevout.n].scriptPubKey;
-                        PubkeyMap[scriptp].first -= trans.vout[tx.vin[j].prevout.n].nValue;
-                        PubkeyMap[scriptp].second = ind->nHeight;
-                        if(PubkeyMap[scriptp].first == 0)
-                        {
-                            PubkeyMap.erase(scriptp);
-                        }
-                    }
+                        PubkeyMap.erase(scriptp);
+                    }   
                 }
             }
-        }
+
+
+        }   
+
         std::cout << "Done." << std::endl;
     }
     std::cout << "Rich list has caught up." << std::endl;
-    
+     
     // ********************************************************* Step 9: load wallet
 #ifdef ENABLE_WALLET
     if (fDisableWallet) {

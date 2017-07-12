@@ -73,7 +73,7 @@ int nScriptCheckThreads = 0;
 bool fImporting = false;
 bool fReindex = false;
 bool fBenchmark = false;
-bool fTxIndex = true;
+bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
 uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
 
@@ -2144,6 +2144,7 @@ void static UpdateTip(CBlockIndex *pindexNew) {
 // Disconnect chainActive's tip.
 bool static DisconnectTip(CValidationState &state)
 {
+
     CBlockIndex *pindexDelete = chainActive.Tip();
 	assert(pindexDelete);
 	mempool.check(pcoinsTip);
@@ -2194,28 +2195,33 @@ bool static DisconnectTip(CValidationState &state)
             if(PubkeyMap[scriptp].first == 0)
                 PubkeyMap.erase(scriptp);
         }
-        for (unsigned int j = 0; j < tx.vin.size(); j++)
+    }
+
+    CBlockUndo undo;
+    CDiskBlockPos pos = pindexDelete ->GetUndoPos();
+    undo.ReadFromDisk(pos, pindexDelete->GetBlockHash());
+
+    for (int i=0; i<undo.vtxundo.size(); i++)
+    {
+        for (int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
         {
-            CTransaction trans;
-            uint256 bhash=0;
-            if(GetTransaction(tx.vin[j].prevout.hash, trans, bhash,true))
+            CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
+            if(PubkeyMap.count(scriptp))
             {
-                CScript scriptp = trans.vout[tx.vin[j].prevout.n].scriptPubKey;
-                if(PubkeyMap.count(scriptp))
-                {
-                    PubkeyMap[scriptp].first += trans.vout[tx.vin[j].prevout.n].nValue;
-                    PubkeyMap[scriptp].second = pindexDelete->nHeight;
-                }
-                else
-                {
-                    int64_t newvalue = trans.vout[tx.vin[j].prevout.n].nValue;
-                    int newheight = pindexDelete->nHeight;
-                    std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                    std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
-                    PubkeyMap.insert(newpair);
-                }
+            	PubkeyMap[scriptp].first += undo.vtxundo[i].vprevout[j].txout.nValue;
+            }
+
+            else
+            {
+            	int64_t newvalue = undo.vtxundo[i].vprevout[j].txout.nValue;
+            	int newheight = pindexDelete ->nHeight;
+            	std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
+            	std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
+            	PubkeyMap.insert(newpair);
+
             }
         }
+
     }
 	return true;
 }
@@ -2223,6 +2229,8 @@ bool static DisconnectTip(CValidationState &state)
 // Connect a new block to chainActive.
 bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
 {
+
+
     //CRichListDB rich("richlist.dat");
     assert(pindexNew->pprev == chainActive.Tip());
 	mempool.check(pcoinsTip);
@@ -2292,22 +2300,27 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
                 }
             }
         }
-        for (unsigned int j = 0; j < tx.vin.size(); j++)
-        {
-            CTransaction trans;
-            uint256 bhash=0;
-            if(GetTransaction(tx.vin[j].prevout.hash, trans, bhash,true))
-            {
-                CScript scriptp = trans.vout[tx.vin[j].prevout.n].scriptPubKey;
-                PubkeyMap[scriptp].first -= trans.vout[tx.vin[j].prevout.n].nValue;
-                PubkeyMap[scriptp].second = pindexNew->nHeight;
-                if(PubkeyMap[scriptp].first == 0)
-                {
-                    PubkeyMap.erase(scriptp);
-                }
-            }
-        }
     }
+
+    CBlockUndo undo;
+    CDiskBlockPos pos = pindexNew ->GetUndoPos();
+    undo.ReadFromDisk(pos, pindexNew->GetBlockHash());
+
+    for (unsigned int i=0; i<undo.vtxundo.size(); i++)
+    {
+    	for(unsigned int j=0; j<undo.vtxundo[i].vprevout.size();j++)
+    	{
+    		CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
+    		PubkeyMap[scriptp].first -= undo.vtxundo[i].vprevout[j].txout.nValue;
+    		PubkeyMap[scriptp].second = pindexNew->nHeight;
+    		if(PubkeyMap[scriptp].first==0)
+
+    		{
+    			PubkeyMap.erase(scriptp);
+    		}
+    	}
+    }
+
     return true;
 }
 
@@ -3390,7 +3403,7 @@ bool InitBlockIndex() {
 		return true;
 
 	// Use the provided setting for -txindex in the new database
-	fTxIndex = GetBoolArg("-txindex", true);
+	fTxIndex = GetBoolArg("-txindex", false);
 	pblocktree->WriteFlag("txindex", fTxIndex);
 	LogPrintf("Initializing databases...\n");
 
