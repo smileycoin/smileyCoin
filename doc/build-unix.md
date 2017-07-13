@@ -92,7 +92,7 @@ for other Ubuntu & Debian:
 
 	sudo apt-get install libdb-dev
 	sudo apt-get install libdb++-dev
-	sudo apt-get install libboost1.55-all-dev
+	sudo apt-get install libboost-all-dev
 	sudo apt-get install git
 
 Optional:
