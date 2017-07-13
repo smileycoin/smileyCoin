@@ -53,8 +53,8 @@ Optional: install Qt4
 
 1. Clone the github tree to get the source code and go into the directory.
 
-        git clone git@github.com:smileycoin/smileycoin.git smileycoin
-        cd smileycoin
+        git clone https://github.com/tutor-web/smileyCoin.git
+        cd smileyCoin
 
 2.  Build smileycoind (and Smileycoin-Qt, if configured):
 
@@ -79,8 +79,8 @@ Instructions: Homebrew
 
 1. Clone the github tree to get the source code and go into the directory.
 
-        git clone https://github.com/smileycoin/SmileycoinProject.git
-        cd smileycoin
+        git clone https://github.com/tutor-web/smileyCoin.git
+        cd smileyCoin
 
 2.  Build smileycoind:
 

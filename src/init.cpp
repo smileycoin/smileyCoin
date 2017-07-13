@@ -466,6 +466,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     filesystem::path richpath = GetDataDir() / "richlist.dat";
     CRichListDB rich("richlist.dat","cr+");
     int maxheight;
+    PubkeyMap.clear();
     rich.SaveToMap(PubkeyMap, maxheight);
     
 
@@ -791,6 +792,8 @@ bool AppInit2(boost::thread_group& threadGroup)
     // ********************************************************* Step 7: load block chain
 
     fReindex = GetBoolArg("-reindex", false);
+    if (fReindex)
+        PubkeyMap.clear();
 
     // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
     filesystem::path blocksDir = GetDataDir() / "blocks";
