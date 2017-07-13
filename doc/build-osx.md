@@ -53,8 +53,8 @@ Optional: install Qt4
 
 1. Clone the github tree to get the source code and go into the directory.
 
-        git clone git@github.com:smileycoin/smileycoin.git smileycoin
-        cd smileycoin
+        git clone https://github.com/tutor-web/smileyCoin.git
+        cd smileyCoin
 
 2.  Build smileycoind (and Smileycoin-Qt, if configured):
 
@@ -79,8 +79,8 @@ Instructions: Homebrew
 
 1. Clone the github tree to get the source code and go into the directory.
 
-        git clone https://github.com/smileycoin/SmileycoinProject.git
-        cd smileycoin
+        git clone https://github.com/tutor-web/smileyCoin.git
+        cd smileyCoin
 
 2.  Build smileycoind:
 
@@ -123,6 +123,7 @@ Run the following:
     export CXXFLAGS=-std=c++11
     PKG_CONFIG_PATH=~/Qt5.4.0/5.4/clang_64/lib/pkgconfig ac_cv_path_MOC=~/Qt5.4.0/5.4/clang_64/bin/moc ac_cv_path_UIC=~/Qt5.4.0/5.4/clang_64/bin/uic ac_cv_path_RCC=~/Qt5.4.0/5.4/clang_64/bin/rcc ac_cv_path_LRELEASE=~/Qt5.4.0/5.4/clang_64/bin/lrelease ./configure --with-gui=qt5
     make
+    sudo easy_install argparse
     make deploy
 
 As of December 2012, the `boost` port does not obey `macosx_deployment_target`.
