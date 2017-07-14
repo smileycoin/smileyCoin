@@ -1021,10 +1021,11 @@ bool AppInit2(boost::thread_group& threadGroup)
                 }
 
 
-            }   
+            }
+            std::cout << "Done." << std::endl;
         }
 
-            std::cout << "Done." << std::endl;
+        
     }
         std::cout << "Rich list has caught up." << std::endl;
          
