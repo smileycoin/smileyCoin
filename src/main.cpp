@@ -1356,83 +1356,6 @@ unsigned int static GetNextWorkRequired_Original(const CBlockIndex* pindexLast, 
       return bnNew.GetCompact();
   }
 
-unsigned int static KimotoGravityWell(const CBlockIndex* pindexLast, const CBlockHeader *pblock, uint64_t TargetBlocksSpacingSeconds, uint64_t PastBlocksMin, uint64_t PastBlocksMax, int algo) {
-          /* current difficulty formula, megacoin - kimoto gravity well */
-          const CBlockIndex *BlockLastSolved = pindexLast;
-          const CBlockIndex *BlockReading = pindexLast;
-          const CBlockHeader *BlockCreating = pblock;
-
-          BlockCreating = BlockCreating;
-
-          uint64_t PastBlocksMass = 0;
-          int64_t PastRateActualSeconds = 0;
-          int64_t PastRateTargetSeconds = 0;
-          double PastRateAdjustmentRatio = double(1);
-          CBigNum PastDifficultyAverage;
-          CBigNum PastDifficultyAveragePrev;
-          double EventHorizonDeviation;
-          double EventHorizonDeviationFast;
-          double EventHorizonDeviationSlow;
-
-      if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || (uint64_t)BlockLastSolved->nHeight < PastBlocksMin) { return Params().ProofOfWorkLimit(algo).GetCompact(); }
-
-          for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
-                  if (PastBlocksMax > 0 && i > PastBlocksMax) { break; }
-                  PastBlocksMass++;
-
-                  if (i == 1) { PastDifficultyAverage.SetCompact(BlockReading->nBits); }
-                    else { PastDifficultyAverage = ((CBigNum().SetCompact(BlockReading->nBits) - PastDifficultyAveragePrev) / i) + PastDifficultyAveragePrev; }
-                  PastDifficultyAveragePrev = PastDifficultyAverage;
-
-                  PastRateActualSeconds = BlockLastSolved->GetBlockTime() - BlockReading->GetBlockTime();
-                  PastRateTargetSeconds = TargetBlocksSpacingSeconds * PastBlocksMass;
-                  PastRateAdjustmentRatio = double(1);
-                  if (PastRateActualSeconds < 0) { PastRateActualSeconds = 0; }
-                  if (PastRateActualSeconds != 0 && PastRateTargetSeconds != 0) {
-                    PastRateAdjustmentRatio = double(PastRateTargetSeconds) / double(PastRateActualSeconds);
-                  }
-                  EventHorizonDeviation = 1 + (0.7084 * pow((double(PastBlocksMass)/double(144)), -1.228));
-                  EventHorizonDeviationFast = EventHorizonDeviation;
-                  EventHorizonDeviationSlow = 1 / EventHorizonDeviation;
-
-                  if (PastBlocksMass >= PastBlocksMin) {
-                          if ((PastRateAdjustmentRatio <= EventHorizonDeviationSlow) || (PastRateAdjustmentRatio >= EventHorizonDeviationFast)) { assert(BlockReading); break; }
-                  }
-                  if (BlockReading->pprev == NULL) { assert(BlockReading); break; }
-                  BlockReading = BlockReading->pprev;
-          }
-
-          CBigNum bnNew(PastDifficultyAverage);
-          if (PastRateActualSeconds != 0 && PastRateTargetSeconds != 0) {
-                  bnNew *= PastRateActualSeconds;
-                  bnNew /= PastRateTargetSeconds;
-          }
-
-          if (bnNew > Params().ProofOfWorkLimit(algo))
-              bnNew = Params().ProofOfWorkLimit(algo);
-
-      /// debug print
-      //LogPrintf("Difficulty Retarget KGW\n");
-      //LogPrintf("PastRateAdjustmentRatio = %g\n", PastRateAdjustmentRatio);
-      //LogPrintf("Before: %08x  %s\n", BlockLastSolved->nBits, CBigNum().SetCompact(BlockLastSolved->nBits).getuint256().ToString().c_str());
-      //LogPrintf("After:  %08x  %s\n", bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
-
-      LogPrintf("KGW %g  %08x  %08x  %s\n" , PastRateAdjustmentRatio, BlockLastSolved->nBits, bnNew.GetCompact(), bnNew.getuint256().ToString().c_str());
-
-          return bnNew.GetCompact();
-  }
-
-  unsigned int static GetNextWorkRequired_KGW(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo)
-  {
-          static const int64_t BlocksTargetSpacing = 5 * 60 * 3; // 3 Minutes for smileycoin
-          unsigned int TimeDaySeconds = 60 * 60 * 24;
-          int64_t PastSecondsMin = TimeDaySeconds * 0.5;
-          int64_t PastSecondsMax = TimeDaySeconds * 14;
-          uint64_t PastBlocksMin = PastSecondsMin / BlocksTargetSpacing;
-          uint64_t PastBlocksMax = PastSecondsMax / BlocksTargetSpacing;
-
-          return KimotoGravityWell(pindexLast, pblock, BlocksTargetSpacing, PastBlocksMin, PastBlocksMax, algo);
-  }
 
 static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo)
 {
@@ -1510,18 +1433,17 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 unsigned int GetNextWorkRequired(const CBlockIndex * pindexLast, const CBlockHeader * pblock, int algo){
     int DiffMode = 1;
 
-    if (pindexLast->nHeight+1 < nRichForkHeight) { DiffMode = 1;
-      } else if (pindexLast->nHeight + 1 < nRichForkHeight) {
-        DiffMode = 2;
-      } else {
+    if (pindexLast->nHeight+1 < nRichForkHeight) {
+        DiffMode = 1;
+    }
+    else {
         DiffMode = 3;
-      }
+    }
 
     if (DiffMode == 1) {
         return GetNextWorkRequired_Original(pindexLast, pblock, algo);
-    } else if (DiffMode == 2) {
-        return GetNextWorkRequired_KGW(pindexLast, pblock, algo);
-    } else if (DiffMode == 3) {
+    }
+    else if (DiffMode == 3) {
         return GetNextWorkRequiredMULTI(pindexLast, pblock, algo);
     }
 
@@ -2319,6 +2241,19 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
     			PubkeyMap.erase(scriptp);
     		}
     	}
+    }
+    
+    if (pindexNew -> nHeight % 20000 == 0)
+    {
+        bitdb.RemoveDb("richlist.dat");
+        CRichListDB rich("richlist.dat","cr+");
+        map<CScript, std::pair<int64_t, int> >::iterator it;
+        for (it = PubkeyMap.begin(); it != PubkeyMap.end(); it++)
+        {
+            CScript publickey = it->first;
+            std::pair<int64_t, int> writepair = it->second;
+            rich.WriteAddress(publickey, writepair);
+        }
     }
 
     return true;
