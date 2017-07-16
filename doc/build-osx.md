@@ -101,6 +101,8 @@ smileycoind/smileycoin-cli binaries are not included in the Smileycoin-Qt.app bu
 If you are building `smileycoind` or `Smileycoin-Qt` for others, your build machine should be set up
 as follows for maximum compatibility:
 
+We haven't found a way to make the Qt compatible with older osx than the current... these following flags probably won't do anything. 
+
 All dependencies should be compiled with these flags:
 
  -mmacosx-version-min=10.6
@@ -127,7 +129,7 @@ Run the following:
     make deploy
 
 As of December 2012, the `boost` port does not obey `macosx_deployment_target`.
-Download `http://gavinandresen-smileycoin.s3.amazonaws.com/boost_macports_fix.zip`
+Download `http://gavinandresen-bitcoin.s3.amazonaws.com/boost_macports_fix.zip`
 for a fix.
 
 Once dependencies are compiled, see release-process.md for how the Smileycoin-Qt.app
