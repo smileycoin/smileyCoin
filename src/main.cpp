@@ -2118,33 +2118,33 @@ bool static DisconnectTip(CValidationState &state)
                 PubkeyMap.erase(scriptp);
         }
     }
+	CBlockUndo undo;
+	CDiskBlockPos pos = pindexDelete ->GetUndoPos();
+	if (pindexDelete->pprev!=NULL && undo.ReadFromDisk(pos, pindexDelete->pprev->GetBlockHash()))
+	{
+	    for (unsigned int i=0; i<undo.vtxundo.size(); i++)
+	    {
+	        for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
+	        {
+	            CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
+	            if(PubkeyMap.count(scriptp))
+	            {
+	            	PubkeyMap[scriptp].first += undo.vtxundo[i].vprevout[j].txout.nValue;
+	            }
 
-    CBlockUndo undo;
-    CDiskBlockPos pos = pindexDelete ->GetUndoPos();
-    undo.ReadFromDisk(pos, pindexDelete->GetBlockHash());
+	            else
+	            {
+	            	int64_t newvalue = undo.vtxundo[i].vprevout[j].txout.nValue;
+	            	int newheight = pindexDelete ->nHeight;
+	            	std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
+	            	std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
+	            	PubkeyMap.insert(newpair);
 
-    for (int i=0; i<undo.vtxundo.size(); i++)
-    {
-        for (int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
-        {
-            CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-            if(PubkeyMap.count(scriptp))
-            {
-            	PubkeyMap[scriptp].first += undo.vtxundo[i].vprevout[j].txout.nValue;
-            }
+	            }
+	        }
 
-            else
-            {
-            	int64_t newvalue = undo.vtxundo[i].vprevout[j].txout.nValue;
-            	int newheight = pindexDelete ->nHeight;
-            	std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-            	std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
-            	PubkeyMap.insert(newpair);
-
-            }
-        }
-
-    }
+	    }
+	}
 	return true;
 }
 
@@ -2223,26 +2223,26 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
             }
         }
     }
-
     CBlockUndo undo;
     CDiskBlockPos pos = pindexNew ->GetUndoPos();
-    undo.ReadFromDisk(pos, pindexNew->GetBlockHash());
 
-    for (unsigned int i=0; i<undo.vtxundo.size(); i++)
+    if (pindexNew->pprev!=NULL && undo.ReadFromDisk(pos, pindexNew->pprev->GetBlockHash()))
     {
-    	for(unsigned int j=0; j<undo.vtxundo[i].vprevout.size();j++)
-    	{
-    		CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-    		PubkeyMap[scriptp].first -= undo.vtxundo[i].vprevout[j].txout.nValue;
-    		PubkeyMap[scriptp].second = pindexNew->nHeight;
-    		if(PubkeyMap[scriptp].first==0)
-
-    		{
-    			PubkeyMap.erase(scriptp);
-    		}
-    	}
-    }
-    
+	    for (unsigned int i=0; i<undo.vtxundo.size(); i++)
+	    {
+	    	for(unsigned int j=0; j<undo.vtxundo[i].vprevout.size();j++)
+	    	{
+	    		CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
+	    		PubkeyMap[scriptp].first -= undo.vtxundo[i].vprevout[j].txout.nValue;
+	    		PubkeyMap[scriptp].second = pindexNew->nHeight;
+	    		if(PubkeyMap[scriptp].first==0)
+	    		{
+	    			PubkeyMap.erase(scriptp);
+	    		}
+	    	}
+	    }
+	}
+	    
     if (pindexNew -> nHeight % 20000 == 0)
     {
         bitdb.RemoveDb("richlist.dat");
@@ -2255,6 +2255,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
             rich.WriteAddress(publickey, writepair);
         }
     }
+
 
     return true;
 }

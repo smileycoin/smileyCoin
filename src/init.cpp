@@ -954,13 +954,11 @@ bool AppInit2(boost::thread_group& threadGroup)
     /*This is only run if the last shutdown was unexpected and the richlist wasn't written to the disk properly, or
       if this is the first time a node starts up after the update in August 2017. The richlist catches up with the
       current heighest block.*/
-    
     CCoinsViewCache view(*pcoinsdbview, true);
     if(mapBlockIndex.count((pcoinsdbview->GetBestBlock())))
     {
         if(maxheight < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
         {
-            
             CBlockIndex *ind;
             if (maxheight > 0)
                 ind = chainActive[maxheight-1];
@@ -1001,25 +999,26 @@ bool AppInit2(boost::thread_group& threadGroup)
                         }
                     }
                 }
-
+                
                 CBlockUndo undo;
                 CDiskBlockPos pos = ind->GetUndoPos();  
-                undo.ReadFromDisk(pos,ind->GetBlockHash());
-
-                for (int i=0; i<undo.vtxundo.size(); i++)
+                if(ind->pprev!=NULL && undo.ReadFromDisk(pos,ind->pprev->GetBlockHash()))
                 {
-                    for (int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
+
+                    for (unsigned int i=0; i<undo.vtxundo.size(); i++)
                     {
-                        CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                        PubkeyMap[scriptp].first -= undo.vtxundo[i].vprevout[j].txout.nValue;
-                        PubkeyMap[scriptp].second = ind->nHeight;
-                        if(PubkeyMap[scriptp].first ==0)
+                        for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
                         {
-                            PubkeyMap.erase(scriptp);
-                        }   
+                            CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
+                            PubkeyMap[scriptp].first -= undo.vtxundo[i].vprevout[j].txout.nValue;
+                            PubkeyMap[scriptp].second = ind->nHeight;
+                            if(PubkeyMap[scriptp].first ==0)
+                            {
+                                PubkeyMap.erase(scriptp);
+                            }   
+                        }
                     }
                 }
-
 
             }
             std::cout << "Done." << std::endl;
