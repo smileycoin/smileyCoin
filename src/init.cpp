@@ -117,6 +117,7 @@ void Shutdown()
     
     // Write a new richlist.dat file containing the most up to date information at shutdown.
     // This will be saved back into the map at next startup.
+    LogPrintf("Writing rich list to disk \n");
     bitdb.RemoveDb("richlist.dat");
     CRichListDB rich("richlist.dat","cr+");
     map<CScript, std::pair<int64_t, int> >::iterator it;
@@ -957,6 +958,8 @@ bool AppInit2(boost::thread_group& threadGroup)
     CCoinsViewCache view(*pcoinsdbview, true);
     if(mapBlockIndex.count((pcoinsdbview->GetBestBlock())))
     {
+        LogPrintf("Richlist last updated at block %d \n", maxheight);
+        LogPrintf("Best block now: %d \n", mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight);
         if(maxheight < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
         {
             CBlockIndex *ind;
@@ -965,7 +968,8 @@ bool AppInit2(boost::thread_group& threadGroup)
             else if (maxheight == 0)
                 ind = chainActive[0];
             CBlock block;
-            std::cout << "Updating rich list – this may take a few minutes..." << std::endl;
+            
+            LogPrintf("Updating rich list – current best block and best block according to richlist are different\n");
             while (ind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
             {
                 if (maxheight > 0)
@@ -1021,13 +1025,11 @@ bool AppInit2(boost::thread_group& threadGroup)
                 }
 
             }
-            std::cout << "Done." << std::endl;
         }
 
         
     }
-        std::cout << "Rich list has caught up." << std::endl;
-         
+    LogPrintf("Rich list has caught up \n");
     // ********************************************************* Step 9: load wallet
 #ifdef ENABLE_WALLET
     if (fDisableWallet) {

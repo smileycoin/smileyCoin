@@ -2245,6 +2245,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
 	    
     if (pindexNew -> nHeight % 20000 == 0)
     {
+        LogPrintf("Backing up rich list to disk (happens every 20000 blocks) \n");
         bitdb.RemoveDb("richlist.dat");
         CRichListDB rich("richlist.dat","cr+");
         map<CScript, std::pair<int64_t, int> >::iterator it;

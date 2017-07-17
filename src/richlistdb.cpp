@@ -82,7 +82,6 @@ public:
             std::pair<CScript, std::pair<int64_t, int> > pairtosave = std::make_pair(pubkeytosave, balanceandheight);
             pubmap.insert(pairtosave);
         }
-        std::cout<< "Current rich list last updated at block " << (maxheight) <<std::endl;
         pcursor->close();
     }
 
