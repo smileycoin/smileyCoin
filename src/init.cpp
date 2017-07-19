@@ -55,10 +55,7 @@ CWallet* pwalletMain;
 #define MIN_CORE_FILEDESCRIPTORS 150
 #endif
 
-std::map<CBitcoinAddress,std::pair<int64_t,int> > AddressMap;
-std::vector<std::pair<CBitcoinAddress,std::pair<int64_t,int> > > AddressVec;
 std::map<CScript,std::pair<int64_t,int> > PubkeyMap;
-std::vector<std::pair<CScript,std::pair<int64_t,int> > > PubkeyVec;
 
 // Used to pass flags to the Bind() function
 enum BindFlags {
