@@ -2784,13 +2784,26 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
     {
         //Check if rich address to be payed matches my richlist
         int prevheight;
-        if (block.vtx[0].vout[1].scriptPubKey != NextRichPubkey(PubkeyMap, prevheight))
+        bool richexists = false;
+        bool EIASexists = false;
+        int richn = 0;
+        int EIASn = 0;
+        for (unsigned int i = 0; i < block.vtx[0].vout.size(); i++)
         {
-            return state.DoS(100, error("CheckBlock() : rich address does not match"));
+            richexists = richexists || (block.vtx[0].vout[i].scriptPubKey == NextRichPubkey(PubkeyMap, prevheight));
+            if (richexists && richn == 0)
+                richn = i;
+            EIASexists = EIASexists || (block.vtx[0].vout[i].scriptPubKey == EIASPubkeys[(pindexPrev->nHeight % 10)]);
+            if (EIASexists && EIASn == 0)
+                EIASn = i;
         }
-        if (block.vtx[0].vout[2].scriptPubKey != EIASPubkeys[(pindexPrev->nHeight % 10)])
+        if (!richexists || block.vtx[0].vout[richn].nValue != GetBlockValueRich(pindexPrev -> nHeight + 1))
         {
-            return state.DoS(100, error("CheckBlock() : EIAS address does not match"));
+            return state.DoS(100, error("CheckBlock() : rich address not getting paid correctly"));
+        }
+        if (!EIASexists || block.vtx[0].vout[richn].nValue != GetBlockValueRich(pindexPrev -> nHeight + 1))
+        {
+            return state.DoS(100, error("CheckBlock() : EIAS address not correct"));
         }
     }
 	// Write block to history file
