@@ -5,19 +5,20 @@ Follow this guide:
 
 https://bitcointalk.org/index.php?topic=149479.0
 
-Notes on guide:
+### Notes on guide:
 * Download and install 7zip
 
-* 2.2 Berkeley DB: You will need to download version 5.3
+* **2.2** *Berkeley DB*: You will need to download version 5.3
 
-* 2.4 Miniupnpc: Skip this
+* **2.4** *Miniupnpc*: Skip this
 
-* 2.7 Qt 5 libraries: https://download.qt.io/archive/qt/5.3/5.3.2/submodules/
+* **2.7** *Qt 5 libraries*: The files can be found at https://download.qt.io/archive/qt/5.3/5.3.2/submodules/
 
-* 3. Download and unpack Smileycoin from github: https://github.com/tutor-web/smileyCoin
+* **3** Download and unpack Smileycoin from github: https://github.com/tutor-web/smileyCoin
 
-From msys shell configure and make smileycoin:
+*From msys shell configure and make smileycoin:*
 
+```
 cd /c/smileyCoin
 
 ./autogen.sh
@@ -47,3 +48,4 @@ make
 strip src/smileycoin-cli.exe
 strip src/smileycoind.exe
 strip src/qt/smileycoin-qt.exe 
+```
