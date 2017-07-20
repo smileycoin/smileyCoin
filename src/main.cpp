@@ -2113,7 +2113,12 @@ bool static DisconnectTip(CValidationState &state)
         {
             CScript scriptp = tx.vout[j].scriptPubKey;
             PubkeyMap[scriptp].first -= tx.vout[j].nValue;
-            PubkeyMap[scriptp].second = pindexDelete->nHeight;
+            //int prevheight = 0;
+            //CScript nextrich = NextRichPubkey(PubkeyMap, prevheight);
+            //if (block.vtx[0].vout.size() > 0 && block.vtx[0].vout[1].scriptPubKey == scriptp)
+            //    PubkeyMap[scriptp].second = prevheight-1;
+            //else
+                //PubkeyMap[scriptp].second = pindexDelete->pprev->nHeight;
             if(PubkeyMap[scriptp].first == 0)
                 PubkeyMap.erase(scriptp);
         }
@@ -2221,6 +2226,10 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
                     PubkeyMap.insert(newpair);
                 }
             }
+            if (PubkeyMap[scriptp].first - tx.vout[j].nValue < 25000000*COIN && PubkeyMap[scriptp].first > 25000000*COIN)
+            {
+                richcount++;
+            }
         }
     }
     CBlockUndo undo;
@@ -2239,12 +2248,17 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
 	    		{
 	    			PubkeyMap.erase(scriptp);
 	    		}
+                if (PubkeyMap[scriptp].first + undo.vtxundo[i].vprevout[j].txout.nValue > 25000000*COIN && PubkeyMap[scriptp].first < 25000000*COIN)
+                {
+                    richcount--;
+                }
 	    	}
 	    }
 	}
 	    
     if (pindexNew -> nHeight % 20000 == 0)
     {
+        richcount = 0;
         LogPrintf("Backing up rich list to disk (happens every 20000 blocks) \n");
         bitdb.RemoveDb("richlist.dat");
         CRichListDB rich("richlist.dat","cr+");
@@ -2254,6 +2268,8 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
             CScript publickey = it->first;
             std::pair<int64_t, int> writepair = it->second;
             rich.WriteAddress(publickey, writepair);
+            if (it->second.first >= 25000000*COIN)
+                richcount++;
         }
     }
 
@@ -2783,27 +2799,42 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
     if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight)
     {
         //Check if rich address to be payed matches my richlist
-        int prevheight;
-        bool richexists = false;
+        //int prevheight;
+        //bool richexists = false;
         bool EIASexists = false;
-        int richn = 0;
+        //int richn = 0;
         int EIASn = 0;
         for (unsigned int i = 0; i < block.vtx[0].vout.size(); i++)
         {
-            richexists = richexists || (block.vtx[0].vout[i].scriptPubKey == NextRichPubkey(PubkeyMap, prevheight));
+            /*richexists = richexists || (block.vtx[0].vout[i].scriptPubKey == NextRichPubkey(PubkeyMap, prevheight));
             if (richexists && richn == 0)
-                richn = i;
+                richn = i;*/
             EIASexists = EIASexists || (block.vtx[0].vout[i].scriptPubKey == EIASPubkeys[(pindexPrev->nHeight % 10)]);
             if (EIASexists && EIASn == 0)
                 EIASn = i;
         }
-        if (!richexists || block.vtx[0].vout[richn].nValue != GetBlockValueRich(pindexPrev -> nHeight + 1))
+        /*if (!richexists || block.vtx[0].vout[richn].nValue != GetBlockValueRich(pindexPrev -> nHeight + 1))
         {
             return state.DoS(100, error("CheckBlock() : rich address not getting paid correctly"));
-        }
-        if (!EIASexists || block.vtx[0].vout[richn].nValue != GetBlockValueRich(pindexPrev -> nHeight + 1))
+        }*/
+        if (!EIASexists || block.vtx[0].vout[EIASn].nValue != GetBlockValueRich(pindexPrev -> nHeight + 1))
         {
             return state.DoS(100, error("CheckBlock() : EIAS address not correct"));
+        }
+        if (pindexPrev->nHeight+1 >= nRichForkHeight + 50)
+        {
+            bool richpaidrecently = false;
+            CBlockIndex *ind = pindexPrev;
+            CBlock prevblock;
+            ReadBlockFromDisk(prevblock,ind);
+            for (int i = 0; i < richcount-20; i++)
+            {
+                if (prevblock.vtx[0].vout[1] == block.vtx[0].vout[1])
+                    richpaidrecently = true;
+                ind = ind->pprev;
+            }
+            if (richpaidrecently)
+                return state.DoS(100, error("CheckBlock() : rich address not getting paid correctly!!!"));
         }
     }
 	// Write block to history file

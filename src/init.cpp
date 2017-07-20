@@ -56,6 +56,7 @@ CWallet* pwalletMain;
 #endif
 
 std::map<CScript,std::pair<int64_t,int> > PubkeyMap;
+int richcount = 0;
 
 // Used to pass flags to the Bind() function
 enum BindFlags {
