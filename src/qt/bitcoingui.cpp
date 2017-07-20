@@ -82,8 +82,8 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
                         //"QPushButton:pressed{ border-style: inset;}"
 
                         //Styles for the vertical tool bar
-                        "QToolBar { border:none; height:100%; padding-top:20px; color:#00695a; min-width:150px; max-width:200px; margin-left:20px; background-color: rgb(255, 255, 255, 100);}"
-                        "QToolBar QToolButton { font-family:Roboto; font-style:normal; font-size:13px; background:transparent; border:none; padding-left:30px; padding-right:30px; width:120px; color:#00695a; text-align:left; margin-left:20px;}"
+                        "QToolBar { border:none; height:100%; padding-top:20px; color:#0e99ed; min-width:150px; max-width:200px; margin-left:20px; background-color: rgb(255, 255, 255, 100);}"
+                        "QToolBar QToolButton { font-family:Roboto; font-style:normal; font-size:13px; background:transparent; border:none; padding-left:30px; padding-right:30px; width:120px; color:#0e99ed; text-align:left; margin-left:20px;}"
                         "QToolBar QToolButton:hover {background-color: rgb(98, 98, 98, 30);}"
                         "QToolBar QToolButton:checked {background-color: rgb(98, 98, 98, 30);}"
 
@@ -91,11 +91,11 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 
                         //Styles for the menu
                         "QMenu { padding-bottom:10px; padding-left:1px; padding-right:1px; }"
-                        "QMenu::item { color:#00695a; background-color:#ffffff; }"
+                        "QMenu::item { color:#0e99ed; background-color:#ffffff; }"
                         "QMenu::item:selected { background:#d2d2d2; }"
                         "QMenu::separator {background: #ffffff; }"
-                        "QMenuBar { background:#00695a; color:#ffffff; padding-bottom:1px;}"
-                        "QMenuBar::item { font-size:12px; padding-bottom:6px; padding-top:6px; padding-left:15px; padding-right:15px; color:#ffffff; background-color:#00695a; }"
+                        "QMenuBar { background:#0e99ed; color:#ffffff; padding-bottom:1px;}"
+                        "QMenuBar::item { font-size:12px; padding-bottom:6px; padding-top:6px; padding-left:15px; padding-right:15px; color:#ffffff; background-color:#0e99ed; }"
                         "QMenuBar::item:selected { font:bold; }"
 
                         // Styles for the progress bar
