@@ -47,19 +47,20 @@ static int64_t nInterval;
 
 //MultiAlgo Target updates
 static const int64_t multiAlgoNum = 5; // Amount of algos
-static const int64_t multiAlgoTimespan = 36; // Time per block per algo
-static const int64_t multiAlgoTargetSpacing = multiAlgoNum * multiAlgoTimespan; // NUM_ALGOS * 36 seconds = 180 seconds
+static int64_t multiAlgoTimespan; // Time per block per algo
+static int64_t multiAlgoTargetSpacing; // NUM_ALGOS * 180 seconds = 900 seconds
 
 static const int64_t nAveragingInterval = 60; // 60 blocks
-static const int64_t nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 10* NUM_ALGOS * 36
+static int64_t nAveragingTargetTimespan; // 10* NUM_ALGOS * 180
 
 static const int64_t nMaxAdjustDown = 20; // 20% adjustment down
 static const int64_t nMaxAdjustUp = 20; // 20% adjustment up
 //static const int64_t nLocalDifficultyAdjustment = 4; //difficulty adjustment per algo
 static const int64_t nLocalTargetAdjustment = 4; //target adjustment per algo
 
-static const int64_t nMinActualTimespan = nAveragingTargetTimespan * (100 - nMaxAdjustUp) / 100;
-static const int64_t nMaxActualTimespan = nAveragingTargetTimespan * (100 + nMaxAdjustDown) / 100;
+static int64_t nMinActualTimespan;
+static int64_t nMaxActualTimespan;
+
 
 CCriticalSection cs_main;
 
@@ -1387,7 +1388,19 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 
 	//LogPrintf("nActualTimespan = %d before bounds\n", nActualTimespan);
 
-	if (nActualTimespan < nMinActualTimespan)
+    // Hardfork because of an error. Block should generate every 180 sec.
+    if (pindexLast->nHeight >= 225000) {
+        multiAlgoTimespan = 180; // Time per block per algo
+    } else {
+        multiAlgoTimespan = 36;
+    }
+    
+    multiAlgoTargetSpacing = multiAlgoNum * multiAlgoTimespan; // NUM_ALGOS * 180 seconds = 900 seconds
+    nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 10* NUM_ALGOS * 180
+    nMinActualTimespan = nAveragingTargetTimespan * (100 - nMaxAdjustUp) / 100;
+    nMaxActualTimespan = nAveragingTargetTimespan * (100 + nMaxAdjustDown) / 100;
+    
+    if (nActualTimespan < nMinActualTimespan)
 		nActualTimespan = nMinActualTimespan;
 	if (nActualTimespan > nMaxActualTimespan)
 		nActualTimespan = nMaxActualTimespan;
