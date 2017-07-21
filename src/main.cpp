@@ -47,19 +47,20 @@ static int64_t nInterval;
 
 //MultiAlgo Target updates
 static const int64_t multiAlgoNum = 5; // Amount of algos
-static const int64_t multiAlgoTimespan = 36; // Time per block per algo
-static const int64_t multiAlgoTargetSpacing = multiAlgoNum * multiAlgoTimespan; // NUM_ALGOS * 36 seconds = 180 seconds
+static int64_t multiAlgoTimespan; // Time per block per algo
+static int64_t multiAlgoTargetSpacing; // NUM_ALGOS * 180 seconds = 900 seconds
 
 static const int64_t nAveragingInterval = 60; // 60 blocks
-static const int64_t nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 10* NUM_ALGOS * 36
+static int64_t nAveragingTargetTimespan; // 10* NUM_ALGOS * 180
 
 static const int64_t nMaxAdjustDown = 20; // 20% adjustment down
 static const int64_t nMaxAdjustUp = 20; // 20% adjustment up
 //static const int64_t nLocalDifficultyAdjustment = 4; //difficulty adjustment per algo
 static const int64_t nLocalTargetAdjustment = 4; //target adjustment per algo
 
-static const int64_t nMinActualTimespan = nAveragingTargetTimespan * (100 - nMaxAdjustUp) / 100;
-static const int64_t nMaxActualTimespan = nAveragingTargetTimespan * (100 + nMaxAdjustDown) / 100;
+static int64_t nMinActualTimespan;
+static int64_t nMaxActualTimespan;
+
 
 CCriticalSection cs_main;
 
@@ -1387,7 +1388,19 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 
 	//LogPrintf("nActualTimespan = %d before bounds\n", nActualTimespan);
 
-	if (nActualTimespan < nMinActualTimespan)
+    // Hardfork because of an error. Block should generate every 180 sec.
+    if (pindexLast->nHeight >= 222000) {
+        multiAlgoTimespan = 180; // Time per block per algo
+    } else {
+        multiAlgoTimespan = 36;
+    }
+    
+    multiAlgoTargetSpacing = multiAlgoNum * multiAlgoTimespan; // NUM_ALGOS * 180 seconds = 900 seconds
+    nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 10* NUM_ALGOS * 180
+    nMinActualTimespan = nAveragingTargetTimespan * (100 - nMaxAdjustUp) / 100;
+    nMaxActualTimespan = nAveragingTargetTimespan * (100 + nMaxAdjustDown) / 100;
+    
+    if (nActualTimespan < nMinActualTimespan)
 		nActualTimespan = nMinActualTimespan;
 	if (nActualTimespan > nMaxActualTimespan)
 		nActualTimespan = nMaxActualTimespan;
@@ -1979,6 +1992,68 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 				error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
 						block.vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees)),
 						REJECT_INVALID, "bad-cb-amount");
+    
+    CScript EIASPubkeys[10];
+    EIASPubkeys[0].SetDestination(CBitcoinAddress("BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73").Get());
+    EIASPubkeys[1].SetDestination(CBitcoinAddress("BDwfNiAvpb4ipNfPkdAXcPGExWHeeMdRcK").Get());
+    EIASPubkeys[2].SetDestination(CBitcoinAddress("BPVuYwyeJiXExEmEXHfCwPtRXDRqxBxTNW").Get());
+    EIASPubkeys[3].SetDestination(CBitcoinAddress("B4gB18iZWZ8nTuAvi9kq9cWbavCj6xSmny").Get());
+    EIASPubkeys[4].SetDestination(CBitcoinAddress("BGFEYswtWfo5nrKRT53ToGwZWyuRvwC8xs").Get());
+    EIASPubkeys[5].SetDestination(CBitcoinAddress("B7WWgP1fnPDHTL2z9vSHTpGqptP53t1UCB").Get());
+    EIASPubkeys[6].SetDestination(CBitcoinAddress("BEtL36SgjYuxHuU5dg8omJUAyTXDQL3Z8V").Get());
+    EIASPubkeys[7].SetDestination(CBitcoinAddress("BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd").Get());
+    EIASPubkeys[8].SetDestination(CBitcoinAddress("BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc").Get());
+    EIASPubkeys[9].SetDestination(CBitcoinAddress("BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy").Get());
+    
+    // The coinbase tx must be split: 10% to the miner, 45% to the correct rich address and 45% to one of the EIAS addresses
+    if(pindex != NULL && pindex->nHeight >= nRichForkHeight)
+    {
+        //Check if rich address to be payed matches my richlist
+        //int prevheight;
+        //bool richexists = false;
+        //bool EIASexists = false;
+        //int richn = 0;
+        //int EIASn = 0;
+        /*for (unsigned int i = 0; i < block.vtx[0].vout.size(); i++)
+        {
+            richexists = richexists || (block.vtx[0].vout[i].scriptPubKey == NextRichPubkey(PubkeyMap, prevheight));
+             if (richexists && richn == 0)
+             richn = i;
+            EIASexists = EIASexists || (block.vtx[0].vout[i].scriptPubKey == EIASPubkeys[(pindex->pprev->nHeight % 10)]);
+            if (EIASexists && EIASn == 0)
+                EIASn = i;
+        }*/
+        /*if (!richexists || block.vtx[0].vout[richn].nValue != GetBlockValueRich(pindexPrev -> nHeight + 1))
+         {
+         return state.DoS(100, error("CheckBlock() : rich address not getting paid correctly"));
+         }*/
+        if (block.vtx[0].vout[2].scriptPubKey != EIASPubkeys[(pindex->pprev->nHeight % 10)] || block.vtx[0].vout[2].nValue != GetBlockValueRich(pindex -> nHeight))
+        {
+            return state.DoS(100, error("ConnectBlock() : EIAS address not correct"));
+        }
+        if (pindex->nHeight >= nRichForkHeight + richcount)
+        {
+            bool richpaidrecently = false;
+            CBlockIndex *ind = pindex->pprev;
+            CBlock prevblock;
+            ReadBlockFromDisk(prevblock,ind);
+            for (int i = 0; i < richcount-20; i++)
+            {
+                for (unsigned int j = 0; j < prevblock.vtx.size(); j++)
+                {
+                    for (unsigned int m = 0; m < prevblock.vtx[j].vout.size(); m++)
+                    {
+                        if (block.vtx[0].vout[1].scriptPubKey == prevblock.vtx[j].vout[m].scriptPubKey)
+                            richpaidrecently = true;
+                    }
+                }
+                ind = ind->pprev;
+            }
+            if (richpaidrecently || block.vtx[0].vout[1].nValue > GetBlockValueRich(pindex->nHeight) || PubkeyMap[block.vtx[0].vout[1].scriptPubKey].first < 25000000*COIN)
+                return state.DoS(100, error("ConnectBlock() : rich address not getting paid correctly!!!"));
+        }
+    }
+    
 
 	if (!control.Wait())
 		return state.DoS(100, false);
@@ -2113,7 +2188,12 @@ bool static DisconnectTip(CValidationState &state)
         {
             CScript scriptp = tx.vout[j].scriptPubKey;
             PubkeyMap[scriptp].first -= tx.vout[j].nValue;
-            PubkeyMap[scriptp].second = pindexDelete->nHeight;
+            //int prevheight = 0;
+            //CScript nextrich = NextRichPubkey(PubkeyMap, prevheight);
+            //if (block.vtx[0].vout.size() > 0 && block.vtx[0].vout[1].scriptPubKey == scriptp)
+            //    PubkeyMap[scriptp].second = prevheight-1;
+            //else
+                //PubkeyMap[scriptp].second = pindexDelete->pprev->nHeight;
             if(PubkeyMap[scriptp].first == 0)
                 PubkeyMap.erase(scriptp);
         }
@@ -2151,9 +2231,7 @@ bool static DisconnectTip(CValidationState &state)
 // Connect a new block to chainActive.
 bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
 {
-
-
-    //CRichListDB rich("richlist.dat");
+    
     assert(pindexNew->pprev == chainActive.Tip());
 	mempool.check(pcoinsTip);
 	// Read block from disk.
@@ -2221,6 +2299,10 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
                     PubkeyMap.insert(newpair);
                 }
             }
+            if (PubkeyMap[scriptp].first - tx.vout[j].nValue < 25000000*COIN && PubkeyMap[scriptp].first > 25000000*COIN)
+            {
+                richcount++;
+            }
         }
     }
     CBlockUndo undo;
@@ -2239,12 +2321,18 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
 	    		{
 	    			PubkeyMap.erase(scriptp);
 	    		}
+                if (PubkeyMap[scriptp].first + undo.vtxundo[i].vprevout[j].txout.nValue > 25000000*COIN && PubkeyMap[scriptp].first < 25000000*COIN)
+                {
+                    richcount--;
+                }
 	    	}
 	    }
 	}
-	    
+   
+    
     if (pindexNew -> nHeight % 20000 == 0)
     {
+        richcount = 0;
         LogPrintf("Backing up rich list to disk (happens every 20000 blocks) \n");
         bitdb.RemoveDb("richlist.dat");
         CRichListDB rich("richlist.dat","cr+");
@@ -2254,6 +2342,8 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
             CScript publickey = it->first;
             std::pair<int64_t, int> writepair = it->second;
             rich.WriteAddress(publickey, writepair);
+            if (it->second.first >= 25000000*COIN)
+                richcount++;
         }
     }
 
@@ -2694,18 +2784,6 @@ CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap, int p
 
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 {
-    CScript EIASPubkeys[10];
-    EIASPubkeys[0].SetDestination(CBitcoinAddress("BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73").Get());
-    EIASPubkeys[1].SetDestination(CBitcoinAddress("BDwfNiAvpb4ipNfPkdAXcPGExWHeeMdRcK").Get());
-    EIASPubkeys[2].SetDestination(CBitcoinAddress("BPVuYwyeJiXExEmEXHfCwPtRXDRqxBxTNW").Get());
-    EIASPubkeys[3].SetDestination(CBitcoinAddress("B4gB18iZWZ8nTuAvi9kq9cWbavCj6xSmny").Get());
-    EIASPubkeys[4].SetDestination(CBitcoinAddress("BGFEYswtWfo5nrKRT53ToGwZWyuRvwC8xs").Get());
-    EIASPubkeys[5].SetDestination(CBitcoinAddress("B7WWgP1fnPDHTL2z9vSHTpGqptP53t1UCB").Get());
-    EIASPubkeys[6].SetDestination(CBitcoinAddress("BEtL36SgjYuxHuU5dg8omJUAyTXDQL3Z8V").Get());
-    EIASPubkeys[7].SetDestination(CBitcoinAddress("BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd").Get());
-    EIASPubkeys[8].SetDestination(CBitcoinAddress("BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc").Get());
-    EIASPubkeys[9].SetDestination(CBitcoinAddress("BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy").Get());
-    
     AssertLockHeld(cs_main);
 	// Check for duplicate
 	uint256 hash = block.GetHash();
@@ -2779,33 +2857,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 			}
 		}
 	}
-    // The coinbase tx must be split: 10% to the miner, 45% to the correct rich address and 45% to one of the EIAS addresses
-    if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight)
-    {
-        //Check if rich address to be payed matches my richlist
-        int prevheight;
-        bool richexists = false;
-        bool EIASexists = false;
-        int richn = 0;
-        int EIASn = 0;
-        for (unsigned int i = 0; i < block.vtx[0].vout.size(); i++)
-        {
-            richexists = richexists || (block.vtx[0].vout[i].scriptPubKey == NextRichPubkey(PubkeyMap, prevheight));
-            if (richexists && richn == 0)
-                richn = i;
-            EIASexists = EIASexists || (block.vtx[0].vout[i].scriptPubKey == EIASPubkeys[(pindexPrev->nHeight % 10)]);
-            if (EIASexists && EIASn == 0)
-                EIASn = i;
-        }
-        if (!richexists || block.vtx[0].vout[richn].nValue != GetBlockValueRich(pindexPrev -> nHeight + 1))
-        {
-            return state.DoS(100, error("CheckBlock() : rich address not getting paid correctly"));
-        }
-        if (!EIASexists || block.vtx[0].vout[richn].nValue != GetBlockValueRich(pindexPrev -> nHeight + 1))
-        {
-            return state.DoS(100, error("CheckBlock() : EIAS address not correct"));
-        }
-    }
+    
 	// Write block to history file
 	try {
 		unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
