@@ -1992,6 +1992,68 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 				error("ConnectBlock() : coinbase pays too much (actual=%d vs limit=%d)",
 						block.vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees)),
 						REJECT_INVALID, "bad-cb-amount");
+    
+    CScript EIASPubkeys[10];
+    EIASPubkeys[0].SetDestination(CBitcoinAddress("BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73").Get());
+    EIASPubkeys[1].SetDestination(CBitcoinAddress("BDwfNiAvpb4ipNfPkdAXcPGExWHeeMdRcK").Get());
+    EIASPubkeys[2].SetDestination(CBitcoinAddress("BPVuYwyeJiXExEmEXHfCwPtRXDRqxBxTNW").Get());
+    EIASPubkeys[3].SetDestination(CBitcoinAddress("B4gB18iZWZ8nTuAvi9kq9cWbavCj6xSmny").Get());
+    EIASPubkeys[4].SetDestination(CBitcoinAddress("BGFEYswtWfo5nrKRT53ToGwZWyuRvwC8xs").Get());
+    EIASPubkeys[5].SetDestination(CBitcoinAddress("B7WWgP1fnPDHTL2z9vSHTpGqptP53t1UCB").Get());
+    EIASPubkeys[6].SetDestination(CBitcoinAddress("BEtL36SgjYuxHuU5dg8omJUAyTXDQL3Z8V").Get());
+    EIASPubkeys[7].SetDestination(CBitcoinAddress("BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd").Get());
+    EIASPubkeys[8].SetDestination(CBitcoinAddress("BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc").Get());
+    EIASPubkeys[9].SetDestination(CBitcoinAddress("BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy").Get());
+    
+    // The coinbase tx must be split: 10% to the miner, 45% to the correct rich address and 45% to one of the EIAS addresses
+    if(pindex != NULL && pindex->nHeight >= nRichForkHeight)
+    {
+        //Check if rich address to be payed matches my richlist
+        //int prevheight;
+        //bool richexists = false;
+        //bool EIASexists = false;
+        //int richn = 0;
+        //int EIASn = 0;
+        /*for (unsigned int i = 0; i < block.vtx[0].vout.size(); i++)
+        {
+            richexists = richexists || (block.vtx[0].vout[i].scriptPubKey == NextRichPubkey(PubkeyMap, prevheight));
+             if (richexists && richn == 0)
+             richn = i;
+            EIASexists = EIASexists || (block.vtx[0].vout[i].scriptPubKey == EIASPubkeys[(pindex->pprev->nHeight % 10)]);
+            if (EIASexists && EIASn == 0)
+                EIASn = i;
+        }*/
+        /*if (!richexists || block.vtx[0].vout[richn].nValue != GetBlockValueRich(pindexPrev -> nHeight + 1))
+         {
+         return state.DoS(100, error("CheckBlock() : rich address not getting paid correctly"));
+         }*/
+        if (block.vtx[0].vout[2].scriptPubKey != EIASPubkeys[(pindex->pprev->nHeight % 10)] || block.vtx[0].vout[2].nValue != GetBlockValueRich(pindex -> nHeight))
+        {
+            return state.DoS(100, error("ConnectBlock() : EIAS address not correct"));
+        }
+        if (pindex->nHeight >= nRichForkHeight + richcount)
+        {
+            bool richpaidrecently = false;
+            CBlockIndex *ind = pindex->pprev;
+            CBlock prevblock;
+            ReadBlockFromDisk(prevblock,ind);
+            for (int i = 0; i < richcount-20; i++)
+            {
+                for (unsigned int j = 0; j < prevblock.vtx.size(); j++)
+                {
+                    for (unsigned int m = 0; m < prevblock.vtx[j].vout.size(); m++)
+                    {
+                        if (block.vtx[0].vout[1].scriptPubKey == prevblock.vtx[j].vout[m].scriptPubKey)
+                            richpaidrecently = true;
+                    }
+                }
+                ind = ind->pprev;
+            }
+            if (richpaidrecently || block.vtx[0].vout[1].nValue > GetBlockValueRich(pindex->nHeight) || PubkeyMap[block.vtx[0].vout[1].scriptPubKey].first < 25000000*COIN)
+                return state.DoS(100, error("ConnectBlock() : rich address not getting paid correctly!!!"));
+        }
+    }
+    
 
 	if (!control.Wait())
 		return state.DoS(100, false);
@@ -2169,9 +2231,7 @@ bool static DisconnectTip(CValidationState &state)
 // Connect a new block to chainActive.
 bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
 {
-
-
-    //CRichListDB rich("richlist.dat");
+    
     assert(pindexNew->pprev == chainActive.Tip());
 	mempool.check(pcoinsTip);
 	// Read block from disk.
@@ -2268,7 +2328,8 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pindexNew)
 	    	}
 	    }
 	}
-	    
+   
+    
     if (pindexNew -> nHeight % 20000 == 0)
     {
         richcount = 0;
@@ -2723,18 +2784,6 @@ CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap, int p
 
 bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 {
-    CScript EIASPubkeys[10];
-    EIASPubkeys[0].SetDestination(CBitcoinAddress("BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73").Get());
-    EIASPubkeys[1].SetDestination(CBitcoinAddress("BDwfNiAvpb4ipNfPkdAXcPGExWHeeMdRcK").Get());
-    EIASPubkeys[2].SetDestination(CBitcoinAddress("BPVuYwyeJiXExEmEXHfCwPtRXDRqxBxTNW").Get());
-    EIASPubkeys[3].SetDestination(CBitcoinAddress("B4gB18iZWZ8nTuAvi9kq9cWbavCj6xSmny").Get());
-    EIASPubkeys[4].SetDestination(CBitcoinAddress("BGFEYswtWfo5nrKRT53ToGwZWyuRvwC8xs").Get());
-    EIASPubkeys[5].SetDestination(CBitcoinAddress("B7WWgP1fnPDHTL2z9vSHTpGqptP53t1UCB").Get());
-    EIASPubkeys[6].SetDestination(CBitcoinAddress("BEtL36SgjYuxHuU5dg8omJUAyTXDQL3Z8V").Get());
-    EIASPubkeys[7].SetDestination(CBitcoinAddress("BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd").Get());
-    EIASPubkeys[8].SetDestination(CBitcoinAddress("BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc").Get());
-    EIASPubkeys[9].SetDestination(CBitcoinAddress("BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy").Get());
-    
     AssertLockHeld(cs_main);
 	// Check for duplicate
 	uint256 hash = block.GetHash();
@@ -2808,48 +2857,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 			}
 		}
 	}
-    // The coinbase tx must be split: 10% to the miner, 45% to the correct rich address and 45% to one of the EIAS addresses
-    if(pindexPrev != NULL && pindexPrev->nHeight + 1 >= nRichForkHeight)
-    {
-        //Check if rich address to be payed matches my richlist
-        //int prevheight;
-        //bool richexists = false;
-        bool EIASexists = false;
-        //int richn = 0;
-        int EIASn = 0;
-        for (unsigned int i = 0; i < block.vtx[0].vout.size(); i++)
-        {
-            /*richexists = richexists || (block.vtx[0].vout[i].scriptPubKey == NextRichPubkey(PubkeyMap, prevheight));
-            if (richexists && richn == 0)
-                richn = i;*/
-            EIASexists = EIASexists || (block.vtx[0].vout[i].scriptPubKey == EIASPubkeys[(pindexPrev->nHeight % 10)]);
-            if (EIASexists && EIASn == 0)
-                EIASn = i;
-        }
-        /*if (!richexists || block.vtx[0].vout[richn].nValue != GetBlockValueRich(pindexPrev -> nHeight + 1))
-        {
-            return state.DoS(100, error("CheckBlock() : rich address not getting paid correctly"));
-        }*/
-        if (!EIASexists || block.vtx[0].vout[EIASn].nValue != GetBlockValueRich(pindexPrev -> nHeight + 1))
-        {
-            return state.DoS(100, error("CheckBlock() : EIAS address not correct"));
-        }
-        if (pindexPrev->nHeight+1 >= nRichForkHeight + 50)
-        {
-            bool richpaidrecently = false;
-            CBlockIndex *ind = pindexPrev;
-            CBlock prevblock;
-            ReadBlockFromDisk(prevblock,ind);
-            for (int i = 0; i < richcount-20; i++)
-            {
-                if (prevblock.vtx[0].vout[1] == block.vtx[0].vout[1])
-                    richpaidrecently = true;
-                ind = ind->pprev;
-            }
-            if (richpaidrecently)
-                return state.DoS(100, error("CheckBlock() : rich address not getting paid correctly!!!"));
-        }
-    }
+    
 	// Write block to history file
 	try {
 		unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
