@@ -1389,7 +1389,7 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 	//LogPrintf("nActualTimespan = %d before bounds\n", nActualTimespan);
 
     // Hardfork because of an error. Block should generate every 180 sec.
-    if (pindexLast->nHeight >= 225000) {
+    if (pindexLast->nHeight >= 222000) {
         multiAlgoTimespan = 180; // Time per block per algo
     } else {
         multiAlgoTimespan = 36;
