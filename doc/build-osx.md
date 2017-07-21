@@ -123,10 +123,10 @@ Run the following:
     cd ~/Qt5.4.0/5.4/clang_64/include
     for MODULE in $(find ../lib -type d -name Headers); do ln -s $MODULE $(echo $MODULE | cut -d"/" -f3 | cut -d"." -f1) ; done
     export CXXFLAGS=-std=c++11
-    PKG_CONFIG_PATH=~/Qt5.4.0/5.4/clang_64/lib/pkgconfig ac_cv_path_MOC=~/Qt5.4.0/5.4/clang_64/bin/moc ac_cv_path_UIC=~/Qt5.4.0/5.4/clang_64/bin/uic ac_cv_path_RCC=~/Qt5.4.0/5.4/clang_64/bin/rcc ac_cv_path_LRELEASE=~/Qt5.4.0/5.4/clang_64/bin/lrelease ./configure --with-gui=qt5
-    
+
 Then navigate back to smileyCoin/ and run the followoing:
 
+    PKG_CONFIG_PATH=~/Qt5.4.0/5.4/clang_64/lib/pkgconfig ac_cv_path_MOC=~/Qt5.4.0/5.4/clang_64/bin/moc ac_cv_path_UIC=~/Qt5.4.0/5.4/clang_64/bin/uic ac_cv_path_RCC=~/Qt5.4.0/5.4/clang_64/bin/rcc ac_cv_path_LRELEASE=~/Qt5.4.0/5.4/clang_64/bin/lrelease ./configure --with-gui=qt5
     make
     sudo easy_install argparse
     make deploy
