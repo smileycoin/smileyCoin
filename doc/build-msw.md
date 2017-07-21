@@ -1,83 +1,51 @@
 WINDOWS BUILD NOTES
 ===================
 
+Follow this guide:
 
-Compilers Supported
--------------------
-TODO: What works?
-Note: releases are cross-compiled using mingw running on Linux.
+https://bitcointalk.org/index.php?topic=149479.0
 
+### Notes on guide:
+* Download and install 7zip
 
-Dependencies
-------------
-Libraries you need to download separately and build:
+* **2.2** *Berkeley DB*: You will need to download version 5.3
 
-	name            default path               download
-	--------------------------------------------------------------------------------------------------------------------
-	OpenSSL         \openssl-1.0.1c-mgw        http://www.openssl.org/source/
-	Berkeley DB     \db-4.8.30.NC-mgw          http://www.oracle.com/technology/software/products/berkeley-db/index.html
-	Boost           \boost-1.50.0-mgw          http://www.boost.org/users/download/
-	miniupnpc       \miniupnpc-1.6-mgw         http://miniupnp.tuxfamily.org/files/
+* **2.4** *Miniupnpc*: Skip this
 
-Their licenses:
+* **2.7** *Qt 5 libraries*: The files can be found at https://download.qt.io/archive/qt/5.3/5.3.2/submodules/
 
-	OpenSSL        Old BSD license with the problematic advertising requirement
-	Berkeley DB    New BSD license with additional requirement that linked software must be free open source
-	Boost          MIT-like license
-	miniupnpc      New (3-clause) BSD license
+* **3** Download and unpack Smileycoin from github: https://github.com/tutor-web/smileyCoin
 
-Versions used in this release:
+*From msys shell configure and make smileycoin:*
 
-	OpenSSL      1.0.1c
-	Berkeley DB  4.8.30.NC
-	Boost        1.50.0
-	miniupnpc    1.6
+```
+cd /c/smileyCoin
 
+./autogen.sh
 
-OpenSSL
--------
-MSYS shell:
+CPPFLAGS="-I/c/deps/db-5.3.21/build_unix \
+-I/c/deps/openssl-1.0.1l/include \
+-I/c/deps \
+-I/c/deps/protobuf-2.6.1/src \
+-I/c/deps/libpng-1.6.16 \
+-I/c/deps/qrencode-3.4.4" \
+LDFLAGS="-L/c/deps/db-5.3.21/build_unix \
+-L/c/deps/openssl-1.0.1l \
+-L/c/deps/protobuf-2.6.1/src/.libs \
+-L/c/deps/libpng-1.6.16/.libs \
+-L/c/deps/qrencode-3.4.4/.libs" \
+BOOST_ROOT=/c/deps/boost_1_57_0 \
+./configure \
+--disable-tests \
+--with-qt-incdir=/c/Qt/5.3.2/include \
+--with-qt-libdir=/c/Qt/5.3.2/lib \
+--with-qt-plugindir=/c/Qt/5.3.2/plugins \
+--with-qt-bindir=/c/Qt/5.3.2/bin \
+--with-protoc-bindir=/c/deps/protobuf-2.6.1/src
 
-un-tar sources with MSYS 'tar xfz' to avoid issue with symlinks (OpenSSL ticket 2377)
-change 'MAKE' env. variable from 'C:\MinGW32\bin\mingw32-make.exe' to '/c/MinGW32/bin/mingw32-make.exe'
+make
 
-	cd /c/openssl-1.0.1c-mgw
-	./config
-	make
-
-Berkeley DB
------------
-MSYS shell:
-
-	cd /c/db-4.8.30.NC-mgw/build_unix
-	sh ../dist/configure --enable-mingw --enable-cxx
-	make
-
-Boost
------
-MSYS shell:
-
-	downloaded boost jam 3.1.18
-	cd \boost-1.50.0-mgw
-	bjam toolset=gcc --build-type=complete stage
-
-MiniUPnPc
----------
-UPnP support is optional, make with `USE_UPNP=` to disable it.
-
-MSYS shell:
-
-	cd /c/miniupnpc-1.6-mgw
-	make -f Makefile.mingw
-	mkdir miniupnpc
-	cp *.h miniupnpc/
-
-Smileycoin
--------
-MSYS shell:
-
-	cd \smileycoin
-	sh autogen.sh
-	sh configure
-	mingw32-make
-	strip smileycoind.exe
+strip src/smileycoin-cli.exe
+strip src/smileycoind.exe
+strip src/qt/smileycoin-qt.exe 
+```
