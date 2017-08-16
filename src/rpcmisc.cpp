@@ -58,12 +58,7 @@ Value getinfo(const Array& params, bool fHelp)
 
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
-    int prevheight;
-    CScript nextrichpubkey = NextRichPubkey(PubkeyMap, prevheight);
-    CTxDestination des;
-    ExtractDestination(nextrichpubkey, des);
-    CBitcoinAddress nextrichaddress = CBitcoinAddress(des);
-    //std::cout << nextrichaddress.ToString() << std::endl;
+    CScript richpubkey;
 
     Object obj;
     obj.push_back(Pair("version",         (int)CLIENT_VERSION));
@@ -96,7 +91,12 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("paytxfee",      ValueFromAmount(nTransactionFee)));
 #endif
     obj.push_back(Pair("relayfee",      ValueFromAmount(CTransaction::nMinRelayTxFee)));
-    obj.push_back(Pair("oldest_rich_address", nextrichaddress.ToString()));
+    if(NextRichScriptPubKey(mapScriptPubKeys, richpubkey)) {
+        CTxDestination des;
+        ExtractDestination(richpubkey, des);
+        obj.push_back(Pair("oldest_rich_address", CBitcoinAddress(des).ToString()));
+    }
+    else obj.push_back(Pair("oldest_rich_address", ""));   
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;
 }
@@ -107,15 +107,18 @@ Value getaddressbalance(const Array& params, bool fHelp)
         throw runtime_error("getaddressbalance\n"
                             "Returns the balance of a given address.\n"
                             );
+    CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
+    if(!address.IsValid())
+        throw runtime_error("Not a valid Smileycoin address");
     
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
-    CScript pubkey;
-    pubkey.SetDestination(CBitcoinAddress(params[0].get_str()).Get());
-    
-    //Object obj;
-    double balance = (double)(PubkeyMap[pubkey].first)/100000000;
-    //obj.push_back(Pair("balance", balance));
+    CScript pubkey;    
+    pubkey.SetDestination(address.Get());
+    double balance = 0;
+    if(mapScriptPubKeys.count(pubkey))    
+        balance = (double)(mapScriptPubKeys[pubkey].first)/100000000;
+
     return balance;
 }
 
@@ -123,15 +126,20 @@ Value getaddressheight(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error("getaddressbalance\n"
-                            "Returns the block number where a given address was last used.\n"
+                            "Returns the block height in the active chain where a given address was last used, -1 if never used\n"
                             );
+    CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
+    if(!address.IsValid())
+        throw runtime_error("Not a valid Smileycoin address");
     
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
     CScript pubkey;
-    pubkey.SetDestination(CBitcoinAddress(params[0].get_str()).Get());
+    pubkey.SetDestination(address.Get());
+    int height = -1;
+    if(mapScriptPubKeys.count(pubkey))
+        height = mapScriptPubKeys[pubkey].second;
     
-    int height = PubkeyMap[pubkey].second;
     return height;
 }
 

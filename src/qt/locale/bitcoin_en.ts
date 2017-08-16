@@ -16,8 +16,6 @@
     <message>
         <location line="+57"/>
         <source>
-A special thanks to the Myriadcoin developers for their help with the multi-algo update.
-
 This is experimental software.
 
 Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php.

@@ -81,8 +81,6 @@ public:
             }
             std::pair<CScript, std::pair<int64_t, int> > pairtosave = std::make_pair(pubkeytosave, balanceandheight);
             pubmap.insert(pairtosave);
-            if (pairtosave.second.first >= 25000000*COIN)
-                richcount++;
         }
         pcursor->close();
     }

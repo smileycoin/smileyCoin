@@ -17,8 +17,7 @@ namespace boost {
 
 extern std::string strWalletFile;
 extern CWallet* pwalletMain;
-extern std::map<CScript, std::pair<int64_t,int> > PubkeyMap;
-extern int richcount;
+extern std::map<CScript, std::pair<int64_t,int> > mapScriptPubKeys;
 
 void StartShutdown();
 bool ShutdownRequested();

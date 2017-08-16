@@ -55,8 +55,7 @@ CWallet* pwalletMain;
 #define MIN_CORE_FILEDESCRIPTORS 150
 #endif
 
-std::map<CScript,std::pair<int64_t,int> > PubkeyMap;
-int richcount = 0;
+std::map<CScript,std::pair<int64_t,int> > mapScriptPubKeys;
 
 // Used to pass flags to the Bind() function
 enum BindFlags {
@@ -119,7 +118,7 @@ void Shutdown()
     bitdb.RemoveDb("richlist.dat");
     CRichListDB rich("richlist.dat","cr+");
     map<CScript, std::pair<int64_t, int> >::iterator it;
-    for (it = PubkeyMap.begin(); it != PubkeyMap.end(); it++)
+    for (it = mapScriptPubKeys.begin(); it != mapScriptPubKeys.end(); it++)
     {
         CScript publickey = it->first;
         std::pair<int64_t, int> writepair = it->second;
@@ -465,8 +464,8 @@ bool AppInit2(boost::thread_group& threadGroup)
     filesystem::path richpath = GetDataDir() / "richlist.dat";
     CRichListDB rich("richlist.dat","cr+");
     int maxheight;
-    PubkeyMap.clear();
-    rich.SaveToMap(PubkeyMap, maxheight);
+    mapScriptPubKeys.clear();
+    rich.SaveToMap(mapScriptPubKeys, maxheight);
     
 
     // ********************************************************* Step 2: parameter interactions
@@ -792,7 +791,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     fReindex = GetBoolArg("-reindex", false);
     if (fReindex)
-        PubkeyMap.clear();
+        mapScriptPubKeys.clear();
 
     // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
     filesystem::path blocksDir = GetDataDir() / "blocks";
@@ -983,10 +982,10 @@ bool AppInit2(boost::thread_group& threadGroup)
                     for(unsigned int j = 0; j < tx.vout.size(); j++)
                     {
                         CScript scriptp = tx.vout[j].scriptPubKey;
-                        if(PubkeyMap.count(scriptp))
+                        if(mapScriptPubKeys.count(scriptp))
                         {
-                            PubkeyMap[scriptp].first += tx.vout[j].nValue;
-                            PubkeyMap[scriptp].second = ind->nHeight;
+                            mapScriptPubKeys[scriptp].first += tx.vout[j].nValue;
+                            mapScriptPubKeys[scriptp].second = ind->nHeight;
                         }
                         else
                         {
@@ -996,7 +995,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                             if(newvalueandheight.first > 0)
                             {
                                 std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
-                                PubkeyMap.insert(newpair);
+                                mapScriptPubKeys.insert(newpair);
                             }
                         }
                     }
@@ -1012,11 +1011,11 @@ bool AppInit2(boost::thread_group& threadGroup)
                         for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
                         {
                             CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                            PubkeyMap[scriptp].first -= undo.vtxundo[i].vprevout[j].txout.nValue;
-                            PubkeyMap[scriptp].second = ind->nHeight;
-                            if(PubkeyMap[scriptp].first ==0)
+                            mapScriptPubKeys[scriptp].first -= undo.vtxundo[i].vprevout[j].txout.nValue;
+                            mapScriptPubKeys[scriptp].second = ind->nHeight;
+                            if(mapScriptPubKeys[scriptp].first ==0)
                             {
-                                PubkeyMap.erase(scriptp);
+                                mapScriptPubKeys.erase(scriptp);
                             }   
                         }
                     }
