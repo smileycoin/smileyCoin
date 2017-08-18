@@ -101,7 +101,6 @@ extern int nScriptCheckThreads;
 extern bool fTxIndex;
 extern unsigned int nCoinCacheSize;
 extern int miningAlgo;
-extern const std::string EIASaddresses[]; 
 
 
 
@@ -164,6 +163,8 @@ bool SendMessages(CNode* pto, bool fSendTrickle);
 void ThreadScriptCheck();
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, int algo);
+/** Calculate the minimum amount of work a received block needs, without knowing its direct parent */
+unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 /** Get the number of active peers */
 int GetNumBlocksOfPeers();
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
@@ -197,9 +198,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
                         bool* pfMissingInputs, bool fRejectInsaneFee=false);
 
 /** find next (oldest) rich address **/
-bool NextRichScriptPubKey(std::map<CScript, std::pair<int64_t, int> > &pubmap, CScript &richpubkey);
-/** get the ScriptPubKey for the next EIAS address **/
-CScript NextEIASScriptPubKey(int nHeight);
+CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap, int prevheight);
 
 struct CNodeStateStats {
     int nMisbehavior;
@@ -603,7 +602,7 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
 bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool* pfClean = NULL);
 
 // Apply the effects of this block (with given index) on the UTXO set represented by coins
-bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool fJustCheck = false, bool fRichCheck = false);
+bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool fJustCheck = false);
 
 // Add this block to the block index, and if necessary, switch the active block chain to this
 bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos& pos);

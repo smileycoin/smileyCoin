@@ -16,12 +16,16 @@
     <message>
         <location line="+57"/>
         <source>
+A special thanks to the Myriadcoin developers for their help with the multi-algo update.
+
 This is experimental software.
 
 Distributed under the MIT/X11 software license, see the accompanying file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit (http://www.openssl.org/) and cryptographic software written by Eric Young (eay@cryptsoft.com) and UPnP software written by Thomas Bernard.</source>
         <translation>
+Sérstakar þakkir til Myradcoin þróunarteymisins fyrir þeirra hjálp við innleiðingu á multi-algo.
+
 Þessi hugbúnaður er í tilraunafasa.
 
 Dreift undir MIT/X11 hugbúnaðarleyfi, sjáið nánar í skjali í viðhengi eða á http://www.opensource.org/licenses/mit-license.php.
@@ -3789,7 +3793,7 @@ Ef skráin er ekki til, skaltu búa hana til með owner-readable-only file permi
     <message>
         <location line="+1"/>
         <source>Force safe mode (default: 0)</source>
-        <translation>Þvinga öryggis útgáfu (safemode) (sjálfgefið:0)</translation>
+        <translation>Þvínga öryggis útgáfu (safemode) (sjálfgefið:0)</translation>
     </message>
     <message>
         <location line="+1"/>

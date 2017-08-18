@@ -17,7 +17,7 @@ Dependencies
  Library     | Purpose          | Description
  ------------|------------------|----------------------
  libssl      | SSL Support      | Secure communications
- libdb4.8    | Berkeley DB      | Wallet storage and richlist storage
+ libdb4.8    | Berkeley DB      | Wallet storage
  libboost    | Boost            | C++ Library
  miniupnpc   | UPnP Support     | Optional firewall-jumping support
  qt          | GUI              | GUI toolkit
@@ -206,8 +206,6 @@ Hardening enables the following features:
 
 Disable-wallet mode
 --------------------
-THIS DOES NOT WORK CURRENTLY
-
 When the intention is to run only a P2P node without a wallet, smileycoin may be compiled in
 disable-wallet mode with:
 

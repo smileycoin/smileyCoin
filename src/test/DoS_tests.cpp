@@ -106,7 +106,8 @@ static bool CheckNBits(unsigned int nbits1, int64_t time1, unsigned int nbits2, 
         return CheckNBits(nbits2, time2, nbits1, time1);
     int64_t deltaTime = time2-time1;
 
-    CBigNum required = Params().ProofOfWorkLimit(ALGO_SCRYPT).GetCompact();;
+    CBigNum required;
+    required.SetCompact(ComputeMinWork(nbits1, deltaTime));
     CBigNum have;
     have.SetCompact(nbits2);
     return (have <= required);
