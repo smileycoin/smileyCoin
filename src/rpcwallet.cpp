@@ -311,7 +311,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
             + HelpRequiringPassphrase() +
             "\nArguments:\n"
             "1. \"smileycoinaddress\"  (string, required) The smileycoin address to send to.\n"
-            "2. \"amount\"             (numeric, required) The amount in btc to send. eg 0.1\n"
+            "2. \"amount\"             (numeric, required) The amount in SMLY to send. eg 0.1\n"
             "3. \"comment\"            (string, optional) A comment used to store what the transaction is for. \n"
             "                          This is not part of the transaction, just kept in your wallet.\n"
             "4. \"comment-to\"         (string, optional) A comment to store the name of the person or organization \n"
@@ -344,6 +344,115 @@ Value sendtoaddress(const Array& params, bool fHelp)
     string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx);
     if (strError != "")
         throw JSONRPCError(RPC_WALLET_ERROR, strError);
+
+    return wtx.GetHash().GetHex();
+}
+
+Value sendwithmessage(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 3 || params.size() > 3)
+        throw runtime_error(
+            "sendwithmessage \"smileycoinaddress\" amount \"message\" \n"
+            "\nSent an amount with a message to a given address. The amount is a real and is rounded to the nearest 0.00000001\n"
+            + HelpRequiringPassphrase() +
+            "\nArguments:\n"
+            "1. \"smileycoinaddress\"  (string, required) The smileycoin address to send to.\n"
+            "2. \"amount\"             (numeric, required) The amount in SMLY to send. eg 0.1\n"
+            "3. \"message\"            (string, required) A message to the sender. \n"
+            "                          This is sent as a part of the transaction.\n"
+            "\nResult:\n"
+            "\"transactionid\"  (string) The transaction id.\n"
+            "\nExamples:\n"
+            + HelpExampleRpc("sendwithmessage", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 10000, \"Donation\"")
+        );
+
+    CBitcoinAddress address(params[0].get_str());
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
+
+    // Amount
+    int64_t nAmount = AmountFromValue(params[1]);
+
+    CWalletTx wtx;
+    // Wallet comments -- NOT needed here
+    // if (params.size() > 2 && params[2].type() != null_type && !params[2].get_str().empty())
+    //     wtx.mapValue["comment"] = params[2].get_str();
+    // if (params.size() > 3 && params[3].type() != null_type && !params[3].get_str().empty())
+    //     wtx.mapValue["to"]      = params[3].get_str();
+
+    EnsureWalletIsUnlocked();
+
+    // This is where we code the message in params[2].get_str() as several 8-char strings of 0-9
+    // Initially just map the i'th ASCII character 32-126 (040-177) to the 2-digit decimal i-32
+    // Initially only allow 4 characters which become 8 decimals
+    string str=params[2].get_str(); // need to change to C++
+    static const int64_t BASEFEE=100000000000;
+    static const int64_t STARTFEE=31415926;
+    int64_t nAmount0 = BASEFEE+STARTFEE; // Magic number indicates start of message
+    int64_t nMessageTotal=nAmount0;
+    int64_t nAmount1;
+    int64_t strLen = (int64_t) (params[2].get_str()).length();
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // aggregate all the amounts into a single transaction
+    vector<pair<CScript, int64_t> > vecSend;
+    CScript scriptPubKey; 
+    scriptPubKey.SetDestination(address.Get());
+
+    vecSend.push_back(make_pair(scriptPubKey, nAmount0)); // the header
+
+    // Later do a better mapping
+    // Later encode the string
+    // Deal with long strings
+    int64_t remainingLen=strLen;
+    int64_t nextLen, startLen=0;
+    int64_t seqCounter=1;
+    //cout << "costs: " << "nAmount0 -->" << nAmount0  <<" "  ;
+    while (remainingLen>0){
+      if(remainingLen > 4){
+          nextLen =  4;
+      } else { 
+          nextLen = remainingLen;
+      }
+      nAmount1 = 0;
+      for (int i=startLen;i<startLen+nextLen;i++){
+        //cout << "i = " << i << " startLen=" << startLen << " nextLen="<< nextLen<< '\n';
+        if ((unsigned char)str[i]>=32 && (unsigned char)str[i]<132) // skip non-ascii for now
+           nAmount1 = nAmount1*100+((int)(str[i])-32); // shift and insert next code
+        //cout << "char -->" << (unsigned char)str[i] << "<--" << "int -->" << (int)(str[i]) << "<-- shifted -->" << ((int)(str[i])-32) << '\n';
+        //cout << "nAmount1 building up -->" << nAmount1 << "<--" << '\n';
+      }
+      remainingLen -= nextLen;
+      startLen += nextLen;
+      if(nextLen<4)
+        nAmount1 *= pow(100,4-nextLen);  // Just put the padding on the right rather than left
+      //cout << "remainingLen -->" << remainingLen << " nAmount1 after padding -->" << nAmount1 << "<--" << "multiplier -->" << pow(100,4-nextLen) <<'\n';
+      nAmount1 += BASEFEE + COIN*seqCounter++;
+      nMessageTotal += nAmount1;
+      //cout << " nAmount1 -->"<< nAmount1   <<" " << '\n' ;
+      vecSend.push_back(make_pair(scriptPubKey, nAmount1)); // the message
+    }
+    //cout << " nMessageTotal -->"<< nMessageTotal <<" " << '\n' ;
+
+    // Make sure the amount is enough to cover the message cost
+    //cout << "Amount to send: " << "nAmount -->" << nAmount <<" " << '\n' ;
+    int64_t nAmountn = nAmount - nMessageTotal;
+    if (nMessageTotal>nAmount)                            // exit - message too expensive
+       throw JSONRPCError(RPC_WALLET_ERROR, "Message too expensive for amount");
+    vecSend.push_back(make_pair(scriptPubKey, nAmountn)); // the remaining amount
+    
+    // Send
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
+
+    // end of aggregation task
+    //////////////////////////////////////////////////////////////////////////////////////////
 
     return wtx.GetHash().GetHex();
 }
