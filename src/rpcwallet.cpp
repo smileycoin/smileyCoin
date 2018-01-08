@@ -386,7 +386,7 @@ Value sendwithmessage(const Array& params, bool fHelp)
     // Initially just map the i'th ASCII character 32-126 (040-177) to the 2-digit decimal i-32
     // Initially only allow 4 characters which become 8 decimals
     string str=params[2].get_str(); // need to change to C++
-    static const int64_t BASEFEE=100000000000;
+    static const int64_t BASEFEE=10000000000; // 100 SMLY base fee for each sub-transaction
     static const int64_t STARTFEE=31415926;
     int64_t nAmount0 = BASEFEE+STARTFEE; // Magic number indicates start of message
     int64_t nMessageTotal=nAmount0;
