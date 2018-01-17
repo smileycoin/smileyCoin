@@ -348,6 +348,8 @@ Value sendtoaddress(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
+static const int64_t BASEFEE=10000000000; // 100 SMLY base fee for each sub-transaction
+static const int64_t STARTFEE=31415926;   // decimals to define a message start
 Value sendwithmessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 3 || params.size() > 3)
@@ -386,9 +388,7 @@ Value sendwithmessage(const Array& params, bool fHelp)
     // Initially just map the i'th ASCII character 32-126 (040-177) to the 2-digit decimal i-32
     // Initially only allow 4 characters which become 8 decimals
     string str=params[2].get_str(); // need to change to C++
-    static const int64_t BASEFEE=10000000000; // 100 SMLY base fee for each sub-transaction
-    static const int64_t STARTFEE=31415926;
-    int64_t nAmount0 = BASEFEE+STARTFEE; // Magic number indicates start of message
+    int64_t nAmount0 = BASEFEE+STARTFEE;      // Magic number indicates start of message
     int64_t nMessageTotal=nAmount0;
     int64_t nAmount1;
     int64_t strLen = (int64_t) (params[2].get_str()).length();
@@ -402,7 +402,7 @@ Value sendwithmessage(const Array& params, bool fHelp)
     vecSend.push_back(make_pair(scriptPubKey, nAmount0)); // the header
 
     // Later do a better mapping
-    // Later encode the string
+    // Later optionally encode the string
     // Deal with long strings
     int64_t remainingLen=strLen;
     int64_t nextLen, startLen=0;
@@ -470,7 +470,7 @@ Value listaddressgroupings(const Array& params, bool fHelp)
             "  [\n"
             "    [\n"
             "      \"smileycoinaddress\",  (string) The smileycoin address\n"
-            "      amount,                 (numeric) The amount in btc\n"
+            "      amount,                 (numeric) The amount in SMLY\n"
             "      \"account\"             (string, optional) The account\n"
             "    ]\n"
             "    ,...\n"
@@ -565,7 +565,7 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
             "1. \"smileycoinaddress\"  (string, required) The smileycoin address for transactions.\n"
             "2. minconf                (numeric, optional, default=1) Only include transactions confirmed at least this many times.\n"
             "\nResult:\n"
-            "amount   (numeric) The total amount in btc received at this address.\n"
+            "amount   (numeric) The total amount in SMLY received at this address.\n"
             "\nExamples:\n"
             "\nThe amount from transactions with at least 1 confirmation\n"
             + HelpExampleCli("getreceivedbyaddress", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\"") +
@@ -619,7 +619,7 @@ Value getreceivedbyaccount(const Array& params, bool fHelp)
             "1. \"account\"      (string, required) The selected account, may be the default account using \"\".\n"
             "2. minconf          (numeric, optional, default=1) Only include transactions confirmed at least this many times.\n"
             "\nResult:\n"
-            "amount              (numeric) The total amount in btc received for this account.\n"
+            "amount              (numeric) The total amount in SMLY received for this account.\n"
             "\nExamples:\n"
             "\nAmount received by the default account with at least 1 confirmation\n"
             + HelpExampleCli("getreceivedbyaccount", "\"\"") +
@@ -706,7 +706,7 @@ Value getbalance(const Array& params, bool fHelp)
             "1. \"account\"      (string, optional) The selected account, or \"*\" for entire wallet. It may be the default account using \"\".\n"
             "2. minconf          (numeric, optional, default=1) Only include transactions confirmed at least this many times.\n"
             "\nResult:\n"
-            "amount              (numeric) The total amount in btc received for this account.\n"
+            "amount              (numeric) The total amount in SMLY received for this account.\n"
             "\nExamples:\n"
             "\nThe total amount in the server across all accounts\n"
             + HelpExampleCli("getbalance", "") +
@@ -848,7 +848,7 @@ Value sendfrom(const Array& params, bool fHelp)
             "\nArguments:\n"
             "1. \"fromaccount\"          (string, required) The name of the account to send funds from. May be the default account using \"\".\n"
             "2. \"tosmileycoinaddress\"  (string, required) The smileycoin address to send funds to.\n"
-            "3. amount                   (numeric, required) The amount in btc. (transaction fee is added on top).\n"
+            "3. amount                   (numeric, required) The amount in SMLY. (transaction fee is added on top).\n"
             "4. minconf                  (numeric, optional, default=1) Only use funds with at least this many confirmations.\n"
             "5. \"comment\"              (string, optional) A comment used to store what the transaction is for. \n"
             "                                     This is not part of the transaction, just kept in your wallet.\n"
@@ -909,7 +909,7 @@ Value sendmany(const Array& params, bool fHelp)
             "1. \"fromaccount\"         (string, required) The account to send the funds from, can be \"\" for the default account\n"
             "2. \"amounts\"             (string, required) A json object with addresses and amounts\n"
             "    {\n"
-            "      \"address\":amount   (numeric) The smileycoin address is the key, the numeric amount in btc is the value\n"
+            "      \"address\":amount   (numeric) The smileycoin address is the key, the numeric amount in SMLY is the value\n"
             "      ,...\n"
             "    }\n"
             "3. minconf                 (numeric, optional, default=1) Only use the balance confirmed at least this many times.\n"
@@ -1153,7 +1153,7 @@ Value listreceivedbyaddress(const Array& params, bool fHelp)
             "  {\n"
             "    \"address\" : \"receivingaddress\",  (string) The receiving address\n"
             "    \"account\" : \"accountname\",       (string) The account of the receiving address. The default account is \"\".\n"
-            "    \"amount\" : x.xxx,                  (numeric) The total amount in btc received by the address\n"
+            "    \"amount\" : x.xxx,                  (numeric) The total amount in SMLY received by the address\n"
             "    \"confirmations\" : n                (numeric) The number of confirmations of the most recent transaction included\n"
             "  }\n"
             "  ,...\n"
@@ -1211,6 +1211,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
     list<pair<CTxDestination, int64_t> > listReceived;
     list<pair<CTxDestination, int64_t> > listSent;
 
+    cout<<"Into ListTransactions\n";
     wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount);
 
     bool fAllAccounts = (strAccount == string("*"));
@@ -1218,14 +1219,53 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
     // Sent
     if ((!listSent.empty() || nFee != 0) && (fAllAccounts || strAccount == strSentAccount))
     {
+      bool rmsgExists = 0;
+      // need to revise this sent part based on received below!!
+      char rmsg[2000];//string rmsg[4*listSent.size()];
+      int64_t rmsgInd4 = 0; // indexes the 4-character pieces of the message
+      int64_t lastchar;
         BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64_t)& s, listSent)
         {
             Object entry;
+	    // The next block should be rewritten!! from here...
+	    int64_t DecimalDigits = s.second%100000000;
+	    if(!rmsgExists){                         // No rawmessage yet
+	      rmsgExists=(DecimalDigits==STARTFEE); // Maybe now? and from here on
+ 	    } else {
+	      cout << "building message 0... ind=" << rmsgInd4 <<
+		" s.second = " << s.second << 
+		" remainder = " << (s.second-BASEFEE)/100000000 << "\n";
+	      if(rmsgInd4==(s.second-BASEFEE)/100000000 -1){
+ 		lastchar=DecimalDigits%100+32;
+		rmsg[4*rmsgInd4+3]=(char) (lastchar>32&&lastchar<132)?lastchar:' ';
+		cout << "building message 1..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+
+		DecimalDigits/=100;
+		lastchar=DecimalDigits%100+32;
+		rmsg[4*rmsgInd4+2]=(char) (lastchar>32&&lastchar<132)?lastchar-32:' ';
+		cout << "building message 2..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+
+		DecimalDigits/=100;
+		lastchar=DecimalDigits%100+32;
+		rmsg[4*rmsgInd4+1]=(char) (lastchar>32&&lastchar<132)?lastchar-32:' ';
+		cout << "building message 3..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+
+		DecimalDigits/=100;
+		lastchar=DecimalDigits%100+32;
+		rmsg[4*rmsgInd4]=(char) (lastchar>32&&lastchar<132)?lastchar-32:' ';
+		rmsgInd4++;
+		cout << "building message 4..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+	      } else {
+		cout << "Message done\n";
+	      }
+	    }
+	    // to here...
             entry.push_back(Pair("account", strSentAccount));
             MaybePushAddress(entry, s.first);
             entry.push_back(Pair("category", "send"));
             entry.push_back(Pair("amount", ValueFromAmount(-s.second)));
             entry.push_back(Pair("fee", ValueFromAmount(-nFee)));
+	    cout<<"Value of s.second: " << s.second << " Digits: " << DecimalDigits << "\n";
             if (fLong)
                 WalletTxToJSON(wtx, entry);
             ret.push_back(entry);
@@ -1235,12 +1275,69 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
     // Received
     if (listReceived.size() > 0 && wtx.GetDepthInMainChain() >= nMinDepth)
     {
-        BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64_t)& r, listReceived)
+      //int64_t strLen = (int64_t) listReceived.size()*4; // possibly 4 coded bytes per element 
+      bool rmsgExists = 0;
+      //char rmsg[2000];//string rmsg[4*listReceived.size()];
+      //string rmsg[4*listReceived.size()+1];
+      char rmsg[4*listReceived.size()+1];
+      int64_t rmsgInd4 = 0; // indexes the 4-character pieces of the message
+      int64_t lastchar;
+
+	BOOST_FOREACH(const PAIRTYPE(CTxDestination, int64_t)& r, listReceived)
         {
             string account;
+	    // The next block should be rewritten!! from here...
+	    int64_t DecimalDigits = r.second%100000000;
+	    if(!rmsgExists){                         // No rawmessage yet
+	      rmsgExists=(DecimalDigits==STARTFEE); // Maybe now? and from here on
+ 	    } else {
+	      cout << "building message 0... ind=" << rmsgInd4 <<
+		" r.second = " << r.second << 
+		" remainder = " << (r.second-BASEFEE)/100000000 << "\n";
+	      if(rmsgInd4==(r.second-BASEFEE)/100000000 -1&&rmsgInd4<500){ // replace 100000000000 by BASEFEE
+		cout << "building message 0.1..." << rmsgInd4 << "\n";
+		cout << "building message 0.1..." << rmsgInd4 << "\n";
+		  //  "..length(rmsg)=" << length(rmsg) << 
+ 		lastchar= (char) (DecimalDigits%100+32);
+		cout << "building message 0.2..." << rmsgInd4 << ".." << rmsg <<"\n";
+		lastchar = (char) (lastchar>32&&lastchar<132)?lastchar:' ';
+		cout << "building message 0.3..." << rmsgInd4 << "..lastchar=" << lastchar << "\n";
+		rmsg[4*rmsgInd4+3] = lastchar;
+		cout << "building message 1..." 
+		     << rmsgInd4 << ".." << lastchar << ".." 
+		     << rmsg << "\n";
+
+		DecimalDigits/=100;
+ 		lastchar= (char) (DecimalDigits%100+32);
+		cout << "building message 1.2..." << rmsgInd4 << ".." << rmsg <<"\n";
+		lastchar = (char) (lastchar>32&&lastchar<132)?lastchar:' ';
+		rmsg[4*rmsgInd4+2]=lastchar;
+		cout << "building message 2..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+
+		DecimalDigits/=100;
+ 		lastchar= (char) (DecimalDigits%100+32);
+		cout << "building message 2.2..." << rmsgInd4 << ".." << rmsg <<"\n";
+		lastchar = (char) (lastchar>32&&lastchar<132)?lastchar:' ';
+		rmsg[4*rmsgInd4+1]=lastchar;
+		cout << "building message 3..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+
+		DecimalDigits/=100;
+ 		lastchar= (char) (DecimalDigits%100+32);
+		cout << "building message 3.2..." << rmsgInd4 << ".." << rmsg <<"\n";
+		lastchar = (char) (lastchar>32&&lastchar<132)?lastchar:' ';
+		rmsg[4*rmsgInd4]=lastchar;
+		rmsgInd4++;
+		cout << "building message 4..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+	      } else {
+		printf("%s\n",rmsg);
+		cout << "Message done->" << rmsg  << "<-\n";
+		rmsg[4*listReceived.size()] = '\0'; // terminate the darned thing
+	      }
+	    }
+	    // to here...
             if (pwalletMain->mapAddressBook.count(r.first))
                 account = pwalletMain->mapAddressBook[r.first].name;
-            if (fAllAccounts || (account == strAccount))
+             if (fAllAccounts || (account == strAccount))
             {
                 Object entry;
                 entry.push_back(Pair("account", account));
@@ -1258,7 +1355,10 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
                 {
                     entry.push_back(Pair("category", "receive"));
                 }
+		//cout<<"Value of r.second: " << ValueFromAmount(r.second);
+		cout<<"Value of r.second: " << r.second<< " Digits: " << r.second%100000000 << "\n";
                 entry.push_back(Pair("amount", ValueFromAmount(r.second)));
+                entry.push_back(Pair("rmsg", rmsg));
                 if (fLong)
                     WalletTxToJSON(wtx, entry);
                 ret.push_back(entry);
@@ -1307,7 +1407,7 @@ Value listtransactions(const Array& params, bool fHelp)
             "                                                transaction between accounts, and not associated with an address,\n"
             "                                                transaction id or block. 'send' and 'receive' transactions are \n"
             "                                                associated with an address, transaction id and block details\n"
-            "    \"amount\": x.xxx,          (numeric) The amount in btc. This is negative for the 'send' category, and for the\n"
+            "    \"amount\": x.xxx,          (numeric) The amount in SMLY. This is negative for the 'send' category, and for the\n"
             "                                         'move' category for moves outbound. It is positive for the 'receive' category,\n"
             "                                         and for the 'move' category for inbound funds.\n"
             "    \"fee\": x.xxx,             (numeric) The amount of the fee in btc. This is negative and only available for the \n"
@@ -1476,7 +1576,7 @@ Value listsinceblock(const Array& params, bool fHelp)
             "    \"account\":\"accountname\",       (string) The account name associated with the transaction. Will be \"\" for the default account.\n"
             "    \"address\":\"smileycoinaddress\", (string) The smileycoin address of the transaction. Not present for move transactions (category = move).\n"
             "    \"category\":\"send|receive\",     (string) The transaction category. 'send' has negative amounts, 'receive' has positive amounts.\n"
-            "    \"amount\": x.xxx,          (numeric) The amount in btc. This is negative for the 'send' category, and for the 'move' category for moves \n"
+            "    \"amount\": x.xxx,          (numeric) The amount in SMLY. This is negative for the 'send' category, and for the 'move' category for moves \n"
             "                                          outbound. It is positive for the 'receive' category, and for the 'move' category for inbound funds.\n"
             "    \"fee\": x.xxx,             (numeric) The amount of the fee in btc. This is negative and only available for the 'send' category of transactions.\n"
             "    \"confirmations\": n,       (numeric) The number of confirmations for the transaction. Available for 'send' and 'receive' category of transactions.\n"
@@ -1550,7 +1650,7 @@ Value gettransaction(const Array& params, bool fHelp)
             "1. \"txid\"    (string, required) The transaction id\n"
             "\nResult:\n"
             "{\n"
-            "  \"amount\" : x.xxx,        (numeric) The transaction amount in btc\n"
+            "  \"amount\" : x.xxx,        (numeric) The transaction amount in smly\n"
             "  \"confirmations\" : n,     (numeric) The number of confirmations\n"
             "  \"blockhash\" : \"hash\",  (string) The block hash\n"
             "  \"blockindex\" : xx,       (numeric) The block index\n"
@@ -1558,12 +1658,13 @@ Value gettransaction(const Array& params, bool fHelp)
             "  \"txid\" : \"transactionid\",   (string) The transaction id.\n"
             "  \"time\" : ttt,            (numeric) The transaction time in seconds since epoch (1 Jan 1970 GMT)\n"
             "  \"timereceived\" : ttt,    (numeric) The time received in seconds since epoch (1 Jan 1970 GMT)\n"
+            "  \"rmsg\" : \"message\",   (string) Optional raw message.\n"
             "  \"details\" : [\n"
             "    {\n"
             "      \"account\" : \"accountname\",       (string) The account name involved in the transaction, can be \"\" for the default account.\n"
             "      \"address\" : \"smileycoinaddress\", (string) The smileycoin address involved in the transaction\n"
             "      \"category\" : \"send|receive\",     (string) The category, either 'send' or 'receive'\n"
-            "      \"amount\" : x.xxx                   (numeric) The amount in btc\n"
+            "      \"amount\" : x.xxx                   (numeric) The amount in SMLY\n"
             "    }\n"
             "    ,...\n"
             "  ],\n"
@@ -1576,6 +1677,7 @@ Value gettransaction(const Array& params, bool fHelp)
         );
 
     uint256 hash;
+    cout<<"Into gettransactions\n";
     hash.SetHex(params[0].get_str());
 
     Object entry;
@@ -1596,6 +1698,8 @@ Value gettransaction(const Array& params, bool fHelp)
 
     Array details;
     ListTransactions(wtx, "*", 0, false, details);
+    // Extract any potential message
+    // entry.push_back(Pair("msg", "raw message");
     entry.push_back(Pair("details", details));
 
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
