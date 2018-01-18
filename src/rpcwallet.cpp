@@ -407,7 +407,7 @@ Value sendwithmessage(const Array& params, bool fHelp)
     int64_t remainingLen=strLen;
     int64_t nextLen, startLen=0;
     int64_t seqCounter=1;
-    //cout << "costs: " << "nAmount0 -->" << nAmount0  <<" "  ;
+
     while (remainingLen>0){
       if(remainingLen > 4){
           nextLen =  4;
@@ -416,26 +416,19 @@ Value sendwithmessage(const Array& params, bool fHelp)
       }
       nAmount1 = 0;
       for (int i=startLen;i<startLen+nextLen;i++){
-        //cout << "i = " << i << " startLen=" << startLen << " nextLen="<< nextLen<< '\n';
         if ((unsigned char)str[i]>=32 && (unsigned char)str[i]<132) // skip non-ascii for now
            nAmount1 = nAmount1*100+((int)(str[i])-32); // shift and insert next code
-        //cout << "char -->" << (unsigned char)str[i] << "<--" << "int -->" << (int)(str[i]) << "<-- shifted -->" << ((int)(str[i])-32) << '\n';
-        //cout << "nAmount1 building up -->" << nAmount1 << "<--" << '\n';
       }
       remainingLen -= nextLen;
       startLen += nextLen;
       if(nextLen<4)
         nAmount1 *= pow(100,4-nextLen);  // Just put the padding on the right rather than left
-      //cout << "remainingLen -->" << remainingLen << " nAmount1 after padding -->" << nAmount1 << "<--" << "multiplier -->" << pow(100,4-nextLen) <<'\n';
       nAmount1 += BASEFEE + COIN*seqCounter++;
       nMessageTotal += nAmount1;
-      //cout << " nAmount1 -->"<< nAmount1   <<" " << '\n' ;
       vecSend.push_back(make_pair(scriptPubKey, nAmount1)); // the message
     }
-    //cout << " nMessageTotal -->"<< nMessageTotal <<" " << '\n' ;
 
     // Make sure the amount is enough to cover the message cost
-    //cout << "Amount to send: " << "nAmount -->" << nAmount <<" " << '\n' ;
     int64_t nAmountn = nAmount - nMessageTotal;
     if (nMessageTotal>nAmount)                            // exit - message too expensive
        throw JSONRPCError(RPC_WALLET_ERROR, "Message too expensive for amount");
@@ -1204,14 +1197,14 @@ static void MaybePushAddress(Object & entry, const CTxDestination &dest)
         entry.push_back(Pair("address", addr.ToString()));
 }
 
-void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDepth, bool fLong, Array& ret)
+void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDepth, bool fLong, Array& ret, string& msg)
 {
     int64_t nFee;
     string strSentAccount;
     list<pair<CTxDestination, int64_t> > listReceived;
     list<pair<CTxDestination, int64_t> > listSent;
 
-    cout<<"Into ListTransactions\n";
+    //cout<<"Into ListTransactions\n";
     wtx.GetAmounts(listReceived, listSent, nFee, strSentAccount);
 
     bool fAllAccounts = (strAccount == string("*"));
@@ -1232,32 +1225,47 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
 	    if(!rmsgExists){                         // No rawmessage yet
 	      rmsgExists=(DecimalDigits==STARTFEE); // Maybe now? and from here on
  	    } else {
-	      cout << "building message 0... ind=" << rmsgInd4 <<
-		" s.second = " << s.second << 
-		" remainder = " << (s.second-BASEFEE)/100000000 << "\n";
-	      if(rmsgInd4==(s.second-BASEFEE)/100000000 -1){
- 		lastchar=DecimalDigits%100+32;
-		rmsg[4*rmsgInd4+3]=(char) (lastchar>32&&lastchar<132)?lastchar:' ';
-		cout << "building message 1..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+	      //cout << "building message 0... ind=" << rmsgInd4 <<
+	      //" s.second = " << s.second << 
+	      //" remainder = " << (s.second-BASEFEE)/100000000 << "\n";
+	      if(rmsgInd4==(s.second-BASEFEE)/100000000 -1&&rmsgInd4<500){ // index matches count?
+		//cout << "building message 0.1..." << rmsgInd4 << "\n";
+		//cout << "building message 0.1..." << rmsgInd4 << "\n";
+ 		lastchar= (char) (DecimalDigits%100+32);
+		//cout << "building message 0.2..." << rmsgInd4 << ".." << rmsg <<"\n";
+		lastchar = (char) (lastchar>32&&lastchar<132)?lastchar:' ';
+		//cout << "building message 0.3..." << rmsgInd4 << "..lastchar=" << lastchar << "\n";
+		rmsg[4*rmsgInd4+3] = lastchar;
+		//cout << "building message 1..." 
+		//   << rmsgInd4 << ".." << lastchar << ".." 
+		//   << rmsg << "\n";
 
 		DecimalDigits/=100;
-		lastchar=DecimalDigits%100+32;
-		rmsg[4*rmsgInd4+2]=(char) (lastchar>32&&lastchar<132)?lastchar-32:' ';
-		cout << "building message 2..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+ 		lastchar= (char) (DecimalDigits%100+32);
+		//cout << "building message 1.2..." << rmsgInd4 << ".." << rmsg <<"\n";
+		lastchar = (char) (lastchar>32&&lastchar<132)?lastchar:' ';
+		rmsg[4*rmsgInd4+2]=lastchar;
+		//cout << "building message 2..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
 
 		DecimalDigits/=100;
-		lastchar=DecimalDigits%100+32;
-		rmsg[4*rmsgInd4+1]=(char) (lastchar>32&&lastchar<132)?lastchar-32:' ';
-		cout << "building message 3..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+ 		lastchar= (char) (DecimalDigits%100+32);
+		//cout << "building message 2.2..." << rmsgInd4 << ".." << rmsg <<"\n";
+		lastchar = (char) (lastchar>32&&lastchar<132)?lastchar:' ';
+		rmsg[4*rmsgInd4+1]=lastchar;
+		//cout << "building message 3..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
 
 		DecimalDigits/=100;
-		lastchar=DecimalDigits%100+32;
-		rmsg[4*rmsgInd4]=(char) (lastchar>32&&lastchar<132)?lastchar-32:' ';
+ 		lastchar= (char) (DecimalDigits%100+32);
+		//cout << "building message 3.2..." << rmsgInd4 << ".." << rmsg <<"\n";
+		lastchar = (char) (lastchar>32&&lastchar<132)?lastchar:' ';
+		rmsg[4*rmsgInd4]=lastchar;
 		rmsgInd4++;
-		cout << "building message 4..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
-	      } else {
-		cout << "Message done\n";
-	      }
+		//cout << "building message 4..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+		rmsg[4*(rmsgInd4+1)] = '\0'; // terminate the darned thing
+	      } //else {
+		//printf("%s\n",rmsg);
+		//cout << "Message done->" << rmsg  << "<-\n";
+	        //}
 	    }
 	    // to here...
             entry.push_back(Pair("account", strSentAccount));
@@ -1265,20 +1273,19 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
             entry.push_back(Pair("category", "send"));
             entry.push_back(Pair("amount", ValueFromAmount(-s.second)));
             entry.push_back(Pair("fee", ValueFromAmount(-nFee)));
-	    cout<<"Value of s.second: " << s.second << " Digits: " << DecimalDigits << "\n";
+	    //cout<<"Value of s.second: " << s.second << " Digits: " << DecimalDigits << "\n";
             if (fLong)
                 WalletTxToJSON(wtx, entry);
             ret.push_back(entry);
+	    if(rmsgExists)
+	      msg=string(rmsg);
         }
     }
 
     // Received
     if (listReceived.size() > 0 && wtx.GetDepthInMainChain() >= nMinDepth)
     {
-      //int64_t strLen = (int64_t) listReceived.size()*4; // possibly 4 coded bytes per element 
       bool rmsgExists = 0;
-      //char rmsg[2000];//string rmsg[4*listReceived.size()];
-      //string rmsg[4*listReceived.size()+1];
       char rmsg[4*listReceived.size()+1];
       int64_t rmsgInd4 = 0; // indexes the 4-character pieces of the message
       int64_t lastchar;
@@ -1291,47 +1298,46 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
 	    if(!rmsgExists){                         // No rawmessage yet
 	      rmsgExists=(DecimalDigits==STARTFEE); // Maybe now? and from here on
  	    } else {
-	      cout << "building message 0... ind=" << rmsgInd4 <<
-		" r.second = " << r.second << 
-		" remainder = " << (r.second-BASEFEE)/100000000 << "\n";
+	      //cout << "building message 0... ind=" << rmsgInd4 <<
+	      //" r.second = " << r.second << 
+	      //" remainder = " << (r.second-BASEFEE)/100000000 << "\n";
 	      if(rmsgInd4==(r.second-BASEFEE)/100000000 -1&&rmsgInd4<500){ // replace 100000000000 by BASEFEE
-		cout << "building message 0.1..." << rmsgInd4 << "\n";
-		cout << "building message 0.1..." << rmsgInd4 << "\n";
-		  //  "..length(rmsg)=" << length(rmsg) << 
+		//cout << "building message 0.1..." << rmsgInd4 << "\n";
+		//cout << "building message 0.1..." << rmsgInd4 << "\n";
  		lastchar= (char) (DecimalDigits%100+32);
-		cout << "building message 0.2..." << rmsgInd4 << ".." << rmsg <<"\n";
+		//cout << "building message 0.2..." << rmsgInd4 << ".." << rmsg <<"\n";
 		lastchar = (char) (lastchar>32&&lastchar<132)?lastchar:' ';
-		cout << "building message 0.3..." << rmsgInd4 << "..lastchar=" << lastchar << "\n";
+		//cout << "building message 0.3..." << rmsgInd4 << "..lastchar=" << lastchar << "\n";
 		rmsg[4*rmsgInd4+3] = lastchar;
-		cout << "building message 1..." 
-		     << rmsgInd4 << ".." << lastchar << ".." 
-		     << rmsg << "\n";
+		//cout << "building message 1..." 
+		//     << rmsgInd4 << ".." << lastchar << ".." 
+		//     << rmsg << "\n";
 
 		DecimalDigits/=100;
  		lastchar= (char) (DecimalDigits%100+32);
-		cout << "building message 1.2..." << rmsgInd4 << ".." << rmsg <<"\n";
+		//cout << "building message 1.2..." << rmsgInd4 << ".." << rmsg <<"\n";
 		lastchar = (char) (lastchar>32&&lastchar<132)?lastchar:' ';
 		rmsg[4*rmsgInd4+2]=lastchar;
-		cout << "building message 2..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+		//cout << "building message 2..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
 
 		DecimalDigits/=100;
  		lastchar= (char) (DecimalDigits%100+32);
-		cout << "building message 2.2..." << rmsgInd4 << ".." << rmsg <<"\n";
+		//cout << "building message 2.2..." << rmsgInd4 << ".." << rmsg <<"\n";
 		lastchar = (char) (lastchar>32&&lastchar<132)?lastchar:' ';
 		rmsg[4*rmsgInd4+1]=lastchar;
-		cout << "building message 3..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+		//cout << "building message 3..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
 
 		DecimalDigits/=100;
  		lastchar= (char) (DecimalDigits%100+32);
-		cout << "building message 3.2..." << rmsgInd4 << ".." << rmsg <<"\n";
+		//cout << "building message 3.2..." << rmsgInd4 << ".." << rmsg <<"\n";
 		lastchar = (char) (lastchar>32&&lastchar<132)?lastchar:' ';
 		rmsg[4*rmsgInd4]=lastchar;
 		rmsgInd4++;
-		cout << "building message 4..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+		//cout << "building message 4..." << rmsgInd4 << ".." << lastchar << ".." << rmsg << "\n";
+		rmsg[4*(rmsgInd4+1)] = '\0'; // terminate the darned thing
 	      } else {
 		printf("%s\n",rmsg);
-		cout << "Message done->" << rmsg  << "<-\n";
-		rmsg[4*listReceived.size()] = '\0'; // terminate the darned thing
+		//cout << "Message done->" << rmsg  << "<-\n";
 	      }
 	    }
 	    // to here...
@@ -1356,12 +1362,13 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
                     entry.push_back(Pair("category", "receive"));
                 }
 		//cout<<"Value of r.second: " << ValueFromAmount(r.second);
-		cout<<"Value of r.second: " << r.second<< " Digits: " << r.second%100000000 << "\n";
+		//cout<<"Value of r.second: " << r.second<< " Digits: " << r.second%100000000 << "\n";
                 entry.push_back(Pair("amount", ValueFromAmount(r.second)));
-                entry.push_back(Pair("rmsg", rmsg));
                 if (fLong)
                     WalletTxToJSON(wtx, entry);
                 ret.push_back(entry);
+		if(rmsgExists)
+		  msg=string(rmsg);
             }
         }
     }
@@ -1464,8 +1471,9 @@ Value listtransactions(const Array& params, bool fHelp)
     for (CWallet::TxItems::reverse_iterator it = txOrdered.rbegin(); it != txOrdered.rend(); ++it)
     {
         CWalletTx *const pwtx = (*it).second.first;
+	string msg;
         if (pwtx != 0)
-            ListTransactions(*pwtx, strAccount, 0, true, ret);
+	  ListTransactions(*pwtx, strAccount, 0, true, ret, msg);
         CAccountingEntry *const pacentry = (*it).second.second;
         if (pacentry != 0)
             AcentryToJSON(*pacentry, strAccount, ret);
@@ -1626,8 +1634,9 @@ Value listsinceblock(const Array& params, bool fHelp)
     {
         CWalletTx tx = (*it).second;
 
+	string msg;
         if (depth == -1 || tx.GetDepthInMainChain() < depth)
-            ListTransactions(tx, "*", 0, true, transactions);
+	  ListTransactions(tx, "*", 0, true, transactions, msg);
     }
 
     CBlockIndex *pblockLast = chainActive[chainActive.Height() + 1 - target_confirms];
@@ -1658,7 +1667,7 @@ Value gettransaction(const Array& params, bool fHelp)
             "  \"txid\" : \"transactionid\",   (string) The transaction id.\n"
             "  \"time\" : ttt,            (numeric) The transaction time in seconds since epoch (1 Jan 1970 GMT)\n"
             "  \"timereceived\" : ttt,    (numeric) The time received in seconds since epoch (1 Jan 1970 GMT)\n"
-            "  \"rmsg\" : \"message\",   (string) Optional raw message.\n"
+            "  \"rawmessage\" : \"message\",   (string) Optional raw message.\n"
             "  \"details\" : [\n"
             "    {\n"
             "      \"account\" : \"accountname\",       (string) The account name involved in the transaction, can be \"\" for the default account.\n"
@@ -1677,7 +1686,7 @@ Value gettransaction(const Array& params, bool fHelp)
         );
 
     uint256 hash;
-    cout<<"Into gettransactions\n";
+    //cout<<"Into gettransactions\n";
     hash.SetHex(params[0].get_str());
 
     Object entry;
@@ -1697,9 +1706,11 @@ Value gettransaction(const Array& params, bool fHelp)
     WalletTxToJSON(wtx, entry);
 
     Array details;
-    ListTransactions(wtx, "*", 0, false, details);
-    // Extract any potential message
-    // entry.push_back(Pair("msg", "raw message");
+    string msg;
+    ListTransactions(wtx, "*", 0, false, details, msg);
+   
+    if(!msg.empty())  // Extract any potential message
+      entry.push_back(Pair("rmsg", msg));
     entry.push_back(Pair("details", details));
 
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
