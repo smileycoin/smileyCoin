@@ -22,7 +22,7 @@
 #include "db.h"
 #include "wallet.h"
 #include "walletdb.h"
-#include "richlistdb.cpp"
+#include "richlistdb.h"
 #include "base58.h"
 #endif
 
@@ -55,8 +55,7 @@ CWallet* pwalletMain;
 #define MIN_CORE_FILEDESCRIPTORS 150
 #endif
 
-std::map<CScript,std::pair<int64_t,int> > PubkeyMap;
-int richcount = 0;
+CRichList RichList;
 
 // Used to pass flags to the Bind() function
 enum BindFlags {
@@ -118,13 +117,8 @@ void Shutdown()
     LogPrintf("Writing rich list to disk \n");
     bitdb.RemoveDb("richlist.dat");
     CRichListDB rich("richlist.dat","cr+");
-    map<CScript, std::pair<int64_t, int> >::iterator it;
-    for (it = PubkeyMap.begin(); it != PubkeyMap.end(); it++)
-    {
-        CScript publickey = it->first;
-        std::pair<int64_t, int> writepair = it->second;
-        rich.WriteAddress(publickey, writepair);
-    }
+    
+    rich.Write(RichList);
     
     static CCriticalSection cs_Shutdown;
     TRY_LOCK(cs_Shutdown, lockShutdown);
@@ -463,10 +457,9 @@ bool AppInit2(boost::thread_group& threadGroup)
     // However, if it doesn't, we need to make it up to date before the map starts updating with the new blocks.
     
     filesystem::path richpath = GetDataDir() / "richlist.dat";
-    CRichListDB rich("richlist.dat","cr+");
+    CRichListDB richdb("richlist.dat","cr+");
     int maxheight;
-    PubkeyMap.clear();
-    rich.SaveToMap(PubkeyMap, maxheight);
+    richdb.SaveToRichList(RichList, maxheight);
     
 
     // ********************************************************* Step 2: parameter interactions
@@ -792,7 +785,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     fReindex = GetBoolArg("-reindex", false);
     if (fReindex)
-        PubkeyMap.clear();
+        RichList.clear();
 
     // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
     filesystem::path blocksDir = GetDataDir() / "blocks";
@@ -952,7 +945,9 @@ bool AppInit2(boost::thread_group& threadGroup)
 //************************************************************** Step 8 make richlist up to date
     /*This is only run if the last shutdown was unexpected and the richlist wasn't written to the disk properly, or
       if this is the first time a node starts up after the update in August 2017. The richlist catches up with the
-      current heighest block.*/
+      current best block.*/
+
+        //TODO: richwarning
     CCoinsViewCache view(*pcoinsdbview, true);
     if(mapBlockIndex.count((pcoinsdbview->GetBestBlock())))
     {
@@ -960,74 +955,63 @@ bool AppInit2(boost::thread_group& threadGroup)
         LogPrintf("Best block now: %d \n", mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight);
         if(maxheight < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
         {
-            CBlockIndex *ind;
+            assert(maxheight >= 0);
+            CBlockIndex *pind;
             if (maxheight > 0)
-                ind = chainActive[maxheight-1];
+                pind = chainActive[maxheight-1];
             else if (maxheight == 0)
-                ind = chainActive[0];
+                pind = chainActive[0];
             CBlock block;
             
             LogPrintf("Updating rich list – current best block and best block according to richlist are different\n");
-            while (ind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
+            while (pind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
             {
                 if (maxheight > 0)
-                    ind = chainActive[ind->nHeight + 1];
+                    pind = chainActive[pind->nHeight + 1];
                 else if (maxheight == 0)
                 {
                     maxheight++;
                 }
-                ReadBlockFromDisk(block,ind);
+                ReadBlockFromDisk(block,pind);
                 block.BuildMerkleTree();
                 BOOST_FOREACH(const CTransaction &tx, block.vtx)
                 {
-                    for(unsigned int j = 0; j < tx.vout.size(); j++)
+                    BOOST_FOREACH(const CTxOut &txout, tx.vout)
                     {
-                        CScript scriptp = tx.vout[j].scriptPubKey;
-                        if(PubkeyMap.count(scriptp))
-                        {
-                            PubkeyMap[scriptp].first += tx.vout[j].nValue;
-                            PubkeyMap[scriptp].second = ind->nHeight;
-                        }
-                        else
-                        {
-                            int64_t newvalue = tx.vout[j].nValue;
-                            int newheight = ind->nHeight;
-                            std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                            if(newvalueandheight.first > 0)
-                            {
-                                std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
-                                PubkeyMap.insert(newpair);
-                            }
-                        }
+                        RichList.UpdateTxOut(txout.scriptPubKey, txout.nValue, pind->nHeight, tx.IsCoinBase());
+                          //TODO: ef klikkar??
                     }
-                }
+                } 
                 
                 CBlockUndo undo;
-                CDiskBlockPos pos = ind->GetUndoPos();  
-                if(ind->pprev!=NULL && undo.ReadFromDisk(pos,ind->pprev->GetBlockHash()))
+                CDiskBlockPos pos = pind->GetUndoPos();  
+                if (pind->pprev!=NULL && undo.ReadFromDisk(pos, pind->pprev->GetBlockHash()))
                 {
-
-                    for (unsigned int i=0; i<undo.vtxundo.size(); i++)
+                    BOOST_FOREACH(const CTxUndo &txundo, undo.vtxundo)
                     {
-                        for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
+                        BOOST_FOREACH(const CTxInUndo txinundo, txundo.vprevout)
                         {
-                            CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                            PubkeyMap[scriptp].first -= undo.vtxundo[i].vprevout[j].txout.nValue;
-                            PubkeyMap[scriptp].second = ind->nHeight;
-                            if(PubkeyMap[scriptp].first ==0)
-                            {
-                                PubkeyMap.erase(scriptp);
-                            }   
+                            RichList.UpdateTxInUndo(txinundo.txout.scriptPubKey, txinundo.txout.nValue, pind->nHeight, txinundo.fCoinBase);
+                            //TODO: ef klikkar??
                         }
                     }
-                }
-
+                }   
             }
-        }
-
-        
+        }        
     }
     LogPrintf("Rich list has caught up \n");
+
+    bool fRichFix = GetBoolArg("-fixrichlist", false);
+
+    if(fRichFix)
+    {
+        if(!RichList.UpdateRichAddressHeights())
+            LogPrintf("Failed to relocate rich addresses. Rich list may be compromised. \n");
+    }
+
+
+
+
     // ********************************************************* Step 9: load wallet
 #ifdef ENABLE_WALLET
     if (fDisableWallet) {

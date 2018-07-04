@@ -3,94 +3,266 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "richlistdb.h"
 
-//#include "richlistdb.h"
-//#include "init.h"
+#include "main.h"
+#include "base58.h"
 
-#ifndef BITCOIN_RICHLISTDB_H
-#define BITCOIN_RICHLISTDB_H
-
-#include "db.h"
-#include "init.h"
-
+#include <vector>
 
 #include <boost/version.hpp>
 #include <boost/filesystem.hpp>
 
-class CRichListDB : public CDB
+const std::vector<std::string> vEIASaddresses{"BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73",
+                                              "BDwfNiAvpb4ipNfPkdAXcPGExWHeeMdRcK",
+                                              "BPVuYwyeJiXExEmEXHfCwPtRXDRqxBxTNW",
+                                              "B4gB18iZWZ8nTuAvi9kq9cWbavCj6xSmny",
+                                              "BGFEYswtWfo5nrKRT53ToGwZWyuRvwC8xs",
+                                              "B7WWgP1fnPDHTL2z9vSHTpGqptP53t1UCB",
+                                              "BEtL36SgjYuxHuU5dg8omJUAyTXDQL3Z8V",
+                                              "BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd",
+                                              "BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc",
+                                              "BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy"};
+
+inline int Height(const CAddressIndex &ai) {return ai.second;}
+inline int Balance(const CAddressIndex &ai) {return ai.first;}
+
+void CRichListDB::SaveToRichList(CRichList &richlist, int &bestheight)
 {
-public:
-    CRichListDB(std::string strFilename, const char* pszMode="r+") : CDB(strFilename.c_str(), pszMode)
-    {
-    }
-private:
-    CRichListDB(const CRichListDB&);
-    void operator=(const CRichListDB&);
-public:
-    bool EraseAddress(CScript scriptPubKey)
-    {
-        return Erase(scriptPubKey);
-    }
+    richlist.maddresses.clear();
+    richlist.mrich.clear();
 
-	bool WriteAddress(CScript &scriptPubKey, std::pair<int64_t,int> & par)
+    Dbc* pcursor = GetCursor();
+    if (!pcursor)
     {
-        return Write(scriptPubKey, par);
+        return;
     }
-   
-    bool ReadAddress(CScript &scriptPubKey, std::pair <int64_t,int>& par)// int64_t& balance, int &height)
+    unsigned int fFlags = DB_SET_RANGE;
+    bestheight = 0;
+    while (true)
     {
-        return Read(scriptPubKey,par);
-    }
-    
-    /*The primary use of SaveToMap is to save the existing richlist.dat file to a map which is used to maintain the
-      richlist while the node is running. However, it also finds at what height in the blockchain richlist.dat was 
-      updated last, and in init.cpp we check if this height matches the best block at startup. It should do that, 
-      but in case of an unexpected shutdown, richlist.dat might be behind. In that case it is resolved in init.*/
-    void SaveToMap(std::map<CScript,std::pair<int64_t,int> > &pubmap, int &maxheight)
-    {
-        Dbc* pcursor = GetCursor();
-        if (!pcursor)
+        // Read next record
+        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        int ret = ReadAtCursor(pcursor, ssKey, ssValue, fFlags);
+        fFlags = DB_NEXT;
+        if (ret == DB_NOTFOUND)
+            break;
+        else if (ret != 0)
         {
-            return;
+            pcursor->close();
+            throw std::runtime_error("CWalletDB::ListAccountCreditDebit() : error scanning DB");
         }
-        unsigned int fFlags = DB_SET_RANGE;
-        maxheight = 0;
-        while (true)
-        {
-            // Read next record
-            CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-            CDataStream ssValue(SER_DISK, CLIENT_VERSION);
-            int ret = ReadAtCursor(pcursor, ssKey, ssValue, fFlags);
-            fFlags = DB_NEXT;
-            if (ret == DB_NOTFOUND)
-                break;
-            else if (ret != 0)
-            {
-                pcursor->close();
-                throw runtime_error("CWalletDB::ListAccountCreditDebit() : error scanning DB");
-            }
+           
+        // Unserialize
+        CScript scriptpubkey;
+        ssKey >> scriptpubkey;
+        CAddressIndex t_ai;
             
-            // Unserialize
-            CScript pubkeytosave;
-            ssKey >> pubkeytosave;
-            std::pair<int64_t, int> balanceandheight;
-            this->ReadAddress(pubkeytosave, balanceandheight);
-            if(balanceandheight.second > maxheight)
-            {
-                maxheight = balanceandheight.second;
-            }
-            std::pair<CScript, std::pair<int64_t, int> > pairtosave = std::make_pair(pubkeytosave, balanceandheight);
-            pubmap.insert(pairtosave);
-            if (pairtosave.second.first >= 25000000*COIN)
-                richcount++;
-        }
-        pcursor->close();
-    }
+        ReadAddress(scriptpubkey, t_ai);
+        if(Height(t_ai) > bestheight)
+            bestheight = Height(t_ai);
+        std::pair<CRichListIterator,bool> ret_pair = richlist.maddresses.insert(std::make_pair(scriptpubkey, t_ai));
+        if(richlist.IsRich(ret_pair.first))
+            richlist.mrich.insert(std::make_pair(scriptpubkey,ret_pair.first));
 
-    bool Exist(CScript s)
+    }
+    pcursor->close();
+}
+
+void CRichListDB::Write(CRichList &richlist)
+{
+    for(CRichListIterator it = richlist.maddresses.begin(); it != richlist.maddresses.end(); it++)
     {
-        return Exists(s);
-    }
-};
+        WriteAddress(it -> first, it-> second);
+    } 
+}
 
-#endif
+
+bool CRichList::GetBalance(const CScript &scriptpubkey, int64_t &nBalance)
+{
+    CRichListIterator it = maddresses.find(scriptpubkey);
+    if(it!=maddresses.end())
+    {
+        nBalance = Balance(it);
+        return true;
+    }
+    else
+    {
+        nBalance = 0;
+        return false;
+    }
+}
+
+bool CRichList::GetHeight(const CScript &scriptpubkey, int &nHeight)
+{
+    CRichListIterator it = maddresses.find(scriptpubkey);
+    if(it!=maddresses.end())
+    {
+        nHeight = Height(it);
+        return true;
+    }
+    else
+    {
+        nHeight = -1;
+        return false;
+    }
+}
+
+bool CRichList::NextRichScriptPubKey(CScript &scriptpubkey)
+{
+    //TODO:
+    // pass prevblocks hash to check against the current tip?
+    // return a NULL CScript instead of false?
+    if(mrich.empty())
+        return false;
+    int minheight = 0;
+    bool fFirst = true;    
+    for(std::map<CScript,CRichListIterator>::const_iterator it = mrich.begin(); it != mrich.end(); it++)
+    {
+        if(fFirst || Height(it->second) <= minheight)
+        {
+            scriptpubkey = it->first;
+            minheight = Height(it->second);
+            fFirst = false;
+            // CTxDestination dest;
+            // ExtractDestination(scriptpubkey, dest);
+            // CBitcoinAddress addr;
+            // addr.Set(dest);
+            // LogPrintf("%s is rich and at height %d\n",addr.ToString(), minheight);  
+         
+        }
+    }
+    return true;
+}
+
+CScript CRichList::NextEIASScriptPubKey(const int &nHeight){
+    CScript ret;
+    ret.SetDestination(CBitcoinAddress(vEIASaddresses[nHeight % 10]).Get());
+    return ret;
+}
+
+bool CRichList::UpdateRichAddressHeights()
+{
+    CBlockIndex *ind = chainActive.Tip();
+    CBlock block;
+
+    std::map<CScript,CRichListIterator> mrichfork;
+    for(std::map<CScript,CRichListIterator>::iterator it = mrich.begin(); it!=mrich.end(); it++)
+    {
+        if(Height(it->second) > ind->nHeight)
+            mrichfork.insert(*it);
+    }
+
+    if(fDebug)
+        LogPrintf("%d addresses seen at fork and need to be relocated\n", mrichfork.size());
+
+    while(ind->pprev && !mrichfork.empty())
+    {       
+        ReadBlockFromDisk(block,ind);
+        block.BuildMerkleTree();
+        BOOST_FOREACH(const CTransaction &tx, block.vtx)
+        {
+            for(unsigned int j = 0; j < tx.vout.size(); j++)
+            {
+                CScript scriptpubkey = tx.vout[j].scriptPubKey;
+                std::map<CScript,CRichListIterator>::iterator it = mrichfork.find(scriptpubkey);
+                if(it!=mrichfork.end())
+                {   // in principle we shouldn't update heights unless there is voluntary movement or an address is becoming rich
+                    // and therefore not when an address receives smlys, except from the coinbase.
+                    CRichListIterator itRich = it->second;
+                    if(ind->nHeight < nRichForkV2Height 
+                        || tx.IsCoinBase()
+                        || (IsRich(itRich) && Balance(itRich) - tx.vout[j].nValue < 25000000*COIN) ) // if it isn't currently rich but was once the output will be caught first in the undo block
+                    {
+                        SetAddressHeight(itRich, ind->nHeight);
+                        mrichfork.erase(it);
+                        if(fDebug)
+                        {
+                            CTxDestination dest;
+                            ExtractDestination(scriptpubkey, dest);
+                            CBitcoinAddress addr;
+                            addr.Set(dest);
+                            LogPrintf("%s found at height %d\n",addr.ToString(),ind->nHeight);  
+                        }   
+                    }                           
+                }
+            }
+        }
+
+        CBlockUndo undo;
+        CDiskBlockPos pos = ind ->GetUndoPos();
+        if (undo.ReadFromDisk(pos, ind->pprev->GetBlockHash())) //TODO: hvenær klikkar þetta?
+        {
+            for (unsigned int i=0; i<undo.vtxundo.size(); i++)
+            {
+                for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
+                {
+                    CScript scriptpubkey = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
+                    std::map<CScript,CRichListIterator>::iterator it = mrichfork.find(scriptpubkey);
+                    if(it!=mrichfork.end())
+                    {
+                        SetAddressHeight(it->second, ind->nHeight);
+                        mrichfork.erase(it);
+                        if(fDebug)
+                        {
+                            CTxDestination dest;
+                            ExtractDestination(scriptpubkey, dest);
+                            CBitcoinAddress addr;
+                            addr.Set(dest);
+                            LogPrintf("%s found at height %d\n",addr.ToString(),ind->nHeight);  
+                        }              
+                    }
+                }
+            }
+        }
+        ind = ind -> pprev;
+    }
+    return mrichfork.empty();
+}
+
+
+
+bool CRichList::UpdateAddressIndex(const CScript &scriptpubkey, const int64_t &nValue, const int &nHeight, const bool &fCoinBase, const bool fUndo)
+{
+    if(nValue == 0 || !IsRelevant(scriptpubkey))
+        return true;
+    CRichListIterator it = maddresses.find(scriptpubkey);
+    if(nValue > 0)
+    {
+        if(it!=maddresses.end())
+        {
+            AddAddressBalance(it, nValue);
+            bool fBecameRich = IsRich(it) && Balance(it) - nValue < 25000000*COIN;
+            // In principle we shouldn't update heights unless there is voluntary movement or an address is becoming rich
+            // and therefore not when an address receives smlys, except from the coinbase.
+            // Still, we can't set correct height while undoing; taken care of later.
+            if( !fUndo &&  
+                ( nHeight < nRichForkV2Height || fCoinBase || fBecameRich )
+                )
+                SetAddressHeight(it, nHeight);
+            if(fBecameRich)
+                mrich.insert(std::make_pair(scriptpubkey,it));
+        }
+        else
+        {
+            std::pair<CRichListIterator,bool> ret = maddresses.insert(std::make_pair(scriptpubkey, std::make_pair(nValue, nHeight)));
+            if(nValue >= 25000000*COIN)
+                mrich.insert(std::make_pair(scriptpubkey,ret.first));
+        }
+    }
+    else
+    {
+        if(it==maddresses.end())
+            return false; // something is wrong, can't subtract from unknown address
+        AddAddressBalance(it, nValue);
+        bool fBecamePoor = !IsRich(it) && Balance(it) - nValue >= 25000000*COIN; //nValue is negative
+        if(fBecamePoor)
+            mrich.erase(scriptpubkey);
+        if(Balance(it)==0)
+            maddresses.erase(it);
+        else if(!fUndo) // can't set correct height while undoing; taken care of later
+            SetAddressHeight(it, nHeight);
+    } 
+    return true;
+}

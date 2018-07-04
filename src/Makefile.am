@@ -41,6 +41,7 @@ BITCOIN_CORE_H = \
   core.h \
   crypter.h \
   db.h \
+  richlistdb.h \
   hash.h \
   init.h \
   key.h \
@@ -117,6 +118,7 @@ libbitcoin_server_a_SOURCES = \
   miner.cpp \
   net.cpp \
   noui.cpp \
+  richlistdb.cpp \
   rpcblockchain.cpp \
   rpcmining.cpp \
   rpcmisc.cpp \

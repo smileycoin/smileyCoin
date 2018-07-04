@@ -540,6 +540,8 @@ public:
     // pay-to-script-hash transactions:
     unsigned int GetSigOpCount(const CScript& scriptSig) const;
 
+    bool IsPayToPublicKeyHash() const;
+
     bool IsPayToScriptHash() const;
 
     // Called by IsStandardTx and P2SH VerifyScript (which makes it consensus-critical).

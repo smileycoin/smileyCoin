@@ -35,6 +35,7 @@ class CInv;
 
 const int64_t nDiffChangeTarget = 5; // Patch effective @ block 5
 const int nRichForkHeight = 218000;
+const int nRichForkV2Height = 450000;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE 	  	= 1000000;
@@ -104,6 +105,7 @@ extern int miningAlgo;
 
 
 
+
 // Minimum disk space required - used in CheckDiskSpace()
 static const uint64_t nMinDiskSpace = 52428800;
 
@@ -163,8 +165,6 @@ bool SendMessages(CNode* pto, bool fSendTrickle);
 void ThreadScriptCheck();
 /** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, int algo);
-/** Calculate the minimum amount of work a received block needs, without knowing its direct parent */
-unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
 /** Get the number of active peers */
 int GetNumBlocksOfPeers();
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
@@ -176,7 +176,7 @@ bool GetTransaction(const uint256 &hash, CTransaction &tx, uint256 &hashBlock, b
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState &state);
 int64_t GetBlockValue(int nHeight, int64_t nFees);
-int64_t GetBlockValueRich(int nHeight);
+int64_t GetBlockValueDividends(int nHeight);
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo);
 
 void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev);
@@ -196,9 +196,6 @@ void Misbehaving(NodeId nodeid, int howmuch);
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
                         bool* pfMissingInputs, bool fRejectInsaneFee=false);
-
-/** find next (oldest) rich address **/
-CScript NextRichPubkey(std::map<CScript, std::pair<int64_t, int> > pubmap, int prevheight);
 
 struct CNodeStateStats {
     int nMisbehavior;
@@ -602,7 +599,7 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex);
 bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool* pfClean = NULL);
 
 // Apply the effects of this block (with given index) on the UTXO set represented by coins
-bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool fJustCheck = false);
+bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool fJustCheck = false, bool fRichCheck = false);
 
 // Add this block to the block index, and if necessary, switch the active block chain to this
 bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos& pos);
