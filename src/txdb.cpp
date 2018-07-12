@@ -169,6 +169,73 @@ bool CBlockTreeDB::WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos>
     return WriteBatch(batch);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+bool CBlockTreeDB::ReadAddressIndex(CScript &scriptpubkey, std::pair<int64_t, int> &value) {
+    return Read(make_pair('a', scriptpubkey), value);
+}
+
+bool CBlockTreeDB::UpdateAddressIndex(const std::vector<std::pair<CScript, std::pair<int64_t, int> > > &vect) {
+    CDBBatch batch(&GetObfuscateKey());
+    for (std::vector<std::pair<CScript, std::pair<int64_t, int> > >::const_iterator it=vect.begin(); it!=vect.end(); it++) {
+        if (it->second.first == 0) {
+            batch.Erase(make_pair('a', it->first));
+        } else {
+            batch.Write(make_pair('a', it->first), it->second);
+        }
+    }
+    return WriteBatch(batch);
+}
+
+bool CBlockTreeDB::ReadRichAddresses(std::vector<std::pair<CScript, std::pair<int64_t, int> > > &richAddresses) {
+
+    boost::scoped_ptr<CDBIterator> pcursor(NewIterator());
+    pcursor->Seek(make_pair('a', '0'));
+
+    while (pcursor->Valid()) 
+    {
+        boost::this_thread::interruption_point();
+        std::pair<char,CScript> key;
+        if (pcursor->GetKey(key) && key.first == 'a') 
+        {
+            std::pair<int64_t, int> value;
+            if (pcursor->GetValue(value)) 
+            {
+                if(value.first >= 25000000*COIN)
+                    richAddresses.push_back(make_pair(key.second, value));
+                pcursor->Next();
+            } else {
+                return error("failed to get address unspent value");
+            }
+        } else {
+            break;
+        }
+    }
+
+    return true;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 bool CBlockTreeDB::WriteFlag(const std::string &name, bool fValue) {
     return Write(std::make_pair('F', name), fValue ? '1' : '0');
 }

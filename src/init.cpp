@@ -114,11 +114,6 @@ void Shutdown()
     
     // Write a new richlist.dat file containing the most up to date information at shutdown.
     // This will be saved back into the map at next startup.
-    LogPrintf("Writing rich list to disk \n");
-    bitdb.RemoveDb("richlist.dat");
-    CRichListDB rich("richlist.dat","cr+");
-    
-    rich.Write(RichList);
     
     static CCriticalSection cs_Shutdown;
     TRY_LOCK(cs_Shutdown, lockShutdown);
@@ -813,7 +808,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             fReindex = true;
         }
     }
-
+    //TODO: cache for address index
     // cache size calculations
     size_t nTotalCache = (GetArg("-dbcache", nDefaultDbCache) << 20);
     if (nTotalCache < (nMinDbCache << 20))
@@ -867,6 +862,18 @@ bool AppInit2(boost::thread_group& threadGroup)
                 // Check for changed -txindex state
                 if (fTxIndex != GetBoolArg("-txindex", false)) {
                     strLoadError = _("You need to rebuild the database using -reindex to change -txindex");
+                    break;
+                }
+
+                // starting point for iteration
+                if(!pblocktree -> Write(std::make_pair('t','0'))) {
+                    strLoadError = _("Error initializing address index");
+                    break;
+                }
+
+                 // Reading rich addresses into memory
+                if(!pblocktree -> ReadRichAddresses(RichList)) {
+                    strLoadError = _("Error initializing rich list");
                     break;
                 }
 
@@ -942,75 +949,6 @@ bool AppInit2(boost::thread_group& threadGroup)
             LogPrintf("No blocks matching %s were found\n", strMatch);
         return false;
     }
-//************************************************************** Step 8 make richlist up to date
-    /*This is only run if the last shutdown was unexpected and the richlist wasn't written to the disk properly, or
-      if this is the first time a node starts up after the update in August 2017. The richlist catches up with the
-      current best block.*/
-
-        //TODO: richwarning
-    CCoinsViewCache view(*pcoinsdbview, true);
-    if(mapBlockIndex.count((pcoinsdbview->GetBestBlock())))
-    {
-        LogPrintf("Richlist last updated at block %d \n", maxheight);
-        LogPrintf("Best block now: %d \n", mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight);
-        if(maxheight < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
-        {
-            assert(maxheight >= 0);
-            CBlockIndex *pind;
-            if (maxheight > 0)
-                pind = chainActive[maxheight-1];
-            else if (maxheight == 0)
-                pind = chainActive[0];
-            CBlock block;
-            
-            LogPrintf("Updating rich list – current best block and best block according to richlist are different\n");
-            while (pind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
-            {
-                if (maxheight > 0)
-                    pind = chainActive[pind->nHeight + 1];
-                else if (maxheight == 0)
-                {
-                    maxheight++;
-                }
-                ReadBlockFromDisk(block,pind);
-                block.BuildMerkleTree();
-                BOOST_FOREACH(const CTransaction &tx, block.vtx)
-                {
-                    BOOST_FOREACH(const CTxOut &txout, tx.vout)
-                    {
-                        RichList.UpdateTxOut(txout.scriptPubKey, txout.nValue, pind->nHeight, tx.IsCoinBase());
-                          //TODO: ef klikkar??
-                    }
-                } 
-                
-                CBlockUndo undo;
-                CDiskBlockPos pos = pind->GetUndoPos();  
-                if (pind->pprev!=NULL && undo.ReadFromDisk(pos, pind->pprev->GetBlockHash()))
-                {
-                    BOOST_FOREACH(const CTxUndo &txundo, undo.vtxundo)
-                    {
-                        BOOST_FOREACH(const CTxInUndo txinundo, txundo.vprevout)
-                        {
-                            RichList.UpdateTxInUndo(txinundo.txout.scriptPubKey, txinundo.txout.nValue, pind->nHeight, txinundo.fCoinBase);
-                            //TODO: ef klikkar??
-                        }
-                    }
-                }   
-            }
-        }        
-    }
-    LogPrintf("Rich list has caught up \n");
-
-    bool fRichFix = GetBoolArg("-fixrichlist", false);
-
-    if(fRichFix)
-    {
-        if(!RichList.UpdateRichAddressHeights())
-            LogPrintf("Failed to relocate rich addresses. Rich list may be compromised. \n");
-    }
-
-
-
 
     // ********************************************************* Step 9: load wallet
 #ifdef ENABLE_WALLET

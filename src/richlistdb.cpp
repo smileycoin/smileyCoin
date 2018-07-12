@@ -13,71 +13,19 @@
 #include <boost/version.hpp>
 #include <boost/filesystem.hpp>
 
-const std::vector<std::string> vEIASaddresses{"BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73",
-                                              "BDwfNiAvpb4ipNfPkdAXcPGExWHeeMdRcK",
-                                              "BPVuYwyeJiXExEmEXHfCwPtRXDRqxBxTNW",
-                                              "B4gB18iZWZ8nTuAvi9kq9cWbavCj6xSmny",
-                                              "BGFEYswtWfo5nrKRT53ToGwZWyuRvwC8xs",
-                                              "B7WWgP1fnPDHTL2z9vSHTpGqptP53t1UCB",
-                                              "BEtL36SgjYuxHuU5dg8omJUAyTXDQL3Z8V",
-                                              "BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd",
-                                              "BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc",
-                                              "BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy"};
+const string EIASaddresses[10] = {"BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73",
+                                  "BDwfNiAvpb4ipNfPkdAXcPGExWHeeMdRcK",
+                                  "BPVuYwyeJiXExEmEXHfCwPtRXDRqxBxTNW",
+                                  "B4gB18iZWZ8nTuAvi9kq9cWbavCj6xSmny",
+                                  "BGFEYswtWfo5nrKRT53ToGwZWyuRvwC8xs",
+                                  "B7WWgP1fnPDHTL2z9vSHTpGqptP53t1UCB",
+                                  "BEtL36SgjYuxHuU5dg8omJUAyTXDQL3Z8V",
+                                  "BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd",
+                                  "BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc",
+                                  "BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy"};
 
 inline int Height(const CAddressIndex &ai) {return ai.second;}
 inline int Balance(const CAddressIndex &ai) {return ai.first;}
-
-void CRichListDB::SaveToRichList(CRichList &richlist, int &bestheight)
-{
-    richlist.maddresses.clear();
-    richlist.mrich.clear();
-
-    Dbc* pcursor = GetCursor();
-    if (!pcursor)
-    {
-        return;
-    }
-    unsigned int fFlags = DB_SET_RANGE;
-    bestheight = 0;
-    while (true)
-    {
-        // Read next record
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
-        int ret = ReadAtCursor(pcursor, ssKey, ssValue, fFlags);
-        fFlags = DB_NEXT;
-        if (ret == DB_NOTFOUND)
-            break;
-        else if (ret != 0)
-        {
-            pcursor->close();
-            throw std::runtime_error("CWalletDB::ListAccountCreditDebit() : error scanning DB");
-        }
-           
-        // Unserialize
-        CScript scriptpubkey;
-        ssKey >> scriptpubkey;
-        CAddressIndex t_ai;
-            
-        ReadAddress(scriptpubkey, t_ai);
-        if(Height(t_ai) > bestheight)
-            bestheight = Height(t_ai);
-        std::pair<CRichListIterator,bool> ret_pair = richlist.maddresses.insert(std::make_pair(scriptpubkey, t_ai));
-        if(richlist.IsRich(ret_pair.first))
-            richlist.mrich.insert(std::make_pair(scriptpubkey,ret_pair.first));
-
-    }
-    pcursor->close();
-}
-
-void CRichListDB::Write(CRichList &richlist)
-{
-    for(CRichListIterator it = richlist.maddresses.begin(); it != richlist.maddresses.end(); it++)
-    {
-        WriteAddress(it -> first, it-> second);
-    } 
-}
-
 
 bool CRichList::GetBalance(const CScript &scriptpubkey, int64_t &nBalance)
 {
@@ -114,23 +62,17 @@ bool CRichList::NextRichScriptPubKey(CScript &scriptpubkey)
     //TODO:
     // pass prevblocks hash to check against the current tip?
     // return a NULL CScript instead of false?
-    if(mrich.empty())
+    if(maddresses.empty())
         return false;
     int minheight = 0;
     bool fFirst = true;    
-    for(std::map<CScript,CRichListIterator>::const_iterator it = mrich.begin(); it != mrich.end(); it++)
+    for(mapScriptPubKeys::const_iterator it = maddresses.begin(); it != maddresses.end(); it++)
     {
-        if(fFirst || Height(it->second) <= minheight)
+        if(fFirst || it->second.first <= minheight)
         {
             scriptpubkey = it->first;
-            minheight = Height(it->second);
-            fFirst = false;
-            // CTxDestination dest;
-            // ExtractDestination(scriptpubkey, dest);
-            // CBitcoinAddress addr;
-            // addr.Set(dest);
-            // LogPrintf("%s is rich and at height %d\n",addr.ToString(), minheight);  
-         
+            minheight = it->second.first;
+            fFirst = false;         
         }
     }
     return true;
@@ -138,7 +80,7 @@ bool CRichList::NextRichScriptPubKey(CScript &scriptpubkey)
 
 CScript CRichList::NextEIASScriptPubKey(const int &nHeight){
     CScript ret;
-    ret.SetDestination(CBitcoinAddress(vEIASaddresses[nHeight % 10]).Get());
+    ret.SetDestination(CBitcoinAddress(EIASaddresses[nHeight % 10]).Get());
     return ret;
 }
 

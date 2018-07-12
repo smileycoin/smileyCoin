@@ -73,16 +73,6 @@ bool fBenchmark = false;
 bool fTxIndex = false;
 unsigned int nCoinCacheSize = 5000;
 uint256 hashGenesisBlock("0x660f734cf6c6d16111bde201bbd2122873f2f2c078b969779b9d4c99732354fd");
-const string EIASaddresses[] = {"BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73",
-   								"BDwfNiAvpb4ipNfPkdAXcPGExWHeeMdRcK",
-    							"BPVuYwyeJiXExEmEXHfCwPtRXDRqxBxTNW",
-    							"B4gB18iZWZ8nTuAvi9kq9cWbavCj6xSmny",
-    							"BGFEYswtWfo5nrKRT53ToGwZWyuRvwC8xs",
-    							"B7WWgP1fnPDHTL2z9vSHTpGqptP53t1UCB",
-    							"BEtL36SgjYuxHuU5dg8omJUAyTXDQL3Z8V",
-   								"BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd",
-   								"BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc",
-    							"BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy"};
 
 /** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
 int64_t CTransaction::nMinTxFee = 100000;  // Override with -mintxfee
@@ -1853,6 +1843,7 @@ void ThreadScriptCheck() {
 	RenameThread("bitcoin-scriptch");
 	scriptcheckqueue.Thread();
 }
+
 //We can only correctly verify the rich payment from a block when it is the incipient tip of the best chain
 bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool fJustCheck, bool fRichCheck)
 {
@@ -1898,6 +1889,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	CDiskTxPos pos(pindex->GetBlockPos(), GetSizeOfCompactSize(block.vtx.size()));
 	std::vector<std::pair<uint256, CDiskTxPos> > vPos;
 	vPos.reserve(block.vtx.size());
+	std::vector<std::pair<CScript, std::pair<int64_t, int> > > addressIndex;
+	
 	for (unsigned int i = 0; i < block.vtx.size(); i++)
 	{
 		const CTransaction &tx = block.vtx[i];
@@ -1920,6 +1913,22 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 				return state.DoS(100, error("ConnectBlock() : inputs missing/spent"),
 						REJECT_INVALID, "bad-txns-inputs-missingorspent");
 
+			for (size_t j = 0; j < tx.vin.size(); j++) 
+			{
+            	const CTxIn input = tx.vin[j];
+				const CTxOut &prevout = view.GetOutputFor(tx.vin[j]);
+				const CScript key = &prevout.scriptPubKey;
+
+				if (key.IsPayToScriptHash() || key.IsPayToPublicKeyHash()) 
+				{					
+					std::pair<int64_t, int> value;
+					if(pblocktree->Read(key,value)) 
+						addressIndex.push_back(key,std::make_pair(value.first - prevout.nValue, pindex->nHeight));
+					else
+						return state.Abort(_("Failed to read address index"));
+				}
+			}
+
 			// Add in sigops done by pay-to-script-hash inputs.
 			nSigOps += GetP2SHSigOpCount(tx, view);
 			if (nSigOps > maxBlockSigops)
@@ -1932,6 +1941,21 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 			if (!CheckInputs(tx, state, view, fScriptChecks, flags, nScriptCheckThreads ? &vChecks : NULL))
 				return false;
 			control.Add(vChecks);
+		}
+
+		for (unsigned int k = 0; k < tx.vout.size(); k++) {
+			const CTxOut &out = tx.vout[k];
+			const CScript key = &prevout.scriptPubKey;
+			if (key.IsPayToScriptHash() || key.IsPayToPublicKeyHash()) 
+			{					
+				std::pair<int64_t, int> value;
+				int64_t nBalance;
+				int nHeight;
+				if(pblocktree->Read(key,value)) 
+					addressIndex.push_back(key,std::make_pair(value.first - prevout.nValue, pindex->nHeight));
+				else
+					return state.Abort(_("Failed to read address index"));
+			}
 		}
 
 		CTxUndo txundo;
@@ -2030,6 +2054,9 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	if (fTxIndex)
 		if (!pblocktree->WriteTxIndex(vPos))
 			return state.Abort(_("Failed to write transaction index"));
+
+	if (!pblocktree->WriteAddressIndex(addressIndex)) 
+        return state.Abort(_("Failed to write address index"));
 
 	// add this block to the view's block chain
 	bool ret;
