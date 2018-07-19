@@ -17,6 +17,7 @@
 class CBigNum;
 class CCoins;
 class uint256;
+class CRichList;
 
 // -dbcache default (MiB)
 static const int64_t nDefaultDbCache = 100;
@@ -61,6 +62,11 @@ public:
     bool ReadReindexing(bool &fReindex);
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
     bool WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos> > &list);
+    bool AddressIndexInitialized();
+    bool InitializeAddressIndex();
+    bool ReadAddressIndex(const CScript &scriptpubkey, std::pair<int64_t, int> &value);
+    bool UpdateAddressIndex(const std::map<CScript, std::pair<int64_t, int> > &map);
+    bool ReadRichAddresses(CRichList &richlist);
     bool WriteFlag(const std::string &name, bool fValue);
     bool ReadFlag(const std::string &name, bool &fValue);
     bool LoadBlockIndexGuts();

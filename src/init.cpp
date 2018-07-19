@@ -18,11 +18,12 @@
 #include "txdb.h"
 #include "ui_interface.h"
 #include "util.h"
+#include "richlistdb.h"
+
 #ifdef ENABLE_WALLET
 #include "db.h"
 #include "wallet.h"
 #include "walletdb.h"
-#include "richlistdb.h"
 #include "base58.h"
 #endif
 
@@ -111,10 +112,7 @@ static CCoinsViewDB *pcoinsdbview;
 void Shutdown()
 {
     LogPrintf("Shutdown : In progress...\n");
-    
-    // Write a new richlist.dat file containing the most up to date information at shutdown.
-    // This will be saved back into the map at next startup.
-    
+        
     static CCriticalSection cs_Shutdown;
     TRY_LOCK(cs_Shutdown, lockShutdown);
     if (!lockShutdown) return;
@@ -388,7 +386,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
     }
 }
 
-/** Initialize bitcoin.
+/** Initialize smileycoin.
  *  @pre Parameters should be parsed and config file should be read.
  */
 bool AppInit2(boost::thread_group& threadGroup)
@@ -448,14 +446,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 #endif
 #endif
     
-    // Read rich list if there is one, find how up to date it is; this should match the current best block.
-    // However, if it doesn't, we need to make it up to date before the map starts updating with the new blocks.
-    
-    filesystem::path richpath = GetDataDir() / "richlist.dat";
-    CRichListDB richdb("richlist.dat","cr+");
-    int maxheight;
-    richdb.SaveToRichList(RichList, maxheight);
-    
+  
 
     // ********************************************************* Step 2: parameter interactions
 
@@ -779,8 +770,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     // ********************************************************* Step 7: load block chain
 
     fReindex = GetBoolArg("-reindex", false);
-    if (fReindex)
-        RichList.clear();
 
     // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
     filesystem::path blocksDir = GetDataDir() / "blocks";
@@ -842,6 +831,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                 pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
                 if (fReindex) {
                     pblocktree->WriteReindexing(true);
+                    pblocktree->InitializeAddressIndex();
                     }
 
                 if (!LoadBlockIndex()) {
@@ -866,8 +856,8 @@ bool AppInit2(boost::thread_group& threadGroup)
                 }
 
                 // starting point for iteration
-                if(!pblocktree -> Write(std::make_pair('t','0'))) {
-                    strLoadError = _("Error initializing address index");
+                if(!pblocktree -> AddressIndexInitialized()) {
+                    strLoadError = _("Address index not initialized. You need to rebuild the database using -reindex");
                     break;
                 }
 
@@ -876,6 +866,8 @@ bool AppInit2(boost::thread_group& threadGroup)
                     strLoadError = _("Error initializing rich list");
                     break;
                 }
+
+                //TODO: skrifa flag upp á fork og laga þá hæðir
 
                 uiInterface.InitMessage(_("Verifying blocks..."));
                 if (!VerifyDB(GetArg("-checklevel", 3),

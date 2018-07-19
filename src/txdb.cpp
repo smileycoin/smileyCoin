@@ -5,6 +5,7 @@
 
 #include "txdb.h"
 
+#include "richlistdb.h"
 #include "core.h"
 #include "uint256.h"
 
@@ -174,20 +175,28 @@ bool CBlockTreeDB::WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos>
 
 
 
+bool CBlockTreeDB::AddressIndexInitialized() {
+    std::vector<unsigned char> v;
+    v.assign(21,'0');
+    return Exists(make_pair('a', CScript(v)));
+}
+
+
+bool CBlockTreeDB::InitializeAddressIndex() {
+    std::vector<unsigned char> v;
+    v.assign(21,'0');
+    return Write(make_pair('a', CScript(v)), std::pair<int64_t, int>(0,0));
+}
 
 
 
-
-
-
-
-bool CBlockTreeDB::ReadAddressIndex(CScript &scriptpubkey, std::pair<int64_t, int> &value) {
+bool CBlockTreeDB::ReadAddressIndex(const CScript &scriptpubkey, std::pair<int64_t, int> &value) {
     return Read(make_pair('a', scriptpubkey), value);
 }
 
-bool CBlockTreeDB::UpdateAddressIndex(const std::vector<std::pair<CScript, std::pair<int64_t, int> > > &vect) {
-    CDBBatch batch(&GetObfuscateKey());
-    for (std::vector<std::pair<CScript, std::pair<int64_t, int> > >::const_iterator it=vect.begin(); it!=vect.end(); it++) {
+bool CBlockTreeDB::UpdateAddressIndex(const std::map<CScript, std::pair<int64_t, int> > &map) {
+    CLevelDBBatch batch;
+    for (std::map<CScript, std::pair<int64_t, int> >::const_iterator it=map.begin(); it!=map.end(); it++) {
         if (it->second.first == 0) {
             batch.Erase(make_pair('a', it->first));
         } else {
@@ -197,44 +206,45 @@ bool CBlockTreeDB::UpdateAddressIndex(const std::vector<std::pair<CScript, std::
     return WriteBatch(batch);
 }
 
-bool CBlockTreeDB::ReadRichAddresses(std::vector<std::pair<CScript, std::pair<int64_t, int> > > &richAddresses) {
+bool CBlockTreeDB::ReadRichAddresses(CRichList &richlist) {
 
-    boost::scoped_ptr<CDBIterator> pcursor(NewIterator());
-    pcursor->Seek(make_pair('a', '0'));
+    leveldb::Iterator *pcursor = NewIterator();
+    
+    std::vector<unsigned char> v;
+    v.assign(21,'0');
+    CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
+    ssKeySet << make_pair('a', CScript(v));
+    pcursor->Seek(ssKeySet.str());
 
     while (pcursor->Valid()) 
     {
         boost::this_thread::interruption_point();
-        std::pair<char,CScript> key;
-        if (pcursor->GetKey(key) && key.first == 'a') 
-        {
-            std::pair<int64_t, int> value;
-            if (pcursor->GetValue(value)) 
+        try 
+        { 
+            leveldb::Slice slKey = pcursor->key();
+            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
+            std::pair<char,CScript> key;
+            ssKey >> key;
+            if (key.first == 'a') 
             {
-                if(value.first >= 25000000*COIN)
-                    richAddresses.push_back(make_pair(key.second, value));
+                leveldb::Slice slValue = pcursor->value();
+                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
+                std::pair<int64_t,int> addressindex; 
+                ssValue >> addressindex;
+                if(addressindex.first >= 25000000*COIN)
+                        richlist.maddresses.insert(make_pair(key.second, addressindex));
                 pcursor->Next();
             } else {
-                return error("failed to get address unspent value");
+                break;
             }
-        } else {
-            break;
+        } catch (std::exception &e) {
+            return error("%s : Deserialize or I/O error - %s", __func__, e.what());
         }
     }
+    delete pcursor;
 
     return true;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 bool CBlockTreeDB::WriteFlag(const std::string &name, bool fValue) {
     return Write(std::make_pair('F', name), fValue ? '1' : '0');

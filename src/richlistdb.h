@@ -14,6 +14,17 @@
 #include "init.h" //script og string
 #include "core.h"
 
+class CRichList;
+extern CRichList RichList;
+
+struct RichOrderCompare
+{
+    bool operator()(const std::pair< CScript, std::pair<int64_t, int> >& lhs, const std::pair< CScript, std::pair<int64_t, int> >& rhs)
+    {
+        return lhs.second.second < rhs.second.second;
+    }
+};
+
 typedef std::pair<int64_t, int> CAddressIndex;
 typedef std::map< CScript, CAddressIndex> mapScriptPubKeys;
 
@@ -21,31 +32,30 @@ class CRichList
 {
 private:
 	mapScriptPubKeys maddresses;
+	bool fForked; // TODO: skrifa frekar flag í blocktreedb?
 
 	bool IsRelevant(const CScript &scriptpubkey) const { return scriptpubkey.IsPayToPublicKeyHash() || scriptpubkey.IsPayToScriptHash(); }
-
-	CScript ScriptPubKey(const CRichListIterator &it) const { return it -> first; }
-
-	int Height(const CRichListIterator &it) const { return it -> second.second; }
-
-	int64_t Balance(const CRichListIterator &it) const { return it -> second.first; }
-
-	void SetAddressHeight(const CRichListIterator &it, const int &nHeight) { it -> second.second = nHeight; }
-
-	void AddAddressBalance(const CRichListIterator &it, const int64_t &nValue) { it -> second.first += nValue; }
-
-	bool UpdateAddressIndex(const CScript &scriptpubkey, const int64_t &nValue, const int &nHeight, const bool &fCoinBase, const bool fUndo);
-
+	bool IsRich(const mapScriptPubKeys::iterator &it) const { return it->second.first >= 25000000*COIN; }
+	CScript ScriptPubKey(const mapScriptPubKeys::iterator &it) const { return it -> first; }
+	int Height(const mapScriptPubKeys::iterator &it) const { return it -> second.second; }
+	int64_t Balance(const mapScriptPubKeys::iterator &it) const { return it -> second.first; }
+	int Height(const mapScriptPubKeys::const_iterator &it) const { return it -> second.second; }
+	int64_t Balance(const mapScriptPubKeys::const_iterator &it) const { return it -> second.first; }
 
 public:
 
-	friend void CBlockTreeDB::ReadRichAddresses(CRichList &richlist);
+	friend bool CBlockTreeDB::ReadRichAddresses(CRichList &richlist);
+	bool GetRichAddresses(std::multiset< std::pair< CScript, std::pair<int64_t, int> >, RichOrderCompare > &retset) const;
+
+	void SetForked(const bool &fFork){fForked = fFork;}
+	bool GetForked(){return fForked;}
 // henda út?
 	bool GetHeight(const CScript &scriptpubkey, int &nHeight);
 
 	bool GetBalance(const CScript &scriptpubkey, int64_t &nBalance);
-
+	bool UpdateAddressIndex(const std::map<CScript, std::pair<int64_t, int> > &map);
 	bool UpdateRichAddressHeights();
+
 
 	bool NextRichScriptPubKey(CScript &scriptpubkey);
 

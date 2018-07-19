@@ -10,6 +10,7 @@
 #include "netbase.h"
 #include "rpcserver.h"
 #include "util.h"
+#include "richlistdb.h"
 #ifdef ENABLE_WALLET
 #include "wallet.h"
 #include "walletdb.h"
@@ -99,6 +100,32 @@ Value getinfo(const Array& params, bool fHelp)
     else obj.push_back(Pair("oldest_rich_address", ""));   
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;
+}
+
+
+Value getrichaddresses(const Array& params, bool fHelp)
+{
+
+    if (fHelp || params.size() > 1)
+        throw runtime_error("getrichaddresses\n"
+                            "Returns requested number of rich addresses, ordered by height.\n"
+                            );
+    Object ret;
+    std::multiset< std::pair< CScript, std::pair<int64_t, int> >, RichOrderCompare > retset;
+    RichList.GetRichAddresses(retset);
+    int n = (params.size() > 0) ? params[0].get_int() : retset.size(); //TODO: virkar ekki
+    int i = 0;
+    for(std::set< std::pair< CScript, std::pair<int64_t, int> >, RichOrderCompare >::const_iterator it = retset.begin(); i<n && it!=retset.end(); it++ )
+    {
+        Object obj;
+        obj.push_back(Pair("Balance", it -> second.first));
+        obj.push_back(Pair("Height", it -> second.second));
+        CTxDestination des;
+        ExtractDestination(it->first, des);
+        ret.push_back(Pair(CBitcoinAddress(des).ToString(), obj));
+        i++;
+    }
+    return ret;
 }
 
 Value getaddressbalance(const Array& params, bool fHelp)

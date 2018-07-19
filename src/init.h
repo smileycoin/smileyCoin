@@ -8,7 +8,6 @@
 
 #include <string>
 #include "script.h"
-#include "richlistdb.h"
 
 class CWallet;
 
