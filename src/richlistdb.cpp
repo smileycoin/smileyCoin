@@ -132,7 +132,7 @@ bool CRichList::UpdateRichAddressHeights()
             for(unsigned int j = 0; j < tx.vout.size(); j++)
             {
                 CScript scriptpubkey = tx.vout[j].scriptPubKey;
-                mapScriptPubKeys::const_iterator it = mforkedAddresses.find(scriptpubkey);
+                mapScriptPubKeys::iterator it = mforkedAddresses.find(scriptpubkey);
                 if(it == mforkedAddresses.end())
                     continue;
                 if(pindexSeek->nHeight < nRichForkV2Height 
@@ -161,7 +161,7 @@ bool CRichList::UpdateRichAddressHeights()
                 for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
                 {
                     CScript scriptpubkey = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                    mapScriptPubKeys::const_iterator it = mforkedAddresses.find(scriptpubkey);
+                    mapScriptPubKeys::iterator it = mforkedAddresses.find(scriptpubkey);
                     if(it == mforkedAddresses.end())
                         continue;                        
                     addressIndex.insert(std::make_pair(it->first, std::make_pair(Balance(it), pindexSeek->nHeight)));
