@@ -1357,22 +1357,21 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 		return nProofOfWorkLimit;
 	}
 
+	multiAlgoTimespan = (pindexLast->nHeight >= 222000) ? 180 : 36;    
+    multiAlgoTargetSpacing = multiAlgoNum * multiAlgoTimespan; // 5 * 180(36) seconds = 900 seconds
+
 	// Limit adjustment step
 	// Use medians to prevent time-warp attacks
 	int64_t nActualTimespan = pindexLast-> GetMedianTimePast() - pindexFirst->GetMedianTimePast();
-	nActualTimespan = nAveragingTargetTimespan + (nActualTimespan - nAveragingTargetTimespan)/4;
-
-	//LogPrintf("nActualTimespan = %d before bounds\n", nActualTimespan);
-
-    // Hardfork because of an error. Block should generate every 180 sec.
-    if (pindexLast->nHeight >= 222000) {
-        multiAlgoTimespan = 180; // Time per block per algo
-    } else {
-        multiAlgoTimespan = 36;
-    }
-    
-    multiAlgoTargetSpacing = multiAlgoNum * multiAlgoTimespan; // NUM_ALGOS * 180 seconds = 900 seconds
-    nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 10* NUM_ALGOS * 180
+	// nAveragingTargetTimespan was initially not initialized correctly (heh)
+	if(pindexLast->nHeight < nRichForkV2Height) {
+		nActualTimespan = nAveragingTargetTimespan + (nActualTimespan - nAveragingTargetTimespan)/4;
+		nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 60* 5 * 180 = 54000 seconds
+	} else {
+		nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 60* 5 * 180 = 54000 seconds
+		nActualTimespan = nAveragingTargetTimespan + (nActualTimespan - nAveragingTargetTimespan)/4;
+	}   
+ 
     nMinActualTimespan = nAveragingTargetTimespan * (100 - nMaxAdjustUp) / 100;
     nMaxActualTimespan = nAveragingTargetTimespan * (100 + nMaxAdjustDown) / 100;
     
@@ -2063,7 +2062,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         }     
         if(!fRichPayment)
         {
-        	if(!RichList.GetForked())
+        	if(!RichList.IsForked())
         		return state.DoS(100, error("ConnectBlock() : rich address not getting paid correctly"), REJECT_INVALID, "bad-rich-payment");
         	else
         		return error("ConnectBlock() : Rich list may be compromised");
@@ -2105,16 +2104,18 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 			return state.Abort(_("Failed to write block index"));
 	}
 
-	if (fTxIndex)
+	if (fTxIndex) {
 		if (!pblocktree->WriteTxIndex(vPos))
 			return state.Abort(_("Failed to write transaction index"));
+	}
 
-	if (!pblocktree->UpdateAddressIndex(addressIndex)) 
+	if (!pblocktree->UpdateAddressIndex(addressIndex)) {
         return state.Abort(_("Failed to write address index"));
+    }
 
-    if(!RichList.UpdateAddressIndex(addressIndex))
+    if(!RichList.UpdateAddressIndex(addressIndex)) {
     	return state.Abort(_("Failed to update rich list"));
-
+    }
 	// add this block to the view's block chain
 	bool ret;
 	ret = view.SetBestBlock(pindex->GetBlockHash());
@@ -2317,14 +2318,12 @@ bool ActivateBestChain(CValidationState &state) {
 	LOCK(cs_main);
 	CBlockIndex *pindexOldTip = chainActive.Tip();
 	bool fComplete = false;
-	bool fFork = false;
 	while (!fComplete) {
 		FindMostWorkChain();
 		fComplete = true;
-		if(chainActive.Height() >= Checkpoints::GetTotalBlocksEstimate())
-			if(chainActive.Tip())
-				fFork = !chainMostWork.Contains(chainActive.Tip());
-		RichList.SetForked(fFork);
+		if(chainActive.Height() >= Checkpoints::GetTotalBlocksEstimate() && chainActive.Tip())
+			if(!chainMostWork.Contains(chainActive.Tip()))
+				RichList.SetForked(true);
 
 		// Check whether we have something to do.
 		if (chainMostWork.Tip() == NULL) break;	
@@ -2334,9 +2333,12 @@ bool ActivateBestChain(CValidationState &state) {
 			if (!DisconnectTip(state))
 				return false;
 		}
- 
+ 		
+ 		// heights of rich addresses need to be rolled back before new blocks are connected
 		if(!RichList.UpdateRichAddressHeights())
 			return false; //TODO: láta vita?
+		else
+			RichList.SetForked(false);
 		
 		// Connect new blocks.
 		while (!chainActive.Contains(chainMostWork.Tip())) {

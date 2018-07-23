@@ -829,6 +829,9 @@ bool AppInit2(boost::thread_group& threadGroup)
                 pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, fReindex);
                 pcoinsdbview = new CCoinsViewDB(nCoinDBCache, false, fReindex);
                 pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
+
+                bool fFork = false;
+
                 if (fReindex) {
                     pblocktree->WriteReindexing(true);
                     pblocktree->InitializeAddressIndex();
@@ -867,7 +870,13 @@ bool AppInit2(boost::thread_group& threadGroup)
                     break;
                 }
 
-                //TODO: skrifa flag upp á fork og laga þá hæðir
+                if(!pblocktree -> ReadRichListFork(fFork)) {
+                    strLoadError = _("Error reading rich list fork status");
+                    break;
+                }
+                else {
+                    RichList.SetForked(fFork);
+                }
 
                 uiInterface.InitMessage(_("Verifying blocks..."));
                 if (!VerifyDB(GetArg("-checklevel", 3),
@@ -875,6 +884,16 @@ bool AppInit2(boost::thread_group& threadGroup)
                     strLoadError = _("Corrupted block database detected");
                     break;
                 }
+
+                if(fFork) {
+                    if(!RichList.UpdateRichAddressHeights()) {
+                        strLoadError = _("Error rollbacking rich list heights");
+                        break;
+                    }
+                    else
+                        RichList.SetForked(false);
+                }
+
             } catch(std::exception &e) {
                 if (fDebug) LogPrintf("%s\n", e.what());
                 strLoadError = _("Error opening block database");

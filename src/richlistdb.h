@@ -47,8 +47,8 @@ public:
 	friend bool CBlockTreeDB::ReadRichAddresses(CRichList &richlist);
 	bool GetRichAddresses(std::multiset< std::pair< CScript, std::pair<int64_t, int> >, RichOrderCompare > &retset) const;
 
-	void SetForked(const bool &fFork){fForked = fFork;}
-	bool GetForked(){return fForked;}
+	bool SetForked(const bool &fFork);
+	bool IsForked(){return fForked;}
 // henda út?
 	bool GetHeight(const CScript &scriptpubkey, int &nHeight);
 

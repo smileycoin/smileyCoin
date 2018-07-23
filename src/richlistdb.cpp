@@ -27,16 +27,25 @@ const string EIASaddresses[10] = {"BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73",
 inline int Height(const CAddressIndex &ai) {return ai.second;}
 inline int Balance(const CAddressIndex &ai) {return ai.first;}
 
+bool CRichList::SetForked(const bool &fFork)
+{
+    if(pblocktree->WriteRichListFork(fFork)) {
+        fForked=fFork;
+        return true;        
+    }
+    else 
+        return false;
+}
+
+
+
 bool CRichList::GetBalance(const CScript &scriptpubkey, int64_t &nBalance)
 {
     mapScriptPubKeys::const_iterator it = maddresses.find(scriptpubkey);
-    if(it!=maddresses.end())
-    {
+    if(it!=maddresses.end()) {
         nBalance = Balance(it);
         return true;
-    }
-    else
-    {
+    } else {
         nBalance = 0;
         return false;
     }
@@ -45,13 +54,10 @@ bool CRichList::GetBalance(const CScript &scriptpubkey, int64_t &nBalance)
 bool CRichList::GetHeight(const CScript &scriptpubkey, int &nHeight)
 {
     mapScriptPubKeys::const_iterator it = maddresses.find(scriptpubkey);
-    if(it!=maddresses.end())
-    {
+    if(it!=maddresses.end()) {
         nHeight = Height(it);
         return true;
-    }
-    else
-    {
+    } else {
         nHeight = -1;
         return false;
     }
@@ -65,8 +71,7 @@ bool CRichList::NextRichScriptPubKey(CScript &scriptpubkey)
     bool fFirst = true;    
     for(mapScriptPubKeys::const_iterator it = maddresses.begin(); it != maddresses.end(); it++)
     {
-        if(fFirst || it->second.second <= minheight)
-        {
+        if(fFirst || it->second.second <= minheight) {
             scriptpubkey = it->first;
             minheight = it->second.second;
             fFirst = false;         
@@ -103,23 +108,24 @@ bool CRichList::UpdateRichAddressHeights()
     if(!fForked) 
         return true;
 
-    CBlockIndex *ind = chainActive.Tip();
+    CBlockIndex *pindexSeek = chainActive.Tip();
     CBlock block;
     std::map<CScript, std::pair<int64_t, int> > addressIndex;
     mapScriptPubKeys mforkedAddresses;
 
     for(mapScriptPubKeys::const_iterator it = maddresses.begin(); it!=maddresses.end(); it++)
     {
-        if(it->second.second > ind->nHeight)
+        if(it->second.second > pindexSeek->nHeight)
             mforkedAddresses.insert(*it);
     }
 
-    if(fDebug)
+    if(fDebug) {
         LogPrintf("%d addresses seen at fork and need to be relocated\n", mforkedAddresses.size());
+    }
 
-    while(ind->pprev && !mforkedAddresses.empty())
+    while(pindexSeek->pprev && !mforkedAddresses.empty())
     {       
-        ReadBlockFromDisk(block,ind);
+        ReadBlockFromDisk(block,pindexSeek);
         block.BuildMerkleTree();
         BOOST_FOREACH(const CTransaction &tx, block.vtx)
         {
@@ -127,30 +133,28 @@ bool CRichList::UpdateRichAddressHeights()
             {
                 CScript scriptpubkey = tx.vout[j].scriptPubKey;
                 mapScriptPubKeys::const_iterator it = mforkedAddresses.find(scriptpubkey);
-                if(it!=mforkedAddresses.end())
-                {   
-                    if(ind->nHeight < nRichForkV2Height 
-                        || tx.IsCoinBase()
-                        || Balance(it) - tx.vout[j].nValue < 25000000*COIN) // if it isn't currently rich but was once the output will be caught first in the undo block
-                    {
-                        addressIndex.insert(std::make_pair(it->first, std::make_pair(Balance(it), ind->nHeight)));
-                        mforkedAddresses.erase(it);
-                        if(fDebug)
-                        {
-                            CTxDestination dest;
-                            ExtractDestination(scriptpubkey, dest);
-                            CBitcoinAddress addr;
-                            addr.Set(dest);
-                            LogPrintf("%s found at height %d\n",addr.ToString(),ind->nHeight);  
-                        }   
-                    }                           
+                if(it == mforkedAddresses.end())
+                    continue;
+                if(pindexSeek->nHeight < nRichForkV2Height 
+                    || tx.IsCoinBase()
+                    || Balance(it) - tx.vout[j].nValue < 25000000*COIN) // if it isn't currently rich (wrt index) but was once the output will be caught first in the undo block
+                {
+                    addressIndex.insert(std::make_pair(it->first, std::make_pair(Balance(it), pindexSeek->nHeight)));
+                    mforkedAddresses.erase(it);
+                    if(fDebug) {
+                        CTxDestination dest;
+                        ExtractDestination(scriptpubkey, dest);
+                        CBitcoinAddress addr;
+                        addr.Set(dest);
+                        LogPrintf("%s found at height %d\n",addr.ToString(),pindexSeek->nHeight);  
+                    }                              
                 }
             }
         }
 
         CBlockUndo undo;
-        CDiskBlockPos pos = ind ->GetUndoPos();
-        if (undo.ReadFromDisk(pos, ind->pprev->GetBlockHash())) //TODO: hvenær klikkar þetta?
+        CDiskBlockPos pos = pindexSeek ->GetUndoPos();
+        if (undo.ReadFromDisk(pos, pindexSeek->pprev->GetBlockHash())) //TODO: hvenær klikkar þetta?
         {
             for (unsigned int i=0; i<undo.vtxundo.size(); i++)
             {
@@ -158,24 +162,22 @@ bool CRichList::UpdateRichAddressHeights()
                 {
                     CScript scriptpubkey = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
                     mapScriptPubKeys::const_iterator it = mforkedAddresses.find(scriptpubkey);
-                    if(it!=mforkedAddresses.end())
-                    {                        
-                        addressIndex.insert(std::make_pair(it->first, std::make_pair(Balance(it), ind->nHeight)));
-                        mforkedAddresses.erase(it);
-                        if(fDebug)
-                        {
-                            CTxDestination dest;
-                            ExtractDestination(scriptpubkey, dest);
-                            CBitcoinAddress addr;
-                            addr.Set(dest);
-                            LogPrintf("%s found at height %d\n",addr.ToString(),ind->nHeight);  
-                        }              
-                    }
+                    if(it == mforkedAddresses.end())
+                        continue;                        
+                    addressIndex.insert(std::make_pair(it->first, std::make_pair(Balance(it), pindexSeek->nHeight)));
+                    mforkedAddresses.erase(it);
+                    if(fDebug) {
+                        CTxDestination dest;
+                        ExtractDestination(scriptpubkey, dest);
+                        CBitcoinAddress addr;
+                        addr.Set(dest);
+                        LogPrintf("%s found at height %d\n",addr.ToString(),pindexSeek->nHeight);  
+                    }              
                 }
             }
         }
-        else return false;
-        ind = ind -> pprev;
+        else break;
+        pindexSeek = pindexSeek -> pprev;
     }
 
     if(!pblocktree->UpdateAddressIndex(addressIndex))

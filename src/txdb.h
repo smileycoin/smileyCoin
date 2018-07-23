@@ -62,6 +62,8 @@ public:
     bool ReadReindexing(bool &fReindex);
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
     bool WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos> > &list);
+    bool WriteRichListFork(bool fForked);
+    bool ReadRichListFork(bool &fForked);
     bool AddressIndexInitialized();
     bool InitializeAddressIndex();
     bool ReadAddressIndex(const CScript &scriptpubkey, std::pair<int64_t, int> &value);
