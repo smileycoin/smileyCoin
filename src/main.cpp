@@ -1244,7 +1244,7 @@ const CBlockIndex* GetLastBlockIndexForAlgo(const CBlockIndex* pindex, int algo)
 
 int64_t GetBlockValue(int nHeight, int64_t nFees)
 {
-	int64_t nSubsidy = 10000 * COIN;
+	int64_t nSubsidy = 1000 * COIN;
 
 	if(nHeight < nRichForkHeight) // fork height was less than 1226400
 		nSubsidy = ((nHeight <= 1000) ? 24000000 : 10000) * COIN; // Premine: First 1K blocks@24M SMLY will give 24 billion SMLY
