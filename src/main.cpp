@@ -1760,7 +1760,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 				else {
 					value = std::make_pair(value.first - out.nValue, pindex->nHeight);
 					assert(view.SetAddressIndex(key,value));
-					addressIndex.insert(std::make_pair(key,value));
+					addressIndex[key]=value;
 				}
 			}
 		}
@@ -1823,7 +1823,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 					int64_t nBalance =(view.GetAddressIndex(key,value)) ? value.first + prevout.nValue : prevout.nValue;
 					value = std::make_pair(nBalance, pindex->nHeight);
 					assert(view.SetAddressIndex(key,value));
-					addressIndex.insert(std::make_pair(key,value));
+					addressIndex[key]=value;
 				}
 			}
 		}
@@ -1959,7 +1959,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 					else {
 						value = std::make_pair(value.first - prevout.nValue, pindex->nHeight);
 						assert(view.SetAddressIndex(key,value));
-						addressIndex.insert(std::make_pair(key,value));
+						addressIndex[key]=value;
 					}
 				}
 			}
@@ -1998,7 +1998,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 					value = std::make_pair(nBalance,nHeight);
 				}
 				assert(view.SetAddressIndex(key,value));
-				addressIndex.insert(std::make_pair(key,value));	
+				addressIndex[key]=value;	
 			} 
 		}
 
