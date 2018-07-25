@@ -35,7 +35,7 @@ private:
 	bool fForked; // TODO: skrifa frekar flag í blocktreedb?
 
 	bool IsRelevant(const CScript &scriptpubkey) const { return scriptpubkey.IsPayToPublicKeyHash() || scriptpubkey.IsPayToScriptHash(); }
-	bool IsRich(const mapScriptPubKeys::iterator &it) const { return it->second.first >= 25000000*COIN; }
+	bool IsRich(const mapScriptPubKeys::iterator &it) const { return it->second.first >= RICH_AMOUNT; }
 	CScript ScriptPubKey(const mapScriptPubKeys::iterator &it) const { return it -> first; }
 	int Height(const mapScriptPubKeys::iterator &it) const { return it -> second.second; }
 	int64_t Balance(const mapScriptPubKeys::iterator &it) const { return it -> second.first; }

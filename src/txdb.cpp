@@ -125,7 +125,7 @@ bool CCoinsViewDB::GetRichAddresses(CRichList &richlist) {
                 CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
                 std::pair<int64_t,int> addressindex; 
                 ssValue >> addressindex;
-                if(addressindex.first >= 25000000*COIN)
+                if(addressindex.first >= RICH_AMOUNT)
                         richlist.maddresses.insert(make_pair(key.second, addressindex));
                 pcursor->Next();
             } else {

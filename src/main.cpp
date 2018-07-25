@@ -1991,8 +1991,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 					int64_t nBalance = value.first + out.nValue;
 					int nHeight = (pindex->nHeight < nRichForkV2Height ||
 								tx.IsCoinBase() ||
-								(nBalance >= 25000000*COIN && 
-								 value.first < 25000000*COIN) )
+								(nBalance >= RICH_AMOUNT && 
+								 value.first < RICH_AMOUNT) )
 							? pindex -> nHeight
 							: value.second;
 					value = std::make_pair(nBalance,nHeight);

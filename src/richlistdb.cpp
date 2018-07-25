@@ -93,13 +93,13 @@ bool CRichList::UpdateAddressIndex(const std::map<CScript, std::pair<int64_t, in
         mapScriptPubKeys::iterator itRich = maddresses.find(it->first);
         if(itRich!=maddresses.end()){
 
-            if(it->second.first < 25000000*COIN) {
+            if(it->second.first < RICH_AMOUNT) {
                 maddresses.erase(itRich);
             } else { 
                 itRich->second = it->second;
             }
         }
-        else if(it->second.first >= 25000000*COIN)
+        else if(it->second.first >= RICH_AMOUNT)
             maddresses.insert(*it);
     }
     return true;
@@ -143,7 +143,7 @@ bool CRichList::UpdateRichAddressHeights()
                     continue;
                 if(pindexSeek->nHeight < nRichForkV2Height 
                     || tx.IsCoinBase()
-                    || Balance(it) - tx.vout[j].nValue < 25000000*COIN) // if it isn't currently rich (wrt pindexSeek) but was once the output will be caught first in the undo block
+                    || Balance(it) - tx.vout[j].nValue < RICH_AMOUNT) // if it isn't currently rich (wrt pindexSeek) but was once the output will be caught first in the undo block
                 {
                     addressIndex.insert(std::make_pair(key, std::make_pair(Balance(it), pindexSeek->nHeight)));
                     mforkedAddresses.erase(it);
@@ -202,7 +202,7 @@ bool CRichList::GetRichAddresses(std::multiset< std::pair< CScript, std::pair<in
     LogPrintf("maddresses size: %d\n",maddresses.size());
     for(std::map<CScript, std::pair<int64_t, int> >::const_iterator it=maddresses.begin(); it!=maddresses.end(); it++)
     {
-        if(it->second.first>=25000000*COIN)
+        if(it->second.first>=RICH_AMOUNT)
         {
             retset.insert(std::make_pair(it->first, std::make_pair(it->second.first,it->second.second)));
         }
