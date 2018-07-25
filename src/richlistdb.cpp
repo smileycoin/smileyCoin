@@ -103,12 +103,16 @@ bool CRichList::UpdateAddressIndex(const std::map<CScript, std::pair<int64_t, in
     return true;
 }
 
+// The heights need to be rolled back before new blocks are connected if any were disconnected.
+// TODO: We should try to get rid of this and write the height undo information to the disk instead.
 bool CRichList::UpdateRichAddressHeights()
 {
     if(!fForked) 
         return true;
 
-    CBlockIndex *pindexSeek = chainActive.Tip();
+    CBlockIndex* pindexSeek = mapBlockIndex.find(pcoinsTip->GetBestBlock())->second;
+    if(!chainActive.Contains(pindexSeek))
+    	return false;
     CBlock block;
     std::map<CScript, std::pair<int64_t, int> > addressIndex;
     mapScriptPubKeys mforkedAddresses;
@@ -131,19 +135,19 @@ bool CRichList::UpdateRichAddressHeights()
         {
             for(unsigned int j = 0; j < tx.vout.size(); j++)
             {
-                CScript scriptpubkey = tx.vout[j].scriptPubKey;
-                mapScriptPubKeys::iterator it = mforkedAddresses.find(scriptpubkey);
+                CScript key = tx.vout[j].scriptPubKey;
+                mapScriptPubKeys::iterator it = mforkedAddresses.find(key);
                 if(it == mforkedAddresses.end())
                     continue;
                 if(pindexSeek->nHeight < nRichForkV2Height 
                     || tx.IsCoinBase()
                     || Balance(it) - tx.vout[j].nValue < 25000000*COIN) // if it isn't currently rich (wrt index) but was once the output will be caught first in the undo block
                 {
-                    addressIndex.insert(std::make_pair(it->first, std::make_pair(Balance(it), pindexSeek->nHeight)));
+                    addressIndex.insert(std::make_pair(key, std::make_pair(Balance(it), pindexSeek->nHeight)));
                     mforkedAddresses.erase(it);
                     if(fDebug) {
                         CTxDestination dest;
-                        ExtractDestination(scriptpubkey, dest);
+                        ExtractDestination(key, dest);
                         CBitcoinAddress addr;
                         addr.Set(dest);
                         LogPrintf("%s found at height %d\n",addr.ToString(),pindexSeek->nHeight);  
@@ -160,15 +164,15 @@ bool CRichList::UpdateRichAddressHeights()
             {
                 for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
                 {
-                    CScript scriptpubkey = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                    mapScriptPubKeys::iterator it = mforkedAddresses.find(scriptpubkey);
+                    CScript key = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
+                    mapScriptPubKeys::iterator it = mforkedAddresses.find(key);
                     if(it == mforkedAddresses.end())
                         continue;                        
                     addressIndex.insert(std::make_pair(it->first, std::make_pair(Balance(it), pindexSeek->nHeight)));
                     mforkedAddresses.erase(it);
                     if(fDebug) {
                         CTxDestination dest;
-                        ExtractDestination(scriptpubkey, dest);
+                        ExtractDestination(key, dest);
                         CBitcoinAddress addr;
                         addr.Set(dest);
                         LogPrintf("%s found at height %d\n",addr.ToString(),pindexSeek->nHeight);  
@@ -179,9 +183,14 @@ bool CRichList::UpdateRichAddressHeights()
         else break;
         pindexSeek = pindexSeek -> pprev;
     }
+	
+	bool ret;
+	typedef std::pair<CScript,std::pair<int64_t,int> > pairType;
+	BOOST_FOREACH(const pairType &pair, addressIndex) {
+		ret = pcoinsTip->SetAddressIndex(pair.first, pair.second);
+		assert(ret);
+	}
 
-    if(!pblocktree->UpdateAddressIndex(addressIndex))
-        return false;
     if(!UpdateAddressIndex(addressIndex))
         return false;
     return mforkedAddresses.empty();

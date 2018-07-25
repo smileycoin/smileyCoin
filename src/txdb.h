@@ -36,11 +36,15 @@ public:
 
     bool GetCoins(const uint256 &txid, CCoins &coins);
     bool SetCoins(const uint256 &txid, const CCoins &coins);
+    bool GetAddressIndex(const CScript &key, std::pair<int64_t,int> &value);
+    bool SetAddressIndex(const CScript &key, const std::pair<int64_t,int> &value);
     bool HaveCoins(const uint256 &txid);
     uint256 GetBestBlock();
     bool SetBestBlock(const uint256 &hashBlock);
-    bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const uint256 &hashBlock);
+    bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript,std::pair<int64_t,int> > &mapAddressIndex, const uint256 &hashBlock);
     bool GetStats(CCoinsStats &stats);
+
+    bool GetRichAddresses(CRichList &richlist);
 };
 
 /** Access to the block database (blocks/index/) */
@@ -64,11 +68,6 @@ public:
     bool WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos> > &list);
     bool WriteRichListFork(bool fForked);
     bool ReadRichListFork(bool &fForked);
-    bool AddressIndexInitialized();
-    bool InitializeAddressIndex();
-    bool ReadAddressIndex(const CScript &scriptpubkey, std::pair<int64_t, int> &value);
-    bool UpdateAddressIndex(const std::map<CScript, std::pair<int64_t, int> > &map);
-    bool ReadRichAddresses(CRichList &richlist);
     bool WriteFlag(const std::string &name, bool fValue);
     bool ReadFlag(const std::string &name, bool &fValue);
     bool LoadBlockIndexGuts();

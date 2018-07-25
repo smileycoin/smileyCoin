@@ -831,10 +831,17 @@ bool AppInit2(boost::thread_group& threadGroup)
                 pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
 
                 bool fFork = false;
+                //We need to detect old chainstates without the addressIndex
+                bool fAddressIndex = false;
 
                 if (fReindex) {
                     pblocktree->WriteReindexing(true);
-                    pblocktree->InitializeAddressIndex();
+                    // starting point of iteration for GetRichAddresses()
+                    // TODO: move this someplace else
+                    std::vector<unsigned char> v;
+                    v.assign(21,'0');
+                    pcoinsdbview->SetAddressIndex(CScript(v),std::pair<int64_t,int>(1,0));
+                    pblocktree->WriteFlag("addressindex", true);
                     }
 
                 if (!LoadBlockIndex()) {
@@ -858,14 +865,14 @@ bool AppInit2(boost::thread_group& threadGroup)
                     break;
                 }
 
-                // starting point for iteration
-                if(!pblocktree -> AddressIndexInitialized()) {
+                pblocktree->ReadFlag("addressindex", fAddressIndex);
+                if(!fAddressIndex) {
                     strLoadError = _("Address index not initialized. You need to rebuild the database using -reindex");
                     break;
                 }
 
                  // Reading rich addresses into memory
-                if(!pblocktree -> ReadRichAddresses(RichList)) {
+                if(!pcoinsdbview -> GetRichAddresses(RichList)) {
                     strLoadError = _("Error initializing rich list");
                     break;
                 }
@@ -873,8 +880,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                 if(!pblocktree -> ReadRichListFork(fFork)) {
                     strLoadError = _("Error reading rich list fork status");
                     break;
-                }
-                else {
+                } else {
                     RichList.SetForked(fFork);
                 }
 
@@ -890,8 +896,9 @@ bool AppInit2(boost::thread_group& threadGroup)
                         strLoadError = _("Error rollbacking rich list heights");
                         break;
                     }
-                    else
+                    else {
                         RichList.SetForked(false);
+                    }
                 }
 
             } catch(std::exception &e) {

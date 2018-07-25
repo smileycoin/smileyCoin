@@ -33,11 +33,28 @@ void static BatchWriteCoins(CLevelDBBatch &batch, const uint256 &hash, const CCo
         batch.Write(make_pair(DB_COINS, hash), coins);
 }
 
+void static BatchWriteAddressIndex(CLevelDBBatch &batch, const CScript &key, const std::pair<int64_t, int> &value) {
+    if(value.first == 0)
+        batch.Erase(make_pair(DB_ADDRESSINDEX, key));
+    else 
+        batch.Write(make_pair(DB_ADDRESSINDEX, key), value);
+}
+
 void static BatchWriteHashBestChain(CLevelDBBatch &batch, const uint256 &hash) {
     batch.Write(DB_BEST_BLOCK, hash);
 }
 
 CCoinsViewDB::CCoinsViewDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "chainstate", nCacheSize, fMemory, fWipe) {
+}
+
+bool CCoinsViewDB::GetAddressIndex(const CScript &key, std::pair<int64_t, int> &value) {
+    return db.Read(make_pair(DB_ADDRESSINDEX, key), value);
+}
+
+bool CCoinsViewDB::SetAddressIndex(const CScript &key, const std::pair<int64_t, int> &value) {
+    CLevelDBBatch batch;
+    BatchWriteAddressIndex(batch, key, value);
+    return db.WriteBatch(batch);
 }
 
 bool CCoinsViewDB::GetCoins(const uint256 &txid, CCoins &coins) {
@@ -67,16 +84,60 @@ bool CCoinsViewDB::SetBestBlock(const uint256 &hashBlock) {
     return db.WriteBatch(batch);
 }
 
-bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins, const uint256 &hashBlock) {
-    LogPrint("coindb", "Committing %u changed transactions to coin database...\n", (unsigned int)mapCoins.size());
+bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
+                              const std::map<CScript, std::pair<int64_t,int> > &mapAddressIndex,
+                              const uint256 &hashBlock) {
+    LogPrint("coindb", "Committing %u changed transactions and %u address balances to coin database...\n",(unsigned int)mapCoins.size(), (unsigned int)mapAddressIndex.size());
 
     CLevelDBBatch batch;
     for (std::map<uint256, CCoins>::const_iterator it = mapCoins.begin(); it != mapCoins.end(); it++)
         BatchWriteCoins(batch, it->first, it->second);
+    for (std::map<CScript, std::pair<int64_t,int> >::const_iterator it = mapAddressIndex.begin(); it != mapAddressIndex.end(); it++)
+        BatchWriteAddressIndex(batch, it->first, it->second);
     if (hashBlock != uint256(0))
         BatchWriteHashBestChain(batch, hashBlock);
 
     return db.WriteBatch(batch);
+}
+
+bool CCoinsViewDB::GetRichAddresses(CRichList &richlist) {
+
+    leveldb::Iterator *pcursor = db.NewIterator();
+    
+    std::vector<unsigned char> v;
+    v.assign(21,'0');
+    CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
+    ssKeySet << make_pair(DB_ADDRESSINDEX, CScript(v));
+    pcursor->Seek(ssKeySet.str());
+
+    while (pcursor->Valid()) 
+    {
+        boost::this_thread::interruption_point();
+        try 
+        { 
+            leveldb::Slice slKey = pcursor->key();
+            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
+            std::pair<char,CScript> key;
+            ssKey >> key;
+            if (key.first == DB_ADDRESSINDEX) 
+            {
+                leveldb::Slice slValue = pcursor->value();
+                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
+                std::pair<int64_t,int> addressindex; 
+                ssValue >> addressindex;
+                if(addressindex.first >= 25000000*COIN)
+                        richlist.maddresses.insert(make_pair(key.second, addressindex));
+                pcursor->Next();
+            } else {
+                break;
+            }
+        } catch (std::exception &e) {
+            return error("%s : Deserialize or I/O error - %s", __func__, e.what());
+        }
+    }
+    delete pcursor;
+
+    return true;
 }
 
 CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory, bool fWipe) : CLevelDBWrapper(GetDataDir() / "blocks" / "index", nCacheSize, fMemory, fWipe) {
@@ -192,77 +253,6 @@ bool CBlockTreeDB::WriteRichListFork(bool fForked) {
 
 bool CBlockTreeDB::ReadRichListFork(bool &fForked) {
     fForked = Exists(DB_RICHLIST_FORK_FLAG);
-    return true;
-}
-
-bool CBlockTreeDB::AddressIndexInitialized() {
-    std::vector<unsigned char> v;
-    v.assign(21,'0');
-    return Exists(make_pair(DB_ADDRESSINDEX, CScript(v)));
-}
-
-
-bool CBlockTreeDB::InitializeAddressIndex() {
-    std::vector<unsigned char> v;
-    v.assign(21,'0');
-    return Write(make_pair(DB_ADDRESSINDEX, CScript(v)), std::pair<int64_t, int>(0,0));
-}
-
-
-
-bool CBlockTreeDB::ReadAddressIndex(const CScript &scriptpubkey, std::pair<int64_t, int> &value) {
-    return Read(make_pair(DB_ADDRESSINDEX, scriptpubkey), value);
-}
-
-bool CBlockTreeDB::UpdateAddressIndex(const std::map<CScript, std::pair<int64_t, int> > &map) {
-    CLevelDBBatch batch;
-    for (std::map<CScript, std::pair<int64_t, int> >::const_iterator it=map.begin(); it!=map.end(); it++) {
-        if (it->second.first == 0) {
-            batch.Erase(make_pair(DB_ADDRESSINDEX, it->first));
-        } else {
-            batch.Write(make_pair(DB_ADDRESSINDEX, it->first), it->second);
-        }
-    }
-    return WriteBatch(batch);
-}
-
-bool CBlockTreeDB::ReadRichAddresses(CRichList &richlist) {
-
-    leveldb::Iterator *pcursor = NewIterator();
-    
-    std::vector<unsigned char> v;
-    v.assign(21,'0');
-    CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
-    ssKeySet << make_pair(DB_ADDRESSINDEX, CScript(v));
-    pcursor->Seek(ssKeySet.str());
-
-    while (pcursor->Valid()) 
-    {
-        boost::this_thread::interruption_point();
-        try 
-        { 
-            leveldb::Slice slKey = pcursor->key();
-            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
-            std::pair<char,CScript> key;
-            ssKey >> key;
-            if (key.first == DB_ADDRESSINDEX) 
-            {
-                leveldb::Slice slValue = pcursor->value();
-                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
-                std::pair<int64_t,int> addressindex; 
-                ssValue >> addressindex;
-                if(addressindex.first >= 25000000*COIN)
-                        richlist.maddresses.insert(make_pair(key.second, addressindex));
-                pcursor->Next();
-            } else {
-                break;
-            }
-        } catch (std::exception &e) {
-            return error("%s : Deserialize or I/O error - %s", __func__, e.what());
-        }
-    }
-    delete pcursor;
-
     return true;
 }
 

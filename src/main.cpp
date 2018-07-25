@@ -1755,13 +1755,13 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 			if (key.IsPayToPublicKeyHash() || key.IsPayToScriptHash()) 
 			{					
 				std::pair<int64_t, int> value;
-				std::map<CScript, std::pair<int64_t, int> >::iterator it = addressIndex.find(key);
-				if(it!=addressIndex.end())
-					it->second = std::make_pair(it->second.first - out.nValue, pindex->nHeight);
-				else if(pblocktree->ReadAddressIndex(key,value)) 
-					addressIndex.insert(std::make_pair(key,std::make_pair(value.first - out.nValue, pindex->nHeight)));
-				else if(!pfClean)
+				if(!view.GetAddressIndex(key,value))
 					return state.Abort(_("Failed to read address index"));
+				else {
+					value = std::make_pair(value.first - out.nValue, pindex->nHeight);
+					assert(view.SetAddressIndex(key,value));
+					addressIndex.insert(std::make_pair(key,value));
+				}
 			}
 		}
 
@@ -1819,15 +1819,11 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 				if (key.IsPayToPublicKeyHash() || key.IsPayToScriptHash()) 
 				{					
 					std::pair<int64_t, int> value;
-					std::map<CScript, std::pair<int64_t, int> >::iterator it = addressIndex.find(key);
-					bool fExists =  it!=addressIndex.end() || pblocktree->ReadAddressIndex(key,value);
-					if(it!=addressIndex.end())
-						value = addressIndex.at(key); 
-					int64_t nBalance = (fExists) ? (value.first + prevout.nValue) : prevout.nValue;
-					if(it!=addressIndex.end())
-						it->second = std::make_pair(nBalance, pindex->nHeight);
-					else
-						addressIndex.insert(std::make_pair(key,std::make_pair(nBalance, pindex->nHeight)));
+					
+					int64_t nBalance =(view.GetAddressIndex(key,value)) ? value.first + prevout.nValue : prevout.nValue;
+					value = std::make_pair(nBalance, pindex->nHeight);
+					assert(view.SetAddressIndex(key,value));
+					addressIndex.insert(std::make_pair(key,value));
 				}
 			}
 		}
@@ -1840,10 +1836,6 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 		*pfClean = fClean;
 		return true;
 	}
-
-	if (!pblocktree->UpdateAddressIndex(addressIndex)) {
-        return state.Abort(_("Failed to write address index"));
-    }
 
     if(!RichList.UpdateAddressIndex(addressIndex)) {
     	return state.Abort(_("Failed to update rich list"));
@@ -1962,13 +1954,13 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 				if (key.IsPayToPublicKeyHash() || key.IsPayToScriptHash()) 
 				{					
 					std::pair<int64_t, int> value;
-					std::map<CScript, std::pair<int64_t, int> >::iterator it = addressIndex.find(key);
-					if(it!=addressIndex.end())
-						it->second = std::make_pair(it->second.first - prevout.nValue, pindex->nHeight);
-					else if(pblocktree->ReadAddressIndex(key,value)) 
-						addressIndex.insert(std::make_pair(key,std::make_pair(value.first - prevout.nValue, pindex->nHeight)));
-					else
-						return state.Abort(_("Failed to read address index"));
+					if(!view.GetAddressIndex(key,value))
+						return state.Abort(_("Failed to get address index"));
+					else {
+						value = std::make_pair(value.first - prevout.nValue, pindex->nHeight);
+						assert(view.SetAddressIndex(key,value));
+						addressIndex.insert(std::make_pair(key,value));
+					}
 				}
 			}
 
@@ -1993,22 +1985,21 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 			if (key.IsPayToScriptHash() || key.IsPayToPublicKeyHash()) 
 			{					
 				std::pair<int64_t, int> value;
-				std::map<CScript, std::pair<int64_t, int> >::iterator it = addressIndex.find(key);
-				bool fExists =  it!=addressIndex.end() || pblocktree->ReadAddressIndex(key,value);
-				if(it!=addressIndex.end())
-					value = addressIndex.at(key); 
-				int64_t nBalance = (fExists) ? (value.first + out.nValue) : out.nValue;
-				int nHeight = (!fExists || pindex->nHeight < nRichForkV2Height ||
+				if(!view.GetAddressIndex(key,value))
+					value = std::make_pair(out.nValue, pindex->nHeight);
+				else {
+					int64_t nBalance = value.first + out.nValue;
+					int nHeight = (pindex->nHeight < nRichForkV2Height ||
 								tx.IsCoinBase() ||
 								(nBalance >= 25000000*COIN && 
 								 value.first < 25000000*COIN) )
 							? pindex -> nHeight
 							: value.second;
-				if(it!=addressIndex.end())
-					it->second = std::make_pair(nBalance, nHeight);
-				else
-					addressIndex.insert(std::make_pair(key,std::make_pair(nBalance, nHeight)));
-			}
+					value = std::make_pair(nBalance,nHeight);
+				}
+				assert(view.SetAddressIndex(key,value));
+				addressIndex.insert(std::make_pair(key,value));	
+			} 
 		}
 
 		CTxUndo txundo;
@@ -2108,11 +2099,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 		if (!pblocktree->WriteTxIndex(vPos))
 			return state.Abort(_("Failed to write transaction index"));
 	}
-
-	if (!pblocktree->UpdateAddressIndex(addressIndex)) {
-        return state.Abort(_("Failed to write address index"));
-    }
-
+	// updated after the rich payment check
     if(!RichList.UpdateAddressIndex(addressIndex)) {
     	return state.Abort(_("Failed to update rich list"));
     }
@@ -2337,8 +2324,9 @@ bool ActivateBestChain(CValidationState &state) {
  		// heights of rich addresses need to be rolled back before new blocks are connected
 		if(!RichList.UpdateRichAddressHeights())
 			return false; //TODO: láta vita?
-		else
+		else {
 			RichList.SetForked(false);
+		}
 		
 		// Connect new blocks.
 		while (!chainActive.Contains(chainMostWork.Tip())) {

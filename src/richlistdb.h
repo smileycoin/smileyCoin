@@ -44,7 +44,7 @@ private:
 
 public:
 
-	friend bool CBlockTreeDB::ReadRichAddresses(CRichList &richlist);
+	friend bool CCoinsViewDB::GetRichAddresses(CRichList &richlist);
 	bool GetRichAddresses(std::multiset< std::pair< CScript, std::pair<int64_t, int> >, RichOrderCompare > &retset) const;
 
 	bool SetForked(const bool &fFork);
