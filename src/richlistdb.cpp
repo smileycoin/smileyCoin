@@ -118,6 +118,8 @@ bool CRichList::UpdateRichAddressHeights()
     CBlock block;
     std::map<CScript, std::pair<int64_t, int> > addressIndex;
     mapScriptPubKeys mforkedAddresses;
+    int nCheckDepth = 2*maddresses.size();
+    int i = 0;
 
     for(mapScriptPubKeys::const_iterator it = maddresses.begin(); it!=maddresses.end(); it++)
     {
@@ -128,8 +130,9 @@ bool CRichList::UpdateRichAddressHeights()
     if(fDebug) {
         LogPrintf("%d addresses seen at fork and need to be relocated\n", mforkedAddresses.size());
     }
+    // assert(!"UpdateRichAddressHeights(): Deliberate failure");
 
-    while(pindexSeek->pprev && !mforkedAddresses.empty())
+    while(pindexSeek->pprev && !mforkedAddresses.empty() && i<nCheckDepth)
     {       
         ReadBlockFromDisk(block,pindexSeek);
         block.BuildMerkleTree();
@@ -182,8 +185,12 @@ bool CRichList::UpdateRichAddressHeights()
                 }
             }
         }
-        else break;
+        else {
+            LogPrintf("UpdateRichAddressHeights(): Failed to read undo information\n");
+            break;
+        }
         pindexSeek = pindexSeek -> pprev;
+        i++;
     }
 	
 	bool ret;

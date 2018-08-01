@@ -2722,24 +2722,17 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		// Reject block.nVersion=1 blocks when 95% of the network has upgraded:
 		if (block.nVersion < 2)
 		{
-			if (CBlockIndex::IsSuperMajority(2, pindexPrev, 950, 1000))
-			{
-				return state.Invalid(error("AcceptBlock() : rejected nVersion=1 block"),
-						REJECT_OBSOLETE, "bad-version");
-			}
+			return state.Invalid(error("AcceptBlock() : rejected nVersion=1 block"),
+					REJECT_OBSOLETE, "bad-version");
 		}
 		// Enforce block.nVersion=2 rule that the coinbase starts with serialized block height
 		if (block.nVersion >= 2)
 		{
-			// if 750 of the last 1,000 blocks are version 2 or greater:
-			if (CBlockIndex::IsSuperMajority(2, pindexPrev, 750, 1000))
-			{
-				CScript expect = CScript() << nHeight;
-				if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
-						!std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin()))
-					return state.DoS(100, error("AcceptBlock() : block height mismatch in coinbase"),
-							REJECT_INVALID, "bad-cb-height");
-			}
+			CScript expect = CScript() << nHeight;
+			if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
+					!std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin()))
+				return state.DoS(100, error("AcceptBlock() : block height mismatch in coinbase"),
+						REJECT_INVALID, "bad-cb-height");
 		}
 	}
     
