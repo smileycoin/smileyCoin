@@ -35,7 +35,7 @@ class CInv;
 
 const int64_t nDiffChangeTarget = 5; // Patch effective @ block 5
 const int nRichForkHeight = 218000;
-const int nRichForkV2Height = 450000;
+const int nRichForkV2Height = 525000;
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const unsigned int MAX_BLOCK_SIZE 	  	= 1000000;

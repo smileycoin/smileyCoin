@@ -31,8 +31,6 @@ private:
 	mapScriptPubKeys maddresses;
 	bool fForked; 
 
-	bool IsRelevant(const CScript &scriptpubkey) const { return scriptpubkey.IsPayToPublicKeyHash() || scriptpubkey.IsPayToScriptHash(); }
-	bool IsRich(const mapScriptPubKeys::iterator &it) const { return it->second.first >= RICH_AMOUNT; }
 	CScript ScriptPubKey(const mapScriptPubKeys::iterator &it) const { return it -> first; }
 	int Height(const mapScriptPubKeys::iterator &it) const { return it -> second.second; }
 	int64_t Balance(const mapScriptPubKeys::iterator &it) const { return it -> second.first; }
@@ -47,9 +45,7 @@ public:
 	bool SetForked(const bool &fFork);
 	bool IsForked(){return fForked;}
 // henda út?
-	bool GetHeight(const CScript &scriptpubkey, int &nHeight);
-
-	bool GetBalance(const CScript &scriptpubkey, int64_t &nBalance);
+	
 	bool UpdateAddressInfo(const std::map<CScript, std::pair<int64_t, int> > &map);
 	bool UpdateRichAddressHeights();
 

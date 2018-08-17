@@ -54,6 +54,11 @@ static const int64_t nMaxAdjustDown = 20; // 20% adjustment down
 static const int64_t nMaxAdjustUp = 20; // 20% adjustment up
 static const int64_t nLocalTargetAdjustment = 4; //target adjustment per algo
 
+static const int64_t nAveragingIntervalV2 = 2; // 2 blocks
+static const int64_t nMaxAdjustDownV2 = 4; // 4% adjustment down
+static const int64_t nMaxAdjustUpV2 = 4; // 4% adjustment up
+static const int64_t nLocalTargetAdjustmentV2 = 4; //target adjustment per algo
+
 static int64_t nMinActualTimespan;
 static int64_t nMaxActualTimespan;
 
@@ -1345,7 +1350,8 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 	// find first block in averaging interval
 	// Go back by what we want to be nAveragingInterval blocks per algo
 	const CBlockIndex* pindexFirst = pindexLast;
-	for (int i = 0; pindexFirst && i < NUM_ALGOS*nAveragingInterval; i++)
+	const bool fDiffChange = pindexLast->nHeight +1 >= nRichForkV2Height;
+	for (int i = 0; pindexFirst && i < NUM_ALGOS*(fDiffChange ? nAveragingIntervalV2 : nAveragingInterval); i++)
 	{
 		pindexFirst = pindexFirst->pprev;
 	}
@@ -1372,8 +1378,8 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 		nActualTimespan = nAveragingTargetTimespan + (nActualTimespan - nAveragingTargetTimespan)/4;
 	}   
  
-    nMinActualTimespan = nAveragingTargetTimespan * (100 - nMaxAdjustUp) / 100;
-    nMaxActualTimespan = nAveragingTargetTimespan * (100 + nMaxAdjustDown) / 100;
+    nMinActualTimespan = nAveragingTargetTimespan * (100 - (fDiffChange ? nMaxAdjustUpV2 : nMaxAdjustUp)) / 100;
+    nMaxActualTimespan = nAveragingTargetTimespan * (100 + (fDiffChange ? nMaxAdjustDownV2 : nMaxAdjustDown)) / 100;
     
     if (nActualTimespan < nMinActualTimespan)
 		nActualTimespan = nMinActualTimespan;
@@ -1394,14 +1400,14 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 		for (int i = 0; i < nAdjustments; i++)
 		{
 			bnNew *= 100;
-			bnNew /= (100 + nLocalTargetAdjustment);
+			bnNew /= (100 + (fDiffChange ? nLocalTargetAdjustmentV2 : nLocalTargetAdjustment));
 		}
 	}
 	else if (nAdjustments < 0)//make it easier
 	{
 		for (int i = 0; i < -nAdjustments; i++)
 		{
-			bnNew *= (100 + nLocalTargetAdjustment);
+			bnNew *= (100 + (fDiffChange ? nLocalTargetAdjustmentV2 : nLocalTargetAdjustment));
 			bnNew /= 100;
 		}
 	}
@@ -2822,14 +2828,6 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
 		if((pblock->GetBlockTime() - pcheckpoint->nTime) < 0) {
 			return state.DoS(100, error("ProcessBlock() : block has a time stamp of %u before the last checkpoint of %u", pblock->GetBlockTime(), pcheckpoint->nTime));
          }
-        CBigNum bnNewBlock;
-		bnNewBlock.SetCompact(pblock->nBits);
-		CBigNum bnRequired;
-		bnRequired.SetCompact(ComputeMinWork(pcheckpoint->nBits, deltaTime));
-		if (bnNewBlock > bnRequired)
-		{
-			return state.DoS(100, error("ProcessBlock() : block with too little proof-of-work"), REJECT_INVALID, "bad-diffbits");
-		}
 	}
 
 	// If we don't already have its previous block, shunt it off to holding area until we get it

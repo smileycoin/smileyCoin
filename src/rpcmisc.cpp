@@ -106,64 +106,42 @@ Value getinfo(const Array& params, bool fHelp)
 Value getrichaddresses(const Array& params, bool fHelp)
 {
 
-    if (fHelp || params.size() > 1)
+    if (fHelp || params.size() != 0)
         throw runtime_error("getrichaddresses\n"
-                            "Returns requested number of rich addresses, ordered by height.\n"
+                            "Returns all rich addresses, ordered by height.\n"
                             );
-    Object ret;
+    Object obj;
     std::multiset< std::pair< CScript, std::pair<int64_t, int> >, RichOrderCompare > retset;
     RichList.GetRichAddresses(retset);
-    int n = (params.size() > 0) ? params[0].get_int() : retset.size(); //TODO: virkar ekki
-    int i = 0;
-    for(std::set< std::pair< CScript, std::pair<int64_t, int> >, RichOrderCompare >::const_iterator it = retset.begin(); i<n && it!=retset.end(); it++ )
+    for(std::set< std::pair< CScript, std::pair<int64_t, int> >, RichOrderCompare >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
     {
-        Object obj;
-        obj.push_back(Pair("Balance", it -> second.first));
-        obj.push_back(Pair("Height", it -> second.second));
         CTxDestination des;
         ExtractDestination(it->first, des);
-        ret.push_back(Pair(CBitcoinAddress(des).ToString(), obj));
-        i++;
+        obj.push_back(Pair(CBitcoinAddress(des).ToString(), it -> second.second));
     }
-    return ret;
+    return obj;
 }
 
-Value getaddressbalance(const Array& params, bool fHelp)
+Value getaddressinfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error("getaddressbalance\n"
-                            "Returns the balance of a given address.\n"
+                            "Returns the balance and height of a given address.\n"
                             );
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
     if(!address.IsValid())
         throw runtime_error("Not a valid Smileycoin address");
-    
-    CScript scriptpubkey;    
-    scriptpubkey.SetDestination(address.Get());
-    int64_t balance = 0;
-    if(!RichList.GetBalance(scriptpubkey, balance))
-        return 0;
-    return (double)(balance)/100000000;  
+    Object obj;
+    CScript key;    
+    key.SetDestination(address.Get());
+    std::pair<int64_t, int> value;
+    if(!pcoinsTip->GetAddressInfo(key, value))
+        throw runtime_error("No information available - address has been emptied or never used.");
+    obj.push_back(Pair("Balance", ValueFromAmount(value.first)));
+    obj.push_back(Pair("Height", value.second));
+
+    return obj; 
 }
-
-Value getaddressheight(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 1)
-        throw runtime_error("getaddressbalance\n"
-                            "Returns the block height in the active chain where a given address was last used, if ever.\n"
-                            );
-    CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
-    if(!address.IsValid())
-        throw runtime_error("Not a valid Smileycoin address\n");
-
-    CScript scriptpubkey;
-    scriptpubkey.SetDestination(address.Get());
-    int height = 0;
-    if(!RichList.GetHeight(scriptpubkey, height))
-        throw runtime_error("Address not found. Balance might be zero.\n");
-    return height;
-}
-
 
 #ifdef ENABLE_WALLET
 class DescribeAddressVisitor : public boost::static_visitor<Object>

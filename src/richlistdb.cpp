@@ -33,32 +33,6 @@ bool CRichList::SetForked(const bool &fFork)
     return true;
 }
 
-
-
-bool CRichList::GetBalance(const CScript &scriptpubkey, int64_t &nBalance)
-{
-    mapScriptPubKeys::const_iterator it = maddresses.find(scriptpubkey);
-    if(it!=maddresses.end()) {
-        nBalance = Balance(it);
-        return true;
-    } else {
-        nBalance = 0;
-        return false;
-    }
-}
-
-bool CRichList::GetHeight(const CScript &scriptpubkey, int &nHeight)
-{
-    mapScriptPubKeys::const_iterator it = maddresses.find(scriptpubkey);
-    if(it!=maddresses.end()) {
-        nHeight = Height(it);
-        return true;
-    } else {
-        nHeight = -1;
-        return false;
-    }
-}
-
 bool CRichList::NextRichScriptPubKey(CScript &scriptpubkey)
 {
     if(maddresses.empty())
