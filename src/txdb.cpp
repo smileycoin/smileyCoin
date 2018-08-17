@@ -16,7 +16,7 @@ using namespace std;
 static const char DB_COINS = 'c';
 static const char DB_BLOCK_FILES = 'f';
 static const char DB_TXINDEX = 't';
-static const char DB_ADDRESSINDEX = 'a';
+static const char DB_ADDRESSINFO = 'a';
 static const char DB_BLOCK_INDEX = 'b';
 
 static const char DB_BEST_BLOCK = 'B';
@@ -33,11 +33,11 @@ void static BatchWriteCoins(CLevelDBBatch &batch, const uint256 &hash, const CCo
         batch.Write(make_pair(DB_COINS, hash), coins);
 }
 
-void static BatchWriteAddressIndex(CLevelDBBatch &batch, const CScript &key, const std::pair<int64_t, int> &value) {
+void static BatchWriteAddressInfo(CLevelDBBatch &batch, const CScript &key, const std::pair<int64_t, int> &value) {
     if(value.first == 0)
-        batch.Erase(make_pair(DB_ADDRESSINDEX, key));
+        batch.Erase(make_pair(DB_ADDRESSINFO, key));
     else 
-        batch.Write(make_pair(DB_ADDRESSINDEX, key), value);
+        batch.Write(make_pair(DB_ADDRESSINFO, key), value);
 }
 
 void static BatchWriteHashBestChain(CLevelDBBatch &batch, const uint256 &hash) {
@@ -47,13 +47,13 @@ void static BatchWriteHashBestChain(CLevelDBBatch &batch, const uint256 &hash) {
 CCoinsViewDB::CCoinsViewDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "chainstate", nCacheSize, fMemory, fWipe) {
 }
 
-bool CCoinsViewDB::GetAddressIndex(const CScript &key, std::pair<int64_t, int> &value) {
-    return db.Read(make_pair(DB_ADDRESSINDEX, key), value);
+bool CCoinsViewDB::GetAddressInfo(const CScript &key, std::pair<int64_t, int> &value) {
+    return db.Read(make_pair(DB_ADDRESSINFO, key), value);
 }
 
-bool CCoinsViewDB::SetAddressIndex(const CScript &key, const std::pair<int64_t, int> &value) {
+bool CCoinsViewDB::SetAddressInfo(const CScript &key, const std::pair<int64_t, int> &value) {
     CLevelDBBatch batch;
-    BatchWriteAddressIndex(batch, key, value);
+    BatchWriteAddressInfo(batch, key, value);
     return db.WriteBatch(batch);
 }
 
@@ -85,15 +85,15 @@ bool CCoinsViewDB::SetBestBlock(const uint256 &hashBlock) {
 }
 
 bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
-                              const std::map<CScript, std::pair<int64_t,int> > &mapAddressIndex,
+                              const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
                               const uint256 &hashBlock) {
-    LogPrint("coindb", "Committing %u changed transactions and %u address balances to coin database...\n",(unsigned int)mapCoins.size(), (unsigned int)mapAddressIndex.size());
+    LogPrint("coindb", "Committing %u changed transactions and %u address balances to coin database...\n",(unsigned int)mapCoins.size(), (unsigned int)mapAddressInfo.size());
 
     CLevelDBBatch batch;
     for (std::map<uint256, CCoins>::const_iterator it = mapCoins.begin(); it != mapCoins.end(); it++)
         BatchWriteCoins(batch, it->first, it->second);
-    for (std::map<CScript, std::pair<int64_t,int> >::const_iterator it = mapAddressIndex.begin(); it != mapAddressIndex.end(); it++)
-        BatchWriteAddressIndex(batch, it->first, it->second);
+    for (std::map<CScript, std::pair<int64_t,int> >::const_iterator it = mapAddressInfo.begin(); it != mapAddressInfo.end(); it++)
+        BatchWriteAddressInfo(batch, it->first, it->second);
     if (hashBlock != uint256(0))
         BatchWriteHashBestChain(batch, hashBlock);
 
@@ -107,7 +107,7 @@ bool CCoinsViewDB::GetRichAddresses(CRichList &richlist) {
     std::vector<unsigned char> v;
     v.assign(21,'0');
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
-    ssKeySet << make_pair(DB_ADDRESSINDEX, CScript(v));
+    ssKeySet << make_pair(DB_ADDRESSINFO, CScript(v));
     pcursor->Seek(ssKeySet.str());
 
     while (pcursor->Valid()) 
@@ -119,14 +119,14 @@ bool CCoinsViewDB::GetRichAddresses(CRichList &richlist) {
             CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
             std::pair<char,CScript> key;
             ssKey >> key;
-            if (key.first == DB_ADDRESSINDEX) 
+            if (key.first == DB_ADDRESSINFO) 
             {
                 leveldb::Slice slValue = pcursor->value();
                 CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
-                std::pair<int64_t,int> addressindex; 
-                ssValue >> addressindex;
-                if(addressindex.first >= RICH_AMOUNT)
-                        richlist.maddresses.insert(make_pair(key.second, addressindex));
+                std::pair<int64_t,int> addressinfo; 
+                ssValue >> addressinfo;
+                if(addressinfo.first >= RICH_AMOUNT)
+                        richlist.maddresses.insert(make_pair(key.second, addressinfo));
                 pcursor->Next();
             } else {
                 break;

@@ -24,17 +24,13 @@ const string EIASaddresses[10] = {"BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73",
                                   "BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc",
                                   "BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy"};
 
-inline int Height(const CAddressIndex &ai) {return ai.second;}
-inline int Balance(const CAddressIndex &ai) {return ai.first;}
+inline int Height(const CAddressInfo &ai) {return ai.second;}
+inline int Balance(const CAddressInfo &ai) {return ai.first;}
 
 bool CRichList::SetForked(const bool &fFork)
 {
-    if(pblocktree->WriteRichListFork(fFork)) {
-        fForked=fFork;
-        return true;        
-    }
-    else 
-        return false;
+    fForked = fFork;
+    return true;
 }
 
 
@@ -86,7 +82,7 @@ CScript CRichList::NextEIASScriptPubKey(const int &nHeight){
     return ret;
 }
 
-bool CRichList::UpdateAddressIndex(const std::map<CScript, std::pair<int64_t, int> > &map)
+bool CRichList::UpdateAddressInfo(const std::map<CScript, std::pair<int64_t, int> > &map)
 {
     for(std::map<CScript, std::pair<int64_t, int> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
@@ -116,10 +112,8 @@ bool CRichList::UpdateRichAddressHeights()
     if(!chainActive.Contains(pindexSeek))
     	return false;
     CBlock block;
-    std::map<CScript, std::pair<int64_t, int> > addressIndex;
+    std::map<CScript, std::pair<int64_t, int> > addressInfo;
     mapScriptPubKeys mforkedAddresses;
-    int nCheckDepth = 2*maddresses.size();
-    int i = 0;
 
     for(mapScriptPubKeys::const_iterator it = maddresses.begin(); it!=maddresses.end(); it++)
     {
@@ -132,8 +126,12 @@ bool CRichList::UpdateRichAddressHeights()
     }
     // assert(!"UpdateRichAddressHeights(): Deliberate failure");
 
-    while(pindexSeek->pprev && !mforkedAddresses.empty() && i<nCheckDepth)
+    while(pindexSeek->pprev && !mforkedAddresses.empty())
     {       
+
+        // return false;
+
+        
         ReadBlockFromDisk(block,pindexSeek);
         block.BuildMerkleTree();
         BOOST_FOREACH(const CTransaction &tx, block.vtx)
@@ -148,7 +146,7 @@ bool CRichList::UpdateRichAddressHeights()
                     || tx.IsCoinBase()
                     || Balance(it) - tx.vout[j].nValue < RICH_AMOUNT) // if it isn't currently rich (wrt pindexSeek) but was once the output will be caught first in the undo block
                 {
-                    addressIndex.insert(std::make_pair(key, std::make_pair(Balance(it), pindexSeek->nHeight)));
+                    addressInfo.insert(std::make_pair(key, std::make_pair(Balance(it), pindexSeek->nHeight)));
                     mforkedAddresses.erase(it);
                     if(fDebug) {
                         CTxDestination dest;
@@ -173,7 +171,7 @@ bool CRichList::UpdateRichAddressHeights()
                     mapScriptPubKeys::iterator it = mforkedAddresses.find(key);
                     if(it == mforkedAddresses.end())
                         continue;                        
-                    addressIndex.insert(std::make_pair(it->first, std::make_pair(Balance(it), pindexSeek->nHeight)));
+                    addressInfo.insert(std::make_pair(it->first, std::make_pair(Balance(it), pindexSeek->nHeight)));
                     mforkedAddresses.erase(it);
                     if(fDebug) {
                         CTxDestination dest;
@@ -190,23 +188,21 @@ bool CRichList::UpdateRichAddressHeights()
             break;
         }
         pindexSeek = pindexSeek -> pprev;
-        i++;
     }
 	
 	bool ret;
 	typedef std::pair<CScript,std::pair<int64_t,int> > pairType;
-	BOOST_FOREACH(const pairType &pair, addressIndex) {
-		ret = pcoinsTip->SetAddressIndex(pair.first, pair.second);
+	BOOST_FOREACH(const pairType &pair, addressInfo) {
+		ret = pcoinsTip->SetAddressInfo(pair.first, pair.second);
 		assert(ret);
 	}
 
-    if(!UpdateAddressIndex(addressIndex))
+    if(!UpdateAddressInfo(addressInfo))
         return false;
     return mforkedAddresses.empty();
 }
 
 bool CRichList::GetRichAddresses(std::multiset< std::pair< CScript, std::pair<int64_t, int> >,RichOrderCompare > &retset) const{
-    LogPrintf("maddresses size: %d\n",maddresses.size());
     for(std::map<CScript, std::pair<int64_t, int> >::const_iterator it=maddresses.begin(); it!=maddresses.end(); it++)
     {
         if(it->second.first>=RICH_AMOUNT)

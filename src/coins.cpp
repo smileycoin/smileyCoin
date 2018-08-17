@@ -50,25 +50,25 @@ bool CCoins::Spend(int nPos) {
 
 bool CCoinsView::GetCoins(const uint256 &txid, CCoins &coins) { return false; }
 bool CCoinsView::SetCoins(const uint256 &txid, const CCoins &coins) { return false; }
-bool CCoinsView::GetAddressIndex(const CScript &key, std::pair<int64_t,int> &value) { return false; }
-bool CCoinsView::SetAddressIndex(const CScript &key, const std::pair<int64_t,int> &value) { return false; }
+bool CCoinsView::GetAddressInfo(const CScript &key, std::pair<int64_t,int> &value) { return false; }
+bool CCoinsView::SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value) { return false; }
 bool CCoinsView::HaveCoins(const uint256 &txid) { return false; }
 uint256 CCoinsView::GetBestBlock() { return uint256(0); }
 bool CCoinsView::SetBestBlock(const uint256 &hashBlock) { return false; }
-bool CCoinsView::BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressIndex, const uint256 &hashBlock) { return false; }
+bool CCoinsView::BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo, const uint256 &hashBlock) { return false; }
 bool CCoinsView::GetStats(CCoinsStats &stats) { return false; }
 
 
 CCoinsViewBacked::CCoinsViewBacked(CCoinsView &viewIn) : base(&viewIn) { }
 bool CCoinsViewBacked::GetCoins(const uint256 &txid, CCoins &coins) { return base->GetCoins(txid, coins); }
 bool CCoinsViewBacked::SetCoins(const uint256 &txid, const CCoins &coins) { return base->SetCoins(txid, coins); }
-bool CCoinsViewBacked::GetAddressIndex(const CScript &key, std::pair<int64_t,int> &value) { return base->GetAddressIndex(key, value); }
-bool CCoinsViewBacked::SetAddressIndex(const CScript &key, const std::pair<int64_t,int> &value) { return base->SetAddressIndex(key, value); }
+bool CCoinsViewBacked::GetAddressInfo(const CScript &key, std::pair<int64_t,int> &value) { return base->GetAddressInfo(key, value); }
+bool CCoinsViewBacked::SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value) { return base->SetAddressInfo(key, value); }
 bool CCoinsViewBacked::HaveCoins(const uint256 &txid) { return base->HaveCoins(txid); }
 uint256 CCoinsViewBacked::GetBestBlock() { return base->GetBestBlock(); }
 bool CCoinsViewBacked::SetBestBlock(const uint256 &hashBlock) { return base->SetBestBlock(hashBlock); }
 void CCoinsViewBacked::SetBackend(CCoinsView &viewIn) { base = &viewIn; }
-bool CCoinsViewBacked::BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressIndex, const uint256 &hashBlock) { return base->BatchWrite(mapCoins, mapAddressIndex, hashBlock); }
+bool CCoinsViewBacked::BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo, const uint256 &hashBlock) { return base->BatchWrite(mapCoins, mapAddressInfo, hashBlock); }
 bool CCoinsViewBacked::GetStats(CCoinsStats &stats) { return base->GetStats(stats); }
 
 CCoinsViewCache::CCoinsViewCache(CCoinsView &baseIn, bool fDummy) : CCoinsViewBacked(baseIn), hashBlock(0) { }
@@ -85,21 +85,21 @@ bool CCoinsViewCache::GetCoins(const uint256 &txid, CCoins &coins) {
     return false;
 }
 
-bool CCoinsViewCache::GetAddressIndex(const CScript &key, std::pair<int64_t,int> &value) {
-    std::map<CScript,std::pair<int64_t,int> >::iterator it = cacheAddressIndex.find(key);
-    if(it!=cacheAddressIndex.end()) {
+bool CCoinsViewCache::GetAddressInfo(const CScript &key, std::pair<int64_t,int> &value) {
+    std::map<CScript,std::pair<int64_t,int> >::iterator it = cacheAddressInfo.find(key);
+    if(it!=cacheAddressInfo.end()) {
         value = it->second;
         return true;
     }
-    if(base->GetAddressIndex(key,value)) {
-        cacheAddressIndex[key] = value;
+    if(base->GetAddressInfo(key,value)) {
+        cacheAddressInfo[key] = value;
         return true;
     }
     return false;
 }
 
-bool CCoinsViewCache::SetAddressIndex(const CScript &key, const std::pair<int64_t,int> &value) {
-    cacheAddressIndex[key] = value;
+bool CCoinsViewCache::SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value) {
+    cacheAddressInfo[key] = value;
     return true;
 }
 
@@ -142,21 +142,21 @@ bool CCoinsViewCache::SetBestBlock(const uint256 &hashBlockIn) {
 }
 
 bool CCoinsViewCache::BatchWrite(const std::map<uint256, CCoins> &mapCoins, 
-                                 const std::map<CScript, std::pair<int64_t,int> > &mapAddressIndex,
+                                 const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
                                  const uint256 &hashBlockIn) {
     for (std::map<uint256, CCoins>::const_iterator it = mapCoins.begin(); it != mapCoins.end(); it++)
         cacheCoins[it->first] = it->second;
-    for (std::map<CScript, std::pair<int64_t,int> >::const_iterator it = mapAddressIndex.begin(); it != mapAddressIndex.end(); it++)
-        cacheAddressIndex[it->first] = it->second;
+    for (std::map<CScript, std::pair<int64_t,int> >::const_iterator it = mapAddressInfo.begin(); it != mapAddressInfo.end(); it++)
+        cacheAddressInfo[it->first] = it->second;
     hashBlock = hashBlockIn;
     return true;
 }
 
 bool CCoinsViewCache::Flush() {
-    bool fOk = base->BatchWrite(cacheCoins, cacheAddressIndex, hashBlock);
+    bool fOk = base->BatchWrite(cacheCoins, cacheAddressInfo, hashBlock);
     if (fOk) {
         cacheCoins.clear();
-        cacheAddressIndex.clear();
+        cacheAddressInfo.clear();
     }
     return fOk;
 }

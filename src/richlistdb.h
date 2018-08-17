@@ -4,14 +4,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-//#include "richlistdb.h"
-//#include "init.h"
-
 #ifndef BITCOIN_RICHLISTDB_H
 #define BITCOIN_RICHLISTDB_H
 
 #include "txdb.h"
-#include "init.h" //script og string
+#include "init.h" 
 #include "core.h"
 
 class CRichList;
@@ -25,14 +22,14 @@ struct RichOrderCompare
     }
 };
 
-typedef std::pair<int64_t, int> CAddressIndex;
-typedef std::map< CScript, CAddressIndex> mapScriptPubKeys;
+typedef std::pair<int64_t, int> CAddressInfo;
+typedef std::map< CScript, CAddressInfo> mapScriptPubKeys;
 
 class CRichList
 {
 private:
 	mapScriptPubKeys maddresses;
-	bool fForked; // TODO: skrifa frekar flag í blocktreedb?
+	bool fForked; 
 
 	bool IsRelevant(const CScript &scriptpubkey) const { return scriptpubkey.IsPayToPublicKeyHash() || scriptpubkey.IsPayToScriptHash(); }
 	bool IsRich(const mapScriptPubKeys::iterator &it) const { return it->second.first >= RICH_AMOUNT; }
@@ -53,7 +50,7 @@ public:
 	bool GetHeight(const CScript &scriptpubkey, int &nHeight);
 
 	bool GetBalance(const CScript &scriptpubkey, int64_t &nBalance);
-	bool UpdateAddressIndex(const std::map<CScript, std::pair<int64_t, int> > &map);
+	bool UpdateAddressInfo(const std::map<CScript, std::pair<int64_t, int> > &map);
 	bool UpdateRichAddressHeights();
 
 

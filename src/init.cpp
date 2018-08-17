@@ -831,18 +831,10 @@ bool AppInit2(boost::thread_group& threadGroup)
                 pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
 
                 bool fFork = false;
-                //We need to detect old chainstates without the addressIndex
-                bool fAddressIndex = false;
 
                 if (fReindex) {
                     pblocktree->WriteReindexing(true);
-                    // starting point of iteration for GetRichAddresses()
-                    // TODO: move this someplace else
-                    std::vector<unsigned char> v;
-                    v.assign(21,'0');
-                    pcoinsdbview->SetAddressIndex(CScript(v),std::pair<int64_t,int>(1,0));
-                    pblocktree->WriteFlag("addressindex", true);
-                    }
+                }
 
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
@@ -852,6 +844,18 @@ bool AppInit2(boost::thread_group& threadGroup)
                 // If the loaded chain has a wrong genesis, bail out immediately
                 if (!mapBlockIndex.empty() && chainActive.Genesis() == NULL)
                     return InitError(_("Incorrect or no genesis block found. Wrong datadir for network?"));
+                
+                // Initialize the rich list - write starting point for iteration to database
+                if (!InitRichList(*pcoinsdbview)) {
+                    strLoadError = _("Error initializing rich list. You need to rebuild the database using -reindex");
+                    break;
+                }
+
+                 // Reading rich addresses into memory
+                if(!pcoinsdbview -> GetRichAddresses(RichList)) {
+                    strLoadError = _("Error loading rich list");
+                    break;
+                }
 
                 // Initialize the block index (no-op if non-empty database was already loaded)
                 if (!InitBlockIndex()) {
@@ -863,19 +867,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                 if (fTxIndex != GetBoolArg("-txindex", false)) {
                     strLoadError = _("You need to rebuild the database using -reindex to change -txindex");
                     break;
-                }
-
-                pblocktree->ReadFlag("addressindex", fAddressIndex);
-                if(!fAddressIndex) {
-                    strLoadError = _("Address index not initialized. You need to rebuild the database using -reindex");
-                    break;
-                }
-
-                 // Reading rich addresses into memory
-                if(!pcoinsdbview -> GetRichAddresses(RichList)) {
-                    strLoadError = _("Error initializing rich list");
-                    break;
-                }
+                }             
 
                 if(!pblocktree -> ReadRichListFork(fFork)) {
                     strLoadError = _("Error reading rich list fork status");

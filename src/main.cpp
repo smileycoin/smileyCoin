@@ -1666,7 +1666,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, CCoinsViewCach
 
 			// If prev is coinbase, check that it's matured
 			if (coins.IsCoinBase()) {
-				if (coins.nHeight < nRichForkHeight) { //TODO: afhverju
+				if (coins.nHeight < nRichForkHeight) { 
 					if (nSpendHeight - coins.nHeight < COINBASE_MATURITY)
 						return state.Invalid(error("CheckInputs() : tried coinbase at depth %d %d %d %d",
 								nSpendHeight - coins.nHeight, nSpendHeight, coins.nHeight, COINBASE_MATURITY));
@@ -1741,7 +1741,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 	if (blockUndo.vtxundo.size() + 1 != block.vtx.size())
 		return error("DisconnectBlock() : block and undo data inconsistent");
 
-	std::map<CScript, std::pair<int64_t, int> > addressIndex;
+	std::map<CScript, std::pair<int64_t, int> > addressInfo;
 
 	// undo transactions in reverse order
 	for (int i = block.vtx.size() - 1; i >= 0; i--) {
@@ -1755,12 +1755,12 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 			if (key.IsPayToPublicKeyHash() || key.IsPayToScriptHash()) 
 			{					
 				std::pair<int64_t, int> value;
-				if(!view.GetAddressIndex(key,value))
+				if(!view.GetAddressInfo(key,value))
 					return state.Abort(_("Failed to read address index"));
 				else {
 					value = std::make_pair(value.first - out.nValue, pindex->nHeight);
-					assert(view.SetAddressIndex(key,value));
-					addressIndex[key]=value;
+					assert(view.SetAddressInfo(key,value));
+					addressInfo[key]=value;
 				}
 			}
 		}
@@ -1820,10 +1820,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 				{					
 					std::pair<int64_t, int> value;
 					
-					int64_t nBalance =(view.GetAddressIndex(key,value)) ? value.first + prevout.nValue : prevout.nValue;
+					int64_t nBalance =(view.GetAddressInfo(key,value)) ? value.first + prevout.nValue : prevout.nValue;
 					value = std::make_pair(nBalance, pindex->nHeight);
-					assert(view.SetAddressIndex(key,value));
-					addressIndex[key]=value;
+					assert(view.SetAddressInfo(key,value));
+					addressInfo[key]=value;
 				}
 			}
 		}
@@ -1832,12 +1832,12 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 	// move best block pointer to prevout block
 	view.SetBestBlock(pindex->pprev->GetBlockHash());
 
-	if (pfClean) { //TODO: hvenær?
+	if (pfClean) { 
 		*pfClean = fClean;
 		return true;
 	}
 
-    if(!RichList.UpdateAddressIndex(addressIndex)) {
+    if(!RichList.UpdateAddressInfo(addressInfo)) {
     	return state.Abort(_("Failed to update rich list"));
     }
 	return fClean;
@@ -1898,8 +1898,14 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	// 345887-345888; 347035-347036; 355209-355214; 360604-360608; 363847-363848; 367887-367894; 369838-370005;
     fRichCheck = fRichCheck && pindex->nHeight > 370005;
 
-
-
+	// Do not allow blocks that contain transactions which 'overwrite' older transactions,
+	// unless those are already completely spent.
+	// If such overwrites are allowed, coinbases and transactions depending upon those
+	// can be duplicated to remove the ability to spend the first instance -- even after
+	// being sent to another address.
+	// See BIP30 and http://r6.ca/blog/20120206T005236Z.html for more information.
+	// This logic is not necessary for memory pool transactions, as AcceptToMemoryPool
+	// already refuses previously-known transaction ids entirely.
 	for (unsigned int i = 0; i < block.vtx.size(); i++) {
 		uint256 hash = block.GetTxHash(i);
 		if (view.HaveCoins(hash) && !view.GetCoins(hash).IsPruned())
@@ -1920,7 +1926,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	CDiskTxPos pos(pindex->GetBlockPos(), GetSizeOfCompactSize(block.vtx.size()));
 	std::vector<std::pair<uint256, CDiskTxPos> > vPos;
 	vPos.reserve(block.vtx.size());
-	std::map<CScript, std::pair<int64_t, int> > addressIndex;
+	std::map<CScript, std::pair<int64_t, int> > addressInfo;
 	
 	for (unsigned int i = 0; i < block.vtx.size(); i++)
 	{
@@ -1954,12 +1960,12 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 				if (key.IsPayToPublicKeyHash() || key.IsPayToScriptHash()) 
 				{					
 					std::pair<int64_t, int> value;
-					if(!view.GetAddressIndex(key,value))
+					if(!view.GetAddressInfo(key,value))
 						return state.Abort(_("Failed to get address index"));
 					else {
 						value = std::make_pair(value.first - prevout.nValue, pindex->nHeight);
-						assert(view.SetAddressIndex(key,value));
-						addressIndex[key]=value;
+						assert(view.SetAddressInfo(key,value));
+						addressInfo[key]=value;
 					}
 				}
 			}
@@ -1985,20 +1991,15 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 			if (key.IsPayToScriptHash() || key.IsPayToPublicKeyHash()) 
 			{					
 				std::pair<int64_t, int> value;
-				if(!view.GetAddressIndex(key,value))
+				if(!view.GetAddressInfo(key,value))
 					value = std::make_pair(out.nValue, pindex->nHeight);
 				else {
 					int64_t nBalance = value.first + out.nValue;
-					int nHeight = (pindex->nHeight < nRichForkV2Height ||
-								tx.IsCoinBase() ||
-								(nBalance >= RICH_AMOUNT && 
-								 value.first < RICH_AMOUNT) )
-							? pindex -> nHeight
-							: value.second;
+					int nHeight = (pindex->nHeight < nRichForkV2Height || tx.IsCoinBase() || (nBalance >= RICH_AMOUNT && value.first < RICH_AMOUNT)) ? pindex -> nHeight : value.second;
 					value = std::make_pair(nBalance,nHeight);
 				}
-				assert(view.SetAddressIndex(key,value));
-				addressIndex[key]=value;	
+				assert(view.SetAddressInfo(key,value));
+				addressInfo[key]=value;	
 			} 
 		}
 
@@ -2021,7 +2022,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 						block.vtx[0].GetValueOut(), GetBlockValue(pindex->nHeight, nFees)),
 						REJECT_INVALID, "bad-cb-amount"); 
     
-    // TODO: should this check be here?
     // The coinbase tx must be split: 10% to the miner, 45% to the correct rich address and 45% to one of the EIAS addresses
     if(pindex != NULL && pindex->nHeight >= nRichForkHeight)
     {
@@ -2056,7 +2056,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         	if(!RichList.IsForked())
         		return state.DoS(100, error("ConnectBlock() : rich address not getting paid correctly"), REJECT_INVALID, "bad-rich-payment");
         	else
-        		return error("ConnectBlock() : Rich list may be compromised");
+        		return state.Abort(_("Rich list may be compromised"));
         }
 
         nTime = GetTimeMicros() - nStart;
@@ -2100,7 +2100,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 			return state.Abort(_("Failed to write transaction index"));
 	}
 	// updated after the rich payment check
-    if(!RichList.UpdateAddressIndex(addressIndex)) {
+    if(!RichList.UpdateAddressInfo(addressInfo)) {
     	return state.Abort(_("Failed to update rich list"));
     }
 	// add this block to the view's block chain
@@ -2120,12 +2120,14 @@ bool static WriteChainState(CValidationState &state) {
 	static int64_t nLastWrite = 0;
 	if (!IsInitialBlockDownload() || pcoinsTip->GetCacheSize() > nCoinCacheSize || GetTimeMicros() > nLastWrite + 600*1000000) {
 		// Typical CCoins structures on disk are around 100 bytes in size.
+		// TODO: this does not account for address info
 		if (!CheckDiskSpace(100 * 2 * 2 * pcoinsTip->GetCacheSize()))
 			return state.Error("out of disk space");
 		FlushBlockFile();
 		pblocktree->Sync();
 		if (!pcoinsTip->Flush())
 			return state.Abort(_("Failed to write to coin database"));
+		pblocktree->WriteRichListFork(RichList.IsForked());
 		nLastWrite = GetTimeMicros();
 	}
 	return true;
@@ -2410,10 +2412,6 @@ bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos
 	else
 	{
 		CheckForkWarningConditionsOnNewFork(pindexNew);
-		if(fDebug)
-		{
-			LogPrintf("Block found in fork at height: %i\n",pindexNew->nHeight);
-		}
 	}
 		
 
@@ -2824,6 +2822,14 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
 		if((pblock->GetBlockTime() - pcheckpoint->nTime) < 0) {
 			return state.DoS(100, error("ProcessBlock() : block has a time stamp of %u before the last checkpoint of %u", pblock->GetBlockTime(), pcheckpoint->nTime));
          }
+        CBigNum bnNewBlock;
+		bnNewBlock.SetCompact(pblock->nBits);
+		CBigNum bnRequired;
+		bnRequired.SetCompact(ComputeMinWork(pcheckpoint->nBits, deltaTime));
+		if (bnNewBlock > bnRequired)
+		{
+			return state.DoS(100, error("ProcessBlock() : block with too little proof-of-work"), REJECT_INVALID, "bad-diffbits");
+		}
 	}
 
 	// If we don't already have its previous block, shunt it off to holding area until we get it
@@ -3296,6 +3302,23 @@ bool InitBlockIndex() {
 	}
 
 	return true;
+}
+
+bool InitRichList(CCoinsView &dbview)
+{
+	LOCK(cs_main);
+	if (fReindex || chainActive.Genesis() == NULL) {
+		std::vector<unsigned char> v;
+    	v.assign(21,'0');
+    	if(!dbview.SetAddressInfo(CScript(v),std::make_pair(1,0))) {
+    		return false; }
+		pblocktree->WriteFlag("addressinfo", true);
+	}
+	bool dummy;
+	if(!pblocktree->ReadFlag("addressinfo", dummy))
+		return false;
+	return true;
+
 }
 
 void PrintBlockTree()

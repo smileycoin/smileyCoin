@@ -147,6 +147,8 @@ FILE* OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp = NULL);
 /** Initialize a new block tree database + block data on disk */
 bool InitBlockIndex();
+/** Initialize the chainstate database for rich list iteration and verify that we have the necessary address info*/
+bool InitRichList(CCoinsView &dbview);
 /** Load the block tree and coins database from disk */
 bool LoadBlockIndex();
 /** Unload database information */

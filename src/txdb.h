@@ -36,12 +36,12 @@ public:
 
     bool GetCoins(const uint256 &txid, CCoins &coins);
     bool SetCoins(const uint256 &txid, const CCoins &coins);
-    bool GetAddressIndex(const CScript &key, std::pair<int64_t,int> &value);
-    bool SetAddressIndex(const CScript &key, const std::pair<int64_t,int> &value);
+    bool GetAddressInfo(const CScript &key, std::pair<int64_t,int> &value);
+    bool SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value);
     bool HaveCoins(const uint256 &txid);
     uint256 GetBestBlock();
     bool SetBestBlock(const uint256 &hashBlock);
-    bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript,std::pair<int64_t,int> > &mapAddressIndex, const uint256 &hashBlock);
+    bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript,std::pair<int64_t,int> > &mapAddressInfo, const uint256 &hashBlock);
     bool GetStats(CCoinsStats &stats);
 
     bool GetRichAddresses(CRichList &richlist);
