@@ -585,8 +585,8 @@ Value getblocktemplate(const Array& params, bool fHelp)
         ExtractDestination(pblock->vtx[0].vout[2].scriptPubKey, des);
         CBitcoinAddress address(des);
         EIASaddressObj.push_back(Pair("payee", address.ToString().c_str()));
-        EIASaddressObj.push_back(Pair("script", HexStr(pblock->vtx[0].vout[1].scriptPubKey.begin(), pblock->vtx[0].vout[1].scriptPubKey.end())));
-        EIASaddressObj.push_back(Pair("amount", pblock->vtx[0].vout[1].nValue));
+        EIASaddressObj.push_back(Pair("script", HexStr(pblock->vtx[0].vout[2].scriptPubKey.begin(), pblock->vtx[0].vout[2].scriptPubKey.end())));
+        EIASaddressObj.push_back(Pair("amount", pblock->vtx[0].vout[2].nValue));
         
         result.push_back(Pair("EIASaddress", EIASaddressObj));
     }

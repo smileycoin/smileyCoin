@@ -15,13 +15,13 @@
 // client versioning and copyright year
 
 // These need to be macros, as version.cpp's and bitcoin-qt.rc's voodoo requires it
-#define CLIENT_VERSION_MAJOR       2017
-#define CLIENT_VERSION_MINOR       02
-#define CLIENT_VERSION_REVISION    1
+#define CLIENT_VERSION_MAJOR       2
+#define CLIENT_VERSION_MINOR       2
+#define CLIENT_VERSION_REVISION    0
 #define CLIENT_VERSION_BUILD       0
 
 // Set to true for release, false for prerelease or test build
-#define CLIENT_VERSION_IS_RELEASE  false
+#define CLIENT_VERSION_IS_RELEASE  true
 
 // Copyright year (2009-this)
 #define COPYRIGHT_YEAR 2017
@@ -55,7 +55,7 @@ extern const std::string CLIENT_DATE;
 // network protocol versioning
 //
 
-static const int PROTOCOL_VERSION = 70002;
+static const int PROTOCOL_VERSION = 100000;
 
 // intial proto version, to be increased after version/verack negotiation
 static const int INIT_PROTO_VERSION = 209;

@@ -18,11 +18,12 @@
 #include "txdb.h"
 #include "ui_interface.h"
 #include "util.h"
+#include "richlistdb.h"
+
 #ifdef ENABLE_WALLET
 #include "db.h"
 #include "wallet.h"
 #include "walletdb.h"
-#include "richlistdb.cpp"
 #include "base58.h"
 #endif
 
@@ -55,8 +56,7 @@ CWallet* pwalletMain;
 #define MIN_CORE_FILEDESCRIPTORS 150
 #endif
 
-std::map<CScript,std::pair<int64_t,int> > PubkeyMap;
-int richcount = 0;
+CRichList RichList;
 
 // Used to pass flags to the Bind() function
 enum BindFlags {
@@ -112,20 +112,7 @@ static CCoinsViewDB *pcoinsdbview;
 void Shutdown()
 {
     LogPrintf("Shutdown : In progress...\n");
-    
-    // Write a new richlist.dat file containing the most up to date information at shutdown.
-    // This will be saved back into the map at next startup.
-    LogPrintf("Writing rich list to disk \n");
-    bitdb.RemoveDb("richlist.dat");
-    CRichListDB rich("richlist.dat","cr+");
-    map<CScript, std::pair<int64_t, int> >::iterator it;
-    for (it = PubkeyMap.begin(); it != PubkeyMap.end(); it++)
-    {
-        CScript publickey = it->first;
-        std::pair<int64_t, int> writepair = it->second;
-        rich.WriteAddress(publickey, writepair);
-    }
-    
+        
     static CCriticalSection cs_Shutdown;
     TRY_LOCK(cs_Shutdown, lockShutdown);
     if (!lockShutdown) return;
@@ -399,7 +386,7 @@ void ThreadImport(std::vector<boost::filesystem::path> vImportFiles)
     }
 }
 
-/** Initialize bitcoin.
+/** Initialize smileycoin.
  *  @pre Parameters should be parsed and config file should be read.
  */
 bool AppInit2(boost::thread_group& threadGroup)
@@ -459,15 +446,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 #endif
 #endif
     
-    // Read rich list if there is one, find how up to date it is; this should match the current best block.
-    // However, if it doesn't, we need to make it up to date before the map starts updating with the new blocks.
-    
-    filesystem::path richpath = GetDataDir() / "richlist.dat";
-    CRichListDB rich("richlist.dat","cr+");
-    int maxheight;
-    PubkeyMap.clear();
-    rich.SaveToMap(PubkeyMap, maxheight);
-    
+  
 
     // ********************************************************* Step 2: parameter interactions
 
@@ -791,8 +770,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     // ********************************************************* Step 7: load block chain
 
     fReindex = GetBoolArg("-reindex", false);
-    if (fReindex)
-        PubkeyMap.clear();
 
     // Upgrading to 0.8; hard-link the old blknnnn.dat files into /blocks/
     filesystem::path blocksDir = GetDataDir() / "blocks";
@@ -820,7 +797,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             fReindex = true;
         }
     }
-
+    //TODO: cache for address index
     // cache size calculations
     size_t nTotalCache = (GetArg("-dbcache", nDefaultDbCache) << 20);
     if (nTotalCache < (nMinDbCache << 20))
@@ -852,9 +829,12 @@ bool AppInit2(boost::thread_group& threadGroup)
                 pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, fReindex);
                 pcoinsdbview = new CCoinsViewDB(nCoinDBCache, false, fReindex);
                 pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
+
+                bool fFork = false;
+
                 if (fReindex) {
                     pblocktree->WriteReindexing(true);
-                    }
+                }
 
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
@@ -864,6 +844,18 @@ bool AppInit2(boost::thread_group& threadGroup)
                 // If the loaded chain has a wrong genesis, bail out immediately
                 if (!mapBlockIndex.empty() && chainActive.Genesis() == NULL)
                     return InitError(_("Incorrect or no genesis block found. Wrong datadir for network?"));
+                
+                // Initialize the rich list - write starting point for iteration to database
+                if (!InitRichList(*pcoinsdbview)) {
+                    strLoadError = _("Error initializing rich list. You need to rebuild the database using -reindex");
+                    break;
+                }
+
+                 // Reading rich addresses into memory
+                if(!pcoinsdbview -> GetRichAddresses(RichList)) {
+                    strLoadError = _("Error loading rich list");
+                    break;
+                }
 
                 // Initialize the block index (no-op if non-empty database was already loaded)
                 if (!InitBlockIndex()) {
@@ -875,6 +867,13 @@ bool AppInit2(boost::thread_group& threadGroup)
                 if (fTxIndex != GetBoolArg("-txindex", false)) {
                     strLoadError = _("You need to rebuild the database using -reindex to change -txindex");
                     break;
+                }             
+
+                if(!pblocktree -> ReadRichListFork(fFork)) {
+                    strLoadError = _("Error reading rich list fork status");
+                    break;
+                } else {
+                    RichList.SetForked(fFork);
                 }
 
                 uiInterface.InitMessage(_("Verifying blocks..."));
@@ -883,6 +882,17 @@ bool AppInit2(boost::thread_group& threadGroup)
                     strLoadError = _("Corrupted block database detected");
                     break;
                 }
+
+                if(fFork) {
+                    if(!RichList.UpdateRichAddressHeights()) {
+                        strLoadError = _("Error rollbacking rich list heights");
+                        break;
+                    }
+                    else {
+                        RichList.SetForked(false);
+                    }
+                }
+
             } catch(std::exception &e) {
                 if (fDebug) LogPrintf("%s\n", e.what());
                 strLoadError = _("Error opening block database");
@@ -949,85 +959,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             LogPrintf("No blocks matching %s were found\n", strMatch);
         return false;
     }
-//************************************************************** Step 8 make richlist up to date
-    /*This is only run if the last shutdown was unexpected and the richlist wasn't written to the disk properly, or
-      if this is the first time a node starts up after the update in August 2017. The richlist catches up with the
-      current heighest block.*/
-    CCoinsViewCache view(*pcoinsdbview, true);
-    if(mapBlockIndex.count((pcoinsdbview->GetBestBlock())))
-    {
-        LogPrintf("Richlist last updated at block %d \n", maxheight);
-        LogPrintf("Best block now: %d \n", mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight);
-        if(maxheight < mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second->nHeight)
-        {
-            CBlockIndex *ind;
-            if (maxheight > 0)
-                ind = chainActive[maxheight-1];
-            else if (maxheight == 0)
-                ind = chainActive[0];
-            CBlock block;
-            
-            LogPrintf("Updating rich list – current best block and best block according to richlist are different\n");
-            while (ind != mapBlockIndex.find((pcoinsdbview->GetBestBlock()))->second)
-            {
-                if (maxheight > 0)
-                    ind = chainActive[ind->nHeight + 1];
-                else if (maxheight == 0)
-                {
-                    maxheight++;
-                }
-                ReadBlockFromDisk(block,ind);
-                block.BuildMerkleTree();
-                BOOST_FOREACH(const CTransaction &tx, block.vtx)
-                {
-                    for(unsigned int j = 0; j < tx.vout.size(); j++)
-                    {
-                        CScript scriptp = tx.vout[j].scriptPubKey;
-                        if(PubkeyMap.count(scriptp))
-                        {
-                            PubkeyMap[scriptp].first += tx.vout[j].nValue;
-                            PubkeyMap[scriptp].second = ind->nHeight;
-                        }
-                        else
-                        {
-                            int64_t newvalue = tx.vout[j].nValue;
-                            int newheight = ind->nHeight;
-                            std::pair<int64_t, int> newvalueandheight = std::make_pair(newvalue, newheight);
-                            if(newvalueandheight.first > 0)
-                            {
-                                std::pair<CScript, std::pair<int64_t, int> > newpair = std::make_pair(scriptp, newvalueandheight);
-                                PubkeyMap.insert(newpair);
-                            }
-                        }
-                    }
-                }
-                
-                CBlockUndo undo;
-                CDiskBlockPos pos = ind->GetUndoPos();  
-                if(ind->pprev!=NULL && undo.ReadFromDisk(pos,ind->pprev->GetBlockHash()))
-                {
 
-                    for (unsigned int i=0; i<undo.vtxundo.size(); i++)
-                    {
-                        for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
-                        {
-                            CScript scriptp = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                            PubkeyMap[scriptp].first -= undo.vtxundo[i].vprevout[j].txout.nValue;
-                            PubkeyMap[scriptp].second = ind->nHeight;
-                            if(PubkeyMap[scriptp].first ==0)
-                            {
-                                PubkeyMap.erase(scriptp);
-                            }   
-                        }
-                    }
-                }
-
-            }
-        }
-
-        
-    }
-    LogPrintf("Rich list has caught up \n");
     // ********************************************************* Step 9: load wallet
 #ifdef ENABLE_WALLET
     if (fDisableWallet) {

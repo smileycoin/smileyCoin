@@ -9,7 +9,7 @@
 #include "core.h"
 #include "main.h"
 #include "net.h"
-#include "richlistdb.cpp"
+#include "richlistdb.h"
 #ifdef ENABLE_WALLET
 #include "wallet.h"
 #endif
@@ -113,19 +113,7 @@ static unsigned int GetMaxBlockSize(unsigned int height)
 
 CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
 {
-    CScript EIASPubkeys[10];
-    EIASPubkeys[0].SetDestination(CBitcoinAddress("BEaZDZ8gCbbP1y3t2gPNKwqZa76rUDfR73").Get());
-    EIASPubkeys[1].SetDestination(CBitcoinAddress("BDwfNiAvpb4ipNfPkdAXcPGExWHeeMdRcK").Get());
-    EIASPubkeys[2].SetDestination(CBitcoinAddress("BPVuYwyeJiXExEmEXHfCwPtRXDRqxBxTNW").Get());
-    EIASPubkeys[3].SetDestination(CBitcoinAddress("B4gB18iZWZ8nTuAvi9kq9cWbavCj6xSmny").Get());
-    EIASPubkeys[4].SetDestination(CBitcoinAddress("BGFEYswtWfo5nrKRT53ToGwZWyuRvwC8xs").Get());
-    EIASPubkeys[5].SetDestination(CBitcoinAddress("B7WWgP1fnPDHTL2z9vSHTpGqptP53t1UCB").Get());
-    EIASPubkeys[6].SetDestination(CBitcoinAddress("BEtL36SgjYuxHuU5dg8omJUAyTXDQL3Z8V").Get());
-    EIASPubkeys[7].SetDestination(CBitcoinAddress("BQaNeMcSyrzGkeKknjw6fnCSSLUYAsXCVd").Get());
-    EIASPubkeys[8].SetDestination(CBitcoinAddress("BDLAaqqtBNoG9EjbJCeuLSmT5wkdnSB8bc").Get());
-    EIASPubkeys[9].SetDestination(CBitcoinAddress("BQTar7kTE2hu4f4LrRmomjkbsqSW9rbMvy").Get());
-    
-  // Create new block
+    // Create new block
   auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
   if(!pblocktemplate.get())
   return NULL;
@@ -380,10 +368,11 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
   
       txNew.vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
       //CTxOut minerTxOut = CTxOut(0, scriptPubKeyIn);
-      int prevheight;
-      CScript richpubkey = NextRichPubkey(PubkeyMap, prevheight);
-      CTxOut richTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1), richpubkey);
-      CTxOut EIASTxOut = CTxOut(GetBlockValueRich(pindexPrev->nHeight + 1),EIASPubkeys[(pindexPrev->nHeight % 10)]);
+      CScript richpubkey;
+      if(!RichList.NextRichScriptPubKey(richpubkey))
+        richpubkey=RichList.NextEIASScriptPubKey(pindexPrev->nHeight + 1);
+      CTxOut richTxOut = CTxOut(GetBlockValueDividends(pindexPrev->nHeight + 1), richpubkey);
+      CTxOut EIASTxOut = CTxOut(GetBlockValueDividends(pindexPrev->nHeight + 1),RichList.NextEIASScriptPubKey(pindexPrev->nHeight));
       //txNew.vout.push_back(minerTxOut);
       txNew.vout.push_back(richTxOut);
       txNew.vout.push_back(EIASTxOut);
@@ -404,11 +393,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     indexDummy.nHeight = pindexPrev->nHeight + 1;
     CCoinsViewCache viewNew(*pcoinsTip, true);
     CValidationState state;
-    if (!ConnectBlock(*pblock, state, &indexDummy, viewNew, true))
+    if (!ConnectBlock(*pblock, state, &indexDummy, viewNew, true, true))
     {
-    //throw std::runtime_error("CreateNewBlock() : ConnectBlock failed");
-        PubkeyMap[richTxOut.scriptPubKey].second = prevheight;
-        std::cout << (prevheight) << std::endl;
         LogPrintf("CreateNewBlock() : ConnectBlock failed\n");
         return NULL;
     }
@@ -440,7 +426,7 @@ void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash
   //
   // Pre-build hash buffers
   //
-  struct
+  struct 
   {
     struct unnamed2
     {

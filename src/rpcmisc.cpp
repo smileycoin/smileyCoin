@@ -10,6 +10,7 @@
 #include "netbase.h"
 #include "rpcserver.h"
 #include "util.h"
+#include "richlistdb.h"
 #ifdef ENABLE_WALLET
 #include "wallet.h"
 #include "walletdb.h"
@@ -58,12 +59,7 @@ Value getinfo(const Array& params, bool fHelp)
 
     proxyType proxy;
     GetProxy(NET_IPV4, proxy);
-    int prevheight;
-    CScript nextrichpubkey = NextRichPubkey(PubkeyMap, prevheight);
-    CTxDestination des;
-    ExtractDestination(nextrichpubkey, des);
-    CBitcoinAddress nextrichaddress = CBitcoinAddress(des);
-    //std::cout << nextrichaddress.ToString() << std::endl;
+    CScript richpubkey;
 
     Object obj;
     obj.push_back(Pair("version",         (int)CLIENT_VERSION));
@@ -96,45 +92,56 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("paytxfee",      ValueFromAmount(nTransactionFee)));
 #endif
     obj.push_back(Pair("relayfee",      ValueFromAmount(CTransaction::nMinRelayTxFee)));
-    obj.push_back(Pair("oldest_rich_address", nextrichaddress.ToString()));
+    if(RichList.NextRichScriptPubKey(richpubkey)) {
+        CTxDestination des;
+        ExtractDestination(richpubkey, des);
+        obj.push_back(Pair("oldest_rich_address", CBitcoinAddress(des).ToString()));
+    }
+    else obj.push_back(Pair("oldest_rich_address", ""));   
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;
 }
 
-Value getaddressbalance(const Array& params, bool fHelp)
+
+Value getrichaddresses(const Array& params, bool fHelp)
+{
+
+    if (fHelp || params.size() != 0)
+        throw runtime_error("getrichaddresses\n"
+                            "Returns all rich addresses, ordered by height.\n"
+                            );
+    Object obj;
+    std::multiset< std::pair< CScript, std::pair<int64_t, int> >, RichOrderCompare > retset;
+    RichList.GetRichAddresses(retset);
+    for(std::set< std::pair< CScript, std::pair<int64_t, int> >, RichOrderCompare >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
+    {
+        CTxDestination des;
+        ExtractDestination(it->first, des);
+        obj.push_back(Pair(CBitcoinAddress(des).ToString(), it -> second.second));
+    }
+    return obj;
+}
+
+Value getaddressinfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error("getaddressbalance\n"
-                            "Returns the balance of a given address.\n"
+                            "Returns the balance and height of a given address.\n"
                             );
-    
-    proxyType proxy;
-    GetProxy(NET_IPV4, proxy);
-    CScript pubkey;
-    pubkey.SetDestination(CBitcoinAddress(params[0].get_str()).Get());
-    
-    //Object obj;
-    double balance = (double)(PubkeyMap[pubkey].first)/100000000;
-    //obj.push_back(Pair("balance", balance));
-    return balance;
-}
+    CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
+    if(!address.IsValid())
+        throw runtime_error("Not a valid Smileycoin address");
+    Object obj;
+    CScript key;    
+    key.SetDestination(address.Get());
+    std::pair<int64_t, int> value;
+    if(!pcoinsTip->GetAddressInfo(key, value))
+        throw runtime_error("No information available - address has been emptied or never used.");
+    obj.push_back(Pair("Balance", ValueFromAmount(value.first)));
+    obj.push_back(Pair("Height", value.second));
 
-Value getaddressheight(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 1)
-        throw runtime_error("getaddressbalance\n"
-                            "Returns the block number where a given address was last used.\n"
-                            );
-    
-    proxyType proxy;
-    GetProxy(NET_IPV4, proxy);
-    CScript pubkey;
-    pubkey.SetDestination(CBitcoinAddress(params[0].get_str()).Get());
-    
-    int height = PubkeyMap[pubkey].second;
-    return height;
+    return obj; 
 }
-
 
 #ifdef ENABLE_WALLET
 class DescribeAddressVisitor : public boost::static_visitor<Object>
