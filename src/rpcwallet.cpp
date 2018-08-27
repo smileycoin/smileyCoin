@@ -348,7 +348,7 @@ Value sendtoaddress(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
-static const int64_t BASEFEE=10000000000; // 100 SMLY base fee for each sub-transaction
+static const int64_t BASEFEE=100*COIN; // 100 SMLY base fee for each sub-transaction
 static const int64_t STARTFEE=31415926;   // decimals to define a message start
 Value sendwithmessage(const Array& params, bool fHelp)
 {
@@ -416,7 +416,7 @@ Value sendwithmessage(const Array& params, bool fHelp)
       }
       nAmount1 = 0;
       for (int i=startLen;i<startLen+nextLen;i++){
-        if ((unsigned char)str[i]>=32 && (unsigned char)str[i]<132) // skip non-ascii for now
+        if ((unsigned char)str[i]>=32 && (unsigned char)str[i]<132) // skip non-ascii for now - later encrypt
            nAmount1 = nAmount1*100+((int)(str[i])-32); // shift and insert next code
       }
       remainingLen -= nextLen;
@@ -1221,14 +1221,14 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
         {
             Object entry;
 	    // The next block should be rewritten!! from here...
-	    int64_t DecimalDigits = s.second%100000000;
+	    int64_t DecimalDigits = s.second%COIN;
 	    if(!rmsgExists){                         // No rawmessage yet
 	      rmsgExists=(DecimalDigits==STARTFEE); // Maybe now? and from here on
  	    } else {
 	      //cout << "building message 0... ind=" << rmsgInd4 <<
 	      //" s.second = " << s.second << 
-	      //" remainder = " << (s.second-BASEFEE)/100000000 << "\n";
-	      if(rmsgInd4==(s.second-BASEFEE)/100000000 -1&&rmsgInd4<500){ // index matches count?
+	      //" remainder = " << (s.second-BASEFEE)/COIN << "\n";
+	      if(rmsgInd4==(s.second-BASEFEE)/COIN -1&&rmsgInd4<500){ // index matches count?
 		//cout << "building message 0.1..." << rmsgInd4 << "\n";
 		//cout << "building message 0.1..." << rmsgInd4 << "\n";
  		lastchar= (char) (DecimalDigits%100+32);
@@ -1294,14 +1294,14 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
         {
             string account;
 	    // The next block should be rewritten!! from here...
-	    int64_t DecimalDigits = r.second%100000000;
+	    int64_t DecimalDigits = r.second%COIN;
 	    if(!rmsgExists){                         // No rawmessage yet
 	      rmsgExists=(DecimalDigits==STARTFEE); // Maybe now? and from here on
  	    } else {
 	      //cout << "building message 0... ind=" << rmsgInd4 <<
 	      //" r.second = " << r.second << 
-	      //" remainder = " << (r.second-BASEFEE)/100000000 << "\n";
-	      if(rmsgInd4==(r.second-BASEFEE)/100000000 -1&&rmsgInd4<500){ // replace 100000000000 by BASEFEE
+	      //" remainder = " << (r.second-BASEFEE)/COIN << "\n";
+	      if(rmsgInd4==(r.second-BASEFEE)/COIN -1&&rmsgInd4<500){ 
 		//cout << "building message 0.1..." << rmsgInd4 << "\n";
 		//cout << "building message 0.1..." << rmsgInd4 << "\n";
  		lastchar= (char) (DecimalDigits%100+32);
@@ -1362,7 +1362,7 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
                     entry.push_back(Pair("category", "receive"));
                 }
 		//cout<<"Value of r.second: " << ValueFromAmount(r.second);
-		//cout<<"Value of r.second: " << r.second<< " Digits: " << r.second%100000000 << "\n";
+		//cout<<"Value of r.second: " << r.second<< " Digits: " << r.second%COIN << "\n";
                 entry.push_back(Pair("amount", ValueFromAmount(r.second)));
                 if (fLong)
                     WalletTxToJSON(wtx, entry);
@@ -1710,7 +1710,7 @@ Value gettransaction(const Array& params, bool fHelp)
     ListTransactions(wtx, "*", 0, false, details, msg);
    
     if(!msg.empty())  // Extract any potential message
-      entry.push_back(Pair("rmsg", msg));
+      entry.push_back(Pair("rawmessage", msg));
     entry.push_back(Pair("details", details));
 
     CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
