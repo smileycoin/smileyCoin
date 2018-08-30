@@ -25,10 +25,10 @@ TARGETGROUP="nogroup"
 # The visible smileycoind should be a wrapper to set user/datadir
 cat <<EOF > "${TARGETBIN}"
 #!/bin/sh
-sudo -u${TARGETUSER} "${SMLY_BIN}" -datadir="${TARGETDATA}" "$@"
+sudo -u${TARGETUSER} "${SMLY_BIN}" -datadir="${TARGETDATA}" "\$@"
 EOF
 chown root:root "${TARGETBIN}"
-chmod a+rw "${TARGETBIN}"
+chmod a+rwx "${TARGETBIN}"
 
 grep -qE "^${TARGETUSER}:" /etc/passwd || adduser --system \
     --home "${TARGETDATA}" --no-create-home \
