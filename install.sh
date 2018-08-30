@@ -30,7 +30,7 @@ EOF
 chown root:root "${TARGETBIN}"
 chmod a+rw "${TARGETBIN}"
 
-adduser --system \
+grep -qE "^${TARGETUSER}:" /etc/passwd || adduser --system \
     --home "${TARGETDATA}" --no-create-home \
     --disabled-password \
     ${TARGETUSER}
