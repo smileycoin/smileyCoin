@@ -1,10 +1,18 @@
 #!/bin/sh
 set -ex
+# Install script for a system smileycoin daemon
+# Copyright 2018 Jamie Lentin (jamie.lentin@shuttlethread.com)
 
 # This script will install smileycoin globally, create a systemd service for
 # it and start the daemon.
 #
 # It is tested on Debian, but should hopefully work on anything systemd-based.
+
+PROJECT_PATH="${PROJECT_PATH-$(dirname "$(readlink -f "$0")")}"  # The full project path, e.g. /srv/tutor-web.beta
+PROJECT_NAME="${PROJECT_NAME-$(basename ${PROJECT_PATH})}"  # The project directory name, e.g. tutor-web.beta
+PROJECT_MODE="${PROJECT_MODE-development}"  # The project mode, development or production
+
+SMLY_BIN="${SMLY_BIN-${PROJECT_PATH}/src/smileycoind}"
 
 TARGETBIN="/usr/local/bin/smileycoind"
 TARGETDATA="/var/local/smly"
@@ -14,8 +22,14 @@ TARGETGROUP="nogroup"
 
 # ---------------------------
 
-cp src/smileycoind "${TARGETBIN}"
+# The visible smileycoind should be a wrapper to set user/datadir
+cat <<EOF > "${TARGETBIN}"
+#!/bin/sh
+sudo -u${TARGETUSER} "${SMLY_BIN}" -datadir="${TARGETDATA}" "$@"
+EOF
 chown root:root "${TARGETBIN}"
+chmod a+rw "${TARGETBIN}"
+
 adduser --system \
     --home "${TARGETDATA}" --no-create-home \
     --disabled-password \
@@ -34,7 +48,7 @@ Description=SMLYcoin
 After=network.target
 
 [Service]
-ExecStart=${TARGETBIN} -datadir=${TARGETDATA} --server -printtoconsole
+ExecStart=${SMLY_BIN} -datadir=${TARGETDATA} --server -printtoconsole
 User=${TARGETUSER}
 Group=${TARGETGROUP}
 
