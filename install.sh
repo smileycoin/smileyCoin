@@ -48,7 +48,7 @@ Description=SMLYcoin
 After=network.target
 
 [Service]
-ExecStart=${SMLY_BIN} -datadir=${TARGETDATA} --server -printtoconsole
+ExecStart=${SMLY_BIN} -datadir=${TARGETDATA} --server -printtoconsole -algo=skein
 User=${TARGETUSER}
 Group=${TARGETGROUP}
 
