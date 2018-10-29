@@ -43,13 +43,13 @@ Licenses of statically linked libraries:
  miniupnpc     New (3-clause) BSD license
 
 - Versions used in this release:
--  GCC           4.3.3
--  OpenSSL       1.0.1c
+-  GCC           8.2.1
+-  OpenSSL       1.1.1
 -  Berkeley DB   4.8.30.NC
--  Boost         1.55
+-  Boost         1.68
 -  miniupnpc     1.6
 -  qt            4.8.3
--  protobuf      2.5.0
+-  protobuf      3.6.1
 -  libqrencode   3.2.0
 
 Dependency Build Instructions: Ubuntu & Debian

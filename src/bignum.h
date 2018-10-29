@@ -19,43 +19,82 @@
 //Errors thrown by the bignum class
 class bignum_error : public std::runtime_error
 {
-public:
-    explicit bignum_error(const std::string& str) : std::runtime_error(str) {}
+	public:
+		explicit bignum_error(const std::string& str) : std::runtime_error(str) {}
 };
 
 
 //RAII encapsulated BN_CTX (OpenSSL bignum context)
 class CAutoBN_CTX
 {
-protected:
-    BN_CTX* pctx;
-    BN_CTX* operator=(BN_CTX* pnew) { return pctx = pnew; }
+	protected:
+		BN_CTX* pctx;
+		BN_CTX* operator=(BN_CTX* pnew) { return pctx = pnew; }
 
-public:
-    CAutoBN_CTX()
-    {
-        pctx = BN_CTX_new();
-        if (pctx == NULL)
-            throw bignum_error("CAutoBN_CTX : BN_CTX_new() returned NULL");
-    }
+	public:
+		CAutoBN_CTX()
+		{
+			pctx = BN_CTX_new();
+			if (pctx == NULL)
+				throw bignum_error("CAutoBN_CTX : BN_CTX_new() returned NULL");
+		}
 
-    ~CAutoBN_CTX()
-    {
-        if (pctx != NULL)
-            BN_CTX_free(pctx);
-    }
+		~CAutoBN_CTX()
+		{
+			if (pctx != NULL)
+				BN_CTX_free(pctx);
+		}
 
-    operator BN_CTX*() { return pctx; }
-    BN_CTX& operator*() { return *pctx; }
-    BN_CTX** operator&() { return &pctx; }
-    bool operator!() { return (pctx == NULL); }
+		operator BN_CTX*() { return pctx; }
+		BN_CTX& operator*() { return *pctx; }
+		BN_CTX** operator&() { return &pctx; }
+		bool operator!() { return (pctx == NULL); }
 };
 
+/*
+ * Note:
+ * The macros below regarding OPENSSL_VERSION_NUMBER etc. are in regards to an OpenSLL
+ * update that made BIGNUM "opaque". The goal is to have there be one, backwards
+ * compatible file.
+ *
+ * Assumptions:
+ *
+ *
+ *
+ */
+#if OPENSSL_VERSION_NUMBER >=  0x10100000L
+#define BN_init(E)            (E)->num = BN_new()
+#define BN_copy(E, F)         BN_copy((E)->num, (F)->num)
+#define BN_clear_free(E)      BN_clear_free((E)->num)
+#define BN_set_word(E, F)     BN_set_word((E)->num, (F))
+#define BN_get_word(E)        BN_get_word((E)->num) 
+#define BN_is_negative(E)     BN_is_negative((E)->num)
+#define BN_mpi2bn(E, F, G)    BN_mpi2bn((E), (F), (G)->num)
+#define BN_bn2mpi(E, F)       BN_bn2mpi((E)->num, (F))
+#define BN_lshift(E, F, G)    BN_lshift((E)->num, (F)->num, (G))
+#define BN_set_negative(E, F) BN_set_negative((E)->num, (F))
+#define BN_rshift(E, F, G)    BN_rshift((E)->num, (F)->num, (G))
+#define BN_num_bits(E)        BN_num_bits((E)->num)
+#undef  BN_num_bytes
+#define BN_num_bytes(E)       ((BN_num_bits((E)) + 7)/8)
+#define BN_is_zero(E)         BN_is_zero((E)->num)
+#define BN_cmp(E, F)          BN_cmp((E)->num, (F)->num)
+#define BN_add(E, F, G)       BN_add((E)->num, (F)->num, (G)->num)
+#define BN_sub(E, F, G)       BN_sub((E)->num, (F)->num, (G)->num)
+#define BN_mul(E, F, G, H)    BN_mul((E)->num, (F)->num, (G)->num, H)
+#endif
 
 //C++ wrapper for BIGNUM (OpenSSL bignum)
+#if OPENSSL_VERSION_NUMBER >=  0x10100000L
+class CBigNum
+#else
 class CBigNum : public BIGNUM
+#endif
 {
 public:
+#if OPENSSL_VERSION_NUMBER >=  0x10100000L
+	BIGNUM* num;
+#endif
     CBigNum()
     {
         BN_init(this);
@@ -357,7 +396,11 @@ public:
             return "0";
         while (BN_cmp(&bn, &bn0) > 0)
         {
+#if OPENSSL_VERSION_NUMBER >=  0x10100000L
+            if (!BN_div(dv.num, rem.num, bn.num, bnBase.num, pctx))
+#else
             if (!BN_div(&dv, &rem, &bn, &bnBase, pctx))
+#endif
                 throw bignum_error("CBigNum::ToString() : BN_div failed");
             bn = dv;
             unsigned int c = rem.getulong();
@@ -459,9 +502,17 @@ public:
     CBigNum& operator++()
     {
         // prefix operator
+#if OPENSSL_VERSION_NUMBER >=  0x10100000L
+#undef BN_add
+        if (!BN_add(this->num, this->num, BN_value_one()))
+            throw bignum_error("CBigNum::operator++ : BN_add failed");
+        return *this;
+#define BN_add(E, F, G) BN_add((E)->num, (F)->num, (G)->num)
+#else
         if (!BN_add(this, this, BN_value_one()))
             throw bignum_error("CBigNum::operator++ : BN_add failed");
         return *this;
+#endif
     }
 
     const CBigNum operator++(int)
@@ -475,11 +526,19 @@ public:
     CBigNum& operator--()
     {
         // prefix operator
+#if OPENSSL_VERSION_NUMBER >=  0x10100000L
+#undef BN_sub
+        if (!BN_sub(this->num, this->num, BN_value_one()))
+            throw bignum_error("CBigNum::operator++ : BN_add failed");
+        return *this;
+#define BN_sub(E, F, G) BN_sub((E)->num, (F)->num, (G)->num)
+#else
         CBigNum r;
         if (!BN_sub(&r, this, BN_value_one()))
             throw bignum_error("CBigNum::operator-- : BN_sub failed");
         *this = r;
         return *this;
+#endif
     }
 
     const CBigNum operator--(int)
@@ -602,7 +661,11 @@ inline const CBigNum operator/(const CBigNum& a, const CBigNum& b)
 {
     CAutoBN_CTX pctx;
     CBigNum r;
+#if OPENSSL_VERSION_NUMBER >=  0x10100000L
+    if (!BN_div(r.num, NULL, a.num, b.num, pctx))
+#else
     if (!BN_div(&r, NULL, &a, &b, pctx))
+#endif
         throw bignum_error("CBigNum::operator/ : BN_div failed");
     return r;
 }
@@ -611,7 +674,11 @@ inline const CBigNum operator%(const CBigNum& a, const CBigNum& b)
 {
     CAutoBN_CTX pctx;
     CBigNum r;
+#if OPENSSL_VERSION_NUMBER >=  0x10100000L
+    if (!BN_mod(r.num, a.num, b.num, pctx))
+#else
     if (!BN_mod(&r, &a, &b, pctx))
+#endif
         throw bignum_error("CBigNum::operator% : BN_div failed");
     return r;
 }

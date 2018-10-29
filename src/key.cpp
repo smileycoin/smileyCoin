@@ -81,7 +81,11 @@ int ECDSA_SIG_recover_key_GFp(EC_KEY *eckey, ECDSA_SIG *ecsig, const unsigned ch
     x = BN_CTX_get(ctx);
     if (!BN_copy(x, order)) { ret=-1; goto err; }
     if (!BN_mul_word(x, i)) { ret=-1; goto err; }
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+    if (!BN_add(x, x, ECDSA_SIG_get0_r(ecsig))) { ret=-1; goto err; }
+#else
     if (!BN_add(x, x, ecsig->r)) { ret=-1; goto err; }
+#endif
     field = BN_CTX_get(ctx);
     if (!EC_GROUP_get_curve_GFp(group, field, NULL, NULL, ctx)) { ret=-2; goto err; }
     if (BN_cmp(x, field) >= 0) { ret=0; goto err; }
@@ -102,9 +106,15 @@ int ECDSA_SIG_recover_key_GFp(EC_KEY *eckey, ECDSA_SIG *ecsig, const unsigned ch
     if (!BN_zero(zero)) { ret=-1; goto err; }
     if (!BN_mod_sub(e, zero, e, order, ctx)) { ret=-1; goto err; }
     rr = BN_CTX_get(ctx);
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+    if (!BN_mod_inverse(rr, ECDSA_SIG_get0_r(ecsig), order, ctx)) { ret=-1; goto err; }
+    sor = BN_CTX_get(ctx);
+    if (!BN_mod_mul(sor, ECDSA_SIG_get0_s(ecsig), rr, order, ctx)) { ret=-1; goto err; }
+#else
     if (!BN_mod_inverse(rr, ecsig->r, order, ctx)) { ret=-1; goto err; }
     sor = BN_CTX_get(ctx);
     if (!BN_mod_mul(sor, ecsig->s, rr, order, ctx)) { ret=-1; goto err; }
+#endif
     eor = BN_CTX_get(ctx);
     if (!BN_mod_mul(eor, e, rr, order, ctx)) { ret=-1; goto err; }
     if (!EC_POINT_mul(group, Q, eor, R, sor, ctx)) { ret=-2; goto err; }
@@ -147,6 +157,18 @@ public:
         memset(vch, 0, 32 - nBytes);
     }
 
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+    void SetSecretBytes(const unsigned char vch[32]) {
+        bool ret;
+		BIGNUM* bn = BN_new();
+
+        ret = BN_bin2bn(vch, 32, bn);
+        assert(ret);
+        ret = EC_KEY_regenerate_key(pkey, bn);
+        assert(ret);
+        BN_clear_free(bn);
+    }
+#else
     void SetSecretBytes(const unsigned char vch[32]) {
         bool ret;
         BIGNUM bn;
@@ -157,6 +179,7 @@ public:
         assert(ret);
         BN_clear_free(&bn);
     }
+#endif
 
     void GetPrivKey(CPrivKey &privkey, bool fCompressed) {
         EC_KEY_set_conv_form(pkey, fCompressed ? POINT_CONVERSION_COMPRESSED : POINT_CONVERSION_UNCOMPRESSED);
@@ -199,6 +222,39 @@ public:
         return o2i_ECPublicKey(&pkey, &pbegin, pubkey.size());
     }
 
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+    bool Sign(const uint256 &hash, std::vector<unsigned char>& vchSig) {
+        vchSig.clear();
+        ECDSA_SIG *sig = ECDSA_do_sign((unsigned char*)&hash, sizeof(hash), pkey);
+        if (sig == NULL)
+            return false;
+        BN_CTX *ctx = BN_CTX_new();
+        BN_CTX_start(ctx);
+        const EC_GROUP *group = EC_KEY_get0_group(pkey);
+        BIGNUM *order = BN_CTX_get(ctx);
+        BIGNUM *halforder = BN_CTX_get(ctx);
+        EC_GROUP_get_order(group, order, ctx);
+        BN_rshift1(halforder, order);
+        if (BN_cmp(ECDSA_SIG_get0_s(sig), halforder) > 0) {
+            // enforce low S values, by negating the value (modulo the order) if above order/2.
+            //BN_sub(ECDSA_SIG_get0_s(sig), order, ECDSA_SIG_get0_s(sig));
+			BIGNUM* tmp_s = BN_new();
+			BIGNUM* tmp_r = BN_new();
+			BN_copy(tmp_r, ECDSA_SIG_get0_r(sig));
+            BN_sub(tmp_s, order, ECDSA_SIG_get0_s(sig));
+			ECDSA_SIG_set0(sig, tmp_r, tmp_s);
+        }
+        BN_CTX_end(ctx);
+        BN_CTX_free(ctx);
+        unsigned int nSize = ECDSA_size(pkey);
+        vchSig.resize(nSize); // Make sure it is big enough
+        unsigned char *pos = &vchSig[0];
+        nSize = i2d_ECDSA_SIG(sig, &pos);
+        ECDSA_SIG_free(sig);
+        vchSig.resize(nSize); // Shrink to fit actual size
+        return true;
+    }
+#else
     bool Sign(const uint256 &hash, std::vector<unsigned char>& vchSig) {
         vchSig.clear();
         ECDSA_SIG *sig = ECDSA_do_sign((unsigned char*)&hash, sizeof(hash), pkey);
@@ -225,6 +281,7 @@ public:
         vchSig.resize(nSize); // Shrink to fit actual size
         return true;
     }
+#endif
 
     bool Verify(const uint256 &hash, const std::vector<unsigned char>& vchSig) {
         // -1 = error, 0 = bad sig, 1 = good
@@ -233,6 +290,38 @@ public:
         return true;
     }
 
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+    bool SignCompact(const uint256 &hash, unsigned char *p64, int &rec) {
+        bool fOk = false;
+        ECDSA_SIG *sig = ECDSA_do_sign((unsigned char*)&hash, sizeof(hash), pkey);
+        if (sig==NULL)
+            return false;
+        memset(p64, 0, 64);
+        int nBitsR = BN_num_bits(ECDSA_SIG_get0_r(sig));
+        int nBitsS = BN_num_bits(ECDSA_SIG_get0_s(sig));
+        if (nBitsR <= 256 && nBitsS <= 256) {
+            CPubKey pubkey;
+            GetPubKey(pubkey, true);
+            for (int i=0; i<4; i++) {
+                CECKey keyRec;
+                if (ECDSA_SIG_recover_key_GFp(keyRec.pkey, sig, (unsigned char*)&hash, sizeof(hash), i, 1) == 1) {
+                    CPubKey pubkeyRec;
+                    keyRec.GetPubKey(pubkeyRec, true);
+                    if (pubkeyRec == pubkey) {
+                        rec = i;
+                        fOk = true;
+                        break;
+                    }
+                }
+            }
+            assert(fOk);
+            BN_bn2bin(ECDSA_SIG_get0_r(sig),&p64[32-(nBitsR+7)/8]);
+            BN_bn2bin(ECDSA_SIG_get0_s(sig),&p64[64-(nBitsS+7)/8]);
+        }
+        ECDSA_SIG_free(sig);
+        return fOk;
+    }
+#else
     bool SignCompact(const uint256 &hash, unsigned char *p64, int &rec) {
         bool fOk = false;
         ECDSA_SIG *sig = ECDSA_do_sign((unsigned char*)&hash, sizeof(hash), pkey);
@@ -263,11 +352,28 @@ public:
         ECDSA_SIG_free(sig);
         return fOk;
     }
+#endif
 
     // reconstruct public key from a compact signature
     // This is only slightly more CPU intensive than just verifying it.
     // If this function succeeds, the recovered public key is guaranteed to be valid
     // (the signature is a valid signature of the given data for that key)
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+    bool Recover(const uint256 &hash, const unsigned char *p64, int rec)
+    {
+        if (rec<0 || rec>=3)
+            return false;
+        ECDSA_SIG *sig = ECDSA_SIG_new();
+		BIGNUM* sig_r = BN_new();
+		BIGNUM* sig_s = BN_new();
+        BN_bin2bn(&p64[0],  32, sig_r);
+        BN_bin2bn(&p64[32], 32, sig_s);
+		ECDSA_SIG_set0(sig, sig_r, sig_s);
+        bool ret = ECDSA_SIG_recover_key_GFp(pkey, sig, (unsigned char*)&hash, sizeof(hash), rec, 0) == 1;
+        ECDSA_SIG_free(sig);
+        return ret;
+    }
+#else
     bool Recover(const uint256 &hash, const unsigned char *p64, int rec)
     {
         if (rec<0 || rec>=3)
@@ -279,6 +385,7 @@ public:
         ECDSA_SIG_free(sig);
         return ret;
     }
+#endif
 
     static bool TweakSecret(unsigned char vchSecretOut[32], const unsigned char vchSecretIn[32], const unsigned char vchTweak[32])
     {
