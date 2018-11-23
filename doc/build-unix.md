@@ -52,8 +52,19 @@ Licenses of statically linked libraries:
 -  protobuf      3.6.1
 -  libqrencode   3.2.0
 
+Dependencies quick start: Debian buster
+---------------------------------------
+
+Install required dependencies with:
+
+    sudo apt install build-essential pkg-config libtool autotools-dev autoconf \
+                     libssl-dev libboost-all-dev libdb-dev libdb++-dev
+
+Then do ``./autogen.sh``, ``./configure``, ``make`` as above.
+
 Dependency Build Instructions: Ubuntu & Debian
 ----------------------------------------------
+
 Build requirements:
 
 	sudo apt-get install build-essential
