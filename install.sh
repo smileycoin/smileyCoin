@@ -57,3 +57,8 @@ WantedBy=multi-user.target
 EOF
 systemctl enable smly.service
 systemctl start smly.service
+
+groupadd -f smly-users
+cat <<EOF > /etc/sudoers.d/smly
+%smly-users        ALL=(smly) ${SMLY_BIN}
+EOF
