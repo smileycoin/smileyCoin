@@ -21,6 +21,7 @@ TARGETUSER="smly"
 TARGETGROUP="nogroup"
 
 # ---------------------------
+systemctl | grep -q "smly.service" && systemctl stop smly.service
 
 # The visible smileycoind should be a wrapper to set user/datadir
 cat <<EOF > "${TARGETBIN}"
@@ -55,6 +56,7 @@ Group=${TARGETGROUP}
 [Install]
 WantedBy=multi-user.target
 EOF
+systemctl daemon-reload
 systemctl enable smly.service
 systemctl start smly.service
 
