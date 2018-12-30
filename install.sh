@@ -14,7 +14,7 @@ PROJECT_MODE="${PROJECT_MODE-development}"  # The project mode, development or p
 
 SMLY_BIN="${SMLY_BIN-${PROJECT_PATH}/src/smileycoind}"
 
-TARGETBIN="/usr/local/bin/smileycoind"
+BINDIR="/usr/local/bin"
 TARGETDATA="/var/local/smly"
 TARGETCONF="${TARGETDATA}/smileycoin.conf"
 TARGETUSER="smly"
@@ -24,12 +24,19 @@ TARGETGROUP="nogroup"
 systemctl | grep -q "smly.service" && systemctl stop smly.service
 
 # The visible smileycoind should be a wrapper to set user/datadir
-cat <<EOF > "${TARGETBIN}"
+cat <<EOF > "${BINDIR}/smileycoind"
 #!/bin/sh
 sudo -u${TARGETUSER} "${SMLY_BIN}" -datadir="${TARGETDATA}" "\$@"
 EOF
-chown root:root "${TARGETBIN}"
-chmod a+rwx "${TARGETBIN}"
+chown root:root "${BINDIR}/smileycoind"
+chmod a+rwx "${BINDIR}/smileycoind"
+
+cat <<EOF > "${BINDIR}/smileycoin-cli"
+#!/bin/sh
+exec "${PROJECT_PATH}/src/smileycoin-cli" -datadir="${TARGETDATA}" "\$@"
+EOF
+chown root:root "${BINDIR}/smileycoin-cli"
+chmod a+rwx "${BINDIR}/smileycoin-cli"
 
 grep -qE "^${TARGETUSER}:" /etc/passwd || adduser --system \
     --home "${TARGETDATA}" --no-create-home \
