@@ -38,6 +38,19 @@ EOF
 chown root:root "${BINDIR}/smileycoin-cli"
 chmod a+rwx "${BINDIR}/smileycoin-cli"
 
+cat <<EOF > "${BINDIR}/smileycoin-walletunlock"
+#!/bin/bash
+echo -n "Passphrase: "
+read -s PASSWD
+echo
+
+TIMEOUT="\${1-600}"
+
+exec "${BINDIR}/smileycoin-cli" walletpassphrase "\${PASSWD}" "\${TIMEOUT}"
+EOF
+chown root:root "${BINDIR}/smileycoin-walletunlock"
+chmod a+rwx "${BINDIR}/smileycoin-walletunlock"
+
 grep -qE "^${TARGETUSER}:" /etc/passwd || adduser --system \
     --home "${TARGETDATA}" --no-create-home \
     --disabled-password \
