@@ -55,7 +55,7 @@ static const int64_t nMaxAdjustUp = 20; // 20% adjustment up
 static const int64_t nLocalTargetAdjustment = 4; //target adjustment per algo
 
 static const int64_t nAveragingIntervalV2 = 2; // 2 blocks
-static const int64_t nMaxAdjustDownV2 = 4; // 4% adjustment down
+static const int64_t nMaxAdjustDownV2 = 8; // 4% adjustment down
 static const int64_t nMaxAdjustUpV2 = 4; // 4% adjustment up
 static const int64_t nLocalTargetAdjustmentV2 = 4; //target adjustment per algo
 
@@ -1350,7 +1350,7 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 	// find first block in averaging interval
 	// Go back by what we want to be nAveragingInterval blocks per algo
 	const CBlockIndex* pindexFirst = pindexLast;
-	const bool fDiffChange = pindexLast->nHeight +1 >= nRichForkV2Height;
+	const bool fDiffChange = pindexLast->nHeight >= nRichForkV2Height;
 	for (int i = 0; pindexFirst && i < NUM_ALGOS*(fDiffChange ? nAveragingIntervalV2 : nAveragingInterval); i++)
 	{
 		pindexFirst = pindexFirst->pprev;
@@ -1374,7 +1374,7 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 		nActualTimespan = nAveragingTargetTimespan + (nActualTimespan - nAveragingTargetTimespan)/4;
 		nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 60* 5 * 180 = 54000 seconds
 	} else {
-		nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 60* 5 * 180 = 54000 seconds
+		nAveragingTargetTimespan = nAveragingIntervalV2 * multiAlgoTargetSpacing; // 2* 5 * 180 = 54000 seconds
 		nActualTimespan = nAveragingTargetTimespan + (nActualTimespan - nAveragingTargetTimespan)/4;
 	}   
  
