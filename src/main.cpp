@@ -1374,7 +1374,7 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 		nActualTimespan = nAveragingTargetTimespan + (nActualTimespan - nAveragingTargetTimespan)/4;
 		nAveragingTargetTimespan = nAveragingInterval * multiAlgoTargetSpacing; // 60* 5 * 180 = 54000 seconds
 	} else {
-		nAveragingTargetTimespan = nAveragingIntervalV2 * multiAlgoTargetSpacing; // 2* 5 * 180 = 54000 seconds
+		nAveragingTargetTimespan = nAveragingIntervalV2 * multiAlgoTargetSpacing; // 2* 5 * 180 = 1800 seconds
 		nActualTimespan = nAveragingTargetTimespan + (nActualTimespan - nAveragingTargetTimespan)/4;
 	}   
  
