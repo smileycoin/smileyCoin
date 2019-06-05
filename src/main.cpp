@@ -55,7 +55,7 @@ static const int64_t nMaxAdjustUp = 20; // 20% adjustment up
 static const int64_t nLocalTargetAdjustment = 4; //target adjustment per algo
 
 static const int64_t nAveragingIntervalV2 = 2; // 2 blocks
-static const int64_t nMaxAdjustDownV2 = 8; // 4% adjustment down
+static const int64_t nMaxAdjustDownV2 = 8; // 8% adjustment down
 static const int64_t nMaxAdjustUpV2 = 4; // 4% adjustment up
 static const int64_t nLocalTargetAdjustmentV2 = 4; //target adjustment per algo
 
