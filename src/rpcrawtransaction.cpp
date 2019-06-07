@@ -377,8 +377,6 @@ Value createrawtransaction(const Array& params, bool fHelp)
     {
         if(s.name_ == "data") {
             std::vector<unsigned char> data = ParseHexV(s.value_.get_str(), "Data");
-            if(data.size() > 80)
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, string("Maximum size of 80 bytes reached for data field"));
             CTxOut out(0, CScript() << OP_RETURN << data);
             rawTx.vout.push_back(out);
         } else {
