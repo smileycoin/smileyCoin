@@ -88,3 +88,4 @@ misc/qa/pull-tester/build-tests.sh
 misc/qa/pull-tester/run-bitcoind-for-test.sh
 
 !src/leveldb*/Makefile
+*.ipch
