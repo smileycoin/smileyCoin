@@ -898,7 +898,6 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
 		// See if transaction contains OP_RETURN output
 		if (ContainsOpReturn(tx)){ //
 			// Only allow OP_RETURN transactions that send atleast txMinFee amount
-			int64_t txMinFee = GetMinFee(tx, nSize, true, GMF_RELAY);
 			if (nValueOut < txMinFee)
 				return state.DoS(0, error("AcceptToMemoryPool : not enough value sent for OP_RETURN transaction %s, %d < %d", hash.ToString(), nValueOut, txMinFee), REJECT_INSUFFICIENTFEE, "insufficient output value");
 		}
