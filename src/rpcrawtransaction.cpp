@@ -336,8 +336,9 @@ Value createrawtransaction(const Array& params, bool fHelp)
             "      ,...\n"
             "    },\n"
             "    {\n"
-            "      \"data\": \"hex\"    (obj, optional) A key-value pair. The key must be \"data\", the value is hex encoded data\n"
-            "   }\n"
+            "      \"data\": \"hex:amount\"    (obj, optional) A key-value pair. The key must be \"data\", the value is hex encoded data and amount of SMLY\n"
+            "                                  to be burnt by this OP_RETURN output. Default value is 0\n"
+            "    }\n"
             "    ,...                   More key-value pairs of the above form. For compatibility reasons, a dictionary, which holds the key-value pairs directly, is also\n"
             "                           accepted as second parameter.\n"
             "\nResult:\n"
@@ -373,11 +374,24 @@ Value createrawtransaction(const Array& params, bool fHelp)
     }
 
     set<CBitcoinAddress> setAddress;
+
+    int64_t DEFAULT_AMOUNT = 0;
+
     BOOST_FOREACH(const Pair& s, sendTo)
     {
         if(s.name_ == "data") {
-            std::vector<unsigned char> data = ParseHexV(s.value_.get_str(), "Data");
-            CTxOut out(0, CScript() << OP_RETURN << data);
+            vector<string> str;
+            string hexdata = s.value_.get_str();
+            int64_t amount = 0;
+
+            split(str,hexdata,boost::is_any_of(":"));
+            vector<unsigned char> data = ParseHexV(str[0], "Data");
+
+            if(str.size() == 2) {
+                amount = strtoll(str[1].c_str(),NULL,10);
+            }
+
+            CTxOut out(max(DEFAULT_AMOUNT,amount) * COIN, CScript() << OP_RETURN << data);
             rawTx.vout.push_back(out);
         } else {
             CBitcoinAddress address(s.name_);
