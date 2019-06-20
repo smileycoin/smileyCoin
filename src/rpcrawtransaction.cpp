@@ -315,7 +315,7 @@ Value createrawtransaction(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-            "createrawtransaction [{\"txid\":\"id\",\"vout\":n},...] {\"address\":amount,...}\n"
+            "createrawtransaction [{\"txid\":\"id\",\"vout\":n},...] [{\"address\":amount},{\"data\":\"hex\"},...]\n"
             "\nCreate a transaction spending the given inputs and sending to the given addresses.\n"
             "Returns hex-encoded raw transaction.\n"
             "Note that the transaction's inputs are not signed, and\n"
@@ -334,14 +334,21 @@ Value createrawtransaction(const Array& params, bool fHelp)
             "    {\n"
             "      \"address\": x.xxx   (numeric, required) The key is the smileycoin address, the value is the btc amount\n"
             "      ,...\n"
+            "    },\n"
+            "    {\n"
+            "      \"data\": \"hex:amount\"    (obj, optional) A key-value pair. The key must be \"data\", the value is hex encoded data and amount of SMLY\n"
+            "                                  to be burnt by this OP_RETURN output. Default value is 0\n"
             "    }\n"
-
+            "    ,...                   More key-value pairs of the above form. For compatibility reasons, a dictionary, which holds the key-value pairs directly, is also\n"
+            "                           accepted as second parameter.\n"
             "\nResult:\n"
             "\"transaction\"            (string) hex string of the transaction\n"
 
             "\nExamples\n"
-            + HelpExampleCli("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"{\\\"address\\\":0.01}\"")
-            + HelpExampleRpc("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"{\\\"address\\\":0.01}\"")
+            + HelpExampleCli("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"[{\\\"address\\\":0.01}]\"")
+            + HelpExampleCli("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\" \"[{\\\"data\\\":\\\"00010203\\\"}]\"")
+            + HelpExampleRpc("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"[{\\\"address\\\":0.01}]\"")
+            + HelpExampleRpc("createrawtransaction", "\"[{\\\"txid\\\":\\\"myid\\\",\\\"vout\\\":0}]\", \"[{\\\"data\\\":\\\"00010203\\\"}]\"")
         );
 
     RPCTypeCheck(params, list_of(array_type)(obj_type));
@@ -369,22 +376,41 @@ Value createrawtransaction(const Array& params, bool fHelp)
     }
 
     set<CBitcoinAddress> setAddress;
+
+    int64_t DEFAULT_AMOUNT = 0;
+
     BOOST_FOREACH(const Pair& s, sendTo)
     {
-        CBitcoinAddress address(s.name_);
-        if (!address.IsValid())
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, string("Invalid Smileycoin address: ")+s.name_);
+        if(s.name_ == "data") {
+            vector<string> str;
+            string hexdata = s.value_.get_str();
+            int64_t amount = 0;
 
-        if (setAddress.count(address))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid parameter, duplicated address: ")+s.name_);
-        setAddress.insert(address);
+            split(str,hexdata,boost::is_any_of(":"));
+            vector<unsigned char> data = ParseHexV(str[0], "Data");
 
-        CScript scriptPubKey;
-        scriptPubKey.SetDestination(address.Get());
-        int64_t nAmount = AmountFromValue(s.value_);
+            if(str.size() == 2) {
+                amount = strtoll(str[1].c_str(),NULL,10);
+            }
 
-        CTxOut out(nAmount, scriptPubKey);
-        rawTx.vout.push_back(out);
+            CTxOut out(max(DEFAULT_AMOUNT,amount) * COIN, CScript() << OP_RETURN << data);
+            rawTx.vout.push_back(out);
+        } else {
+            CBitcoinAddress address(s.name_);
+            if (!address.IsValid())
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, string("Invalid Smileycoin address: ")+s.name_);
+
+            if (setAddress.count(address))
+                throw JSONRPCError(RPC_INVALID_PARAMETER, string("Invalid parameter, duplicated address: ")+s.name_);
+            setAddress.insert(address);
+
+            CScript scriptPubKey;
+            scriptPubKey.SetDestination(address.Get());
+            int64_t nAmount = AmountFromValue(s.value_);
+
+            CTxOut out(nAmount, scriptPubKey);
+            rawTx.vout.push_back(out);
+        }
     }
 
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
