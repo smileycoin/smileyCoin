@@ -18,6 +18,7 @@
 #include "txmempool.h"
 #include "ui_interface.h"
 #include "rpcserver.h"
+#include "wallet.h"
 
 #include "util.h"
 
@@ -894,6 +895,14 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
 		int64_t nValueOut = tx.GetValueOut();
 		int64_t nFees = nValueIn-nValueOut;
 		double dPriority = view.GetPriority(tx, chainActive.Height());
+
+		// See if transaction contains OP_RETURN output
+		if (ContainsOpReturn(tx)){ //
+			// Only allow OP_RETURN transactions that send atleast txMinFee amount
+			if (nValueOut < DEFAULT_TRANSACTION_FEE)
+				return state.DoS(0, error("AcceptToMemoryPool : not enough value sent for OP_RETURN transaction %s, %d < %d", hash.ToString(), nValueOut, DEFAULT_TRANSACTION_FEE), REJECT_INSUFFICIENTFEE, "insufficient output value");
+		}
+		
 
 		CTxMemPoolEntry entry(tx, nFees, GetTime(), dPriority, chainActive.Height());
 		unsigned int nSize = entry.GetTxSize();

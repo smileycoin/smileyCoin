@@ -1863,6 +1863,25 @@ CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo, unsign
     return CombineSignatures(scriptPubKey, txTo, nIn, txType, vSolutions, stack1, stack2);
 }
 
+bool ContainsOpReturn(const CTransaction &tx) {
+
+	BOOST_FOREACH(const CTxOut& txout, tx.vout)
+	{
+        CScript script = txout.scriptPubKey;
+        opcodetype opcode;
+
+        CScript::const_iterator pc = script.begin();
+
+        if(!script.GetOp(pc, opcode))
+            return false;
+
+        if(opcode == OP_RETURN)
+            return true;
+	}
+    return false;
+}
+
+
 unsigned int CScript::GetSigOpCount(bool fAccurate) const
 {
     unsigned int n = 0;
