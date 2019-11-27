@@ -632,3 +632,37 @@ Value submitblock(const Array& params, bool fHelp)
 
     return Value::null;
 }
+
+Value checkblock(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1 || params.size() > 1)
+        throw runtime_error(
+            "submitblock \"hexdata\"\n"
+            "\nCheck if block is correctly formatted without submitting to network.\n"
+
+            "\nArguments\n"
+            "1. \"hexdata\"    (string, required) the hex-encoded block data to submit\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("checkblock", "\"mydata\"")
+            + HelpExampleRpc("checkblock", "\"mydata\"")
+        );
+
+    vector<unsigned char> blockData(ParseHex(params[0].get_str()));
+    CDataStream ssBlock(blockData, SER_NETWORK, PROTOCOL_VERSION);
+    CBlock pblock;
+    try {
+        ssBlock >> pblock;
+    }
+    catch (std::exception &e) {
+        throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "Block decode failed");
+    }
+
+    CValidationState state;
+    bool fChecked = CheckBlock(pblock, state);
+    if (!fChecked)
+        return "CheckBlock failed";
+        
+    return "CheckBlock successful";
+}
+
