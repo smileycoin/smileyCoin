@@ -133,15 +133,6 @@ libqrencode (optional) can be installed with:
 Once these are installed, they will be found by configure and a smileycoin-qt executable will be
 built by default.
 
-Dependencies quick start: Fedora
----------------------------------------
-
-Install required dependencies with:
-
-	sudo dnf install g++ autoconf automake libdb-cxx-devel boost-devel openssl-devel
-
-Then do ``./autogen.sh``, ``./configure``, ``make`` as above.
-
 Notes
 -----
 The release is built with GCC and then "strip smileycoind" to strip the debug
