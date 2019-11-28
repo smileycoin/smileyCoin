@@ -145,6 +145,7 @@ extern json_spirit::Value getreceivedbyaddress(const json_spirit::Array& params,
 extern json_spirit::Value getreceivedbyaccount(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getbalance(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getunconfirmedbalance(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getwalletversion(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value movecmd(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendfrom(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendmany(const json_spirit::Array& params, bool fHelp);

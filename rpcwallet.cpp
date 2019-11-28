@@ -1917,3 +1917,20 @@ Value getwalletinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
     return obj;
 }
+
+Value getwalletversion(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+    throw runtime_error(
+        "getwalletversion\n"
+        "Returns the wallet version.\n"
+        "\nResult:\n"
+        "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
+        "\nExamples:\n"
+        + HelpExampleCli("getwalletversion", "")
+        + HelpExampleRpc("getwalletversion", "")
+
+    );
+
+    return pwalletMain->GetVersion();
+}
