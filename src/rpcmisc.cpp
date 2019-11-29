@@ -380,3 +380,35 @@ Value verifymessage(const Array& params, bool fHelp)
 
     return (pubkey.GetID() == keyID);
 }
+
+
+Value messagetohex(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "messagetohex \"message\"\n"
+            "\nConvert a message from ASCII to HEX\n"
+            "\nArguments:\n"
+            "1. \"message\"  (string, required) The message to be converted.\n"
+            "\nResult:\n"
+            "message in hex   (string) Message in HEX.\n"
+            "\nExample:\n"
+            + HelpExampleCli("messagetohex", "\"Hello World\")
+        );
+
+    string strMessage  = params[0].get_str();
+
+    static const char* const lut = "0123456789ABCDEF";
+    size_t len = strMessage.length();
+
+    string hexMessage;
+    hexMessage.reserve(2 * len);
+    for (size_t i = 0; i < len; ++i)
+    {
+        const unsigned char c = strMessage[i];
+        hexMessage.push_back(lut[c >> 4]);
+        hexMessage.push_back(lut[c & 15]);
+    }
+
+    return hexMessage;
+}
