@@ -97,7 +97,7 @@ Value getinfo(const Array& params, bool fHelp)
         ExtractDestination(richpubkey, des);
         obj.push_back(Pair("oldest_rich_address", CBitcoinAddress(des).ToString()));
     }
-    else obj.push_back(Pair("oldest_rich_address", ""));   
+    else obj.push_back(Pair("oldest_rich_address", ""));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;
 }
@@ -132,7 +132,7 @@ Value getaddressinfo(const Array& params, bool fHelp)
     if(!address.IsValid())
         throw runtime_error("Not a valid Smileycoin address");
     Object obj;
-    CScript key;    
+    CScript key;
     key.SetDestination(address.Get());
     std::pair<int64_t, int> value;
     if(!pcoinsTip->GetAddressInfo(key, value))
@@ -140,7 +140,7 @@ Value getaddressinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("Balance", ValueFromAmount(value.first)));
     obj.push_back(Pair("Height", value.second));
 
-    return obj; 
+    return obj;
 }
 
 #ifdef ENABLE_WALLET
@@ -379,4 +379,26 @@ Value verifymessage(const Array& params, bool fHelp)
         return false;
 
     return (pubkey.GetID() == keyID);
+}
+
+Value tellajoke(const Array& params, bool fHelp){
+  if (fHelp || params.size() != 0)
+      throw runtime_error(
+          "tellajoke"
+      );
+
+      Array jokes;
+
+      jokes.push_back("Your face >:D");
+      jokes.push_back("Why do you never see hippos hiding in trees?\n\n Because they're very good at it.");
+      jokes.push_back("Wanna know the last thing my grandpa said before he kicked the bucket?\n\n \"Wonder how far I can kick this bucket\"");
+      jokes.push_back("Whatdya call a frenchman wearing sandals?\n\n Phillipe Phillope");
+      jokes.push_back("What do you call a boomerang that doesn't come back?\n\n A stick");
+      jokes.push_back("A man was hit in the head with a soda.\n\n Good thing it was a soft drink");
+      jokes.push_back("I told my girlfriend she was drawing her eyebrows on too high.\n\n She looked surprised.");
+      jokes.push_back("And the Lord said unto John,\n \"Come forth and you will receive eternal life\"\n But John came fifth, and won a toaster");
+      jokes.push_back("I ate a clock yesterday,\n\n it was very time consuming.");
+      jokes.push_back("I bought some shoes from a drug dealer.\n\n I don't know what he laced them with, but I've been tripping all day");
+
+      return jokes[rand() % jokes.size()];
 }
