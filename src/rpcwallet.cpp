@@ -73,7 +73,7 @@ string AccountFromValue(const Value& value)
 
 Value getnewaddress(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 1)
+    if (fHelp || params.size() > 2)
         throw runtime_error(
             "getnewaddress ( \"account\" )\n"
             "\nReturns a new Smileycoin address for receiving payments.\n"
@@ -81,12 +81,14 @@ Value getnewaddress(const Array& params, bool fHelp)
             "so payments received with the address will be credited to 'account'.\n"
             "\nArguments:\n"
             "1. \"account\"        (string, optional) The account name for the address to be linked to. if not provided, the default account \"\" is used. It can also be set to the empty string \"\" to represent the default account. The account does not need to exist, it will be created if there is no account by the given name.\n"
+            "2. \"pattern\"        (string, optional) A pattern that needs to be found in the address generated. Account needs to be set for this to work.\n"
             "\nResult:\n"
             "\"smileycoinaddress\" (string) The new smileycoin address\n"
             "\nExamples:\n"
             + HelpExampleCli("getnewaddress", "")
             + HelpExampleCli("getnewaddress", "\"\"")
             + HelpExampleCli("getnewaddress", "\"myaccount\"")
+            + HelpExampleCli("getnewaddress", "\"myaccount\" \"GS\"")
             + HelpExampleRpc("getnewaddress", "\"myaccount\"")
         );
 
@@ -95,14 +97,21 @@ Value getnewaddress(const Array& params, bool fHelp)
     if (params.size() > 0)
         strAccount = AccountFromValue(params[0]);
 
+    string strPattern;
+    if (params.size() > 1)
+        strPattern = params[1].get_str();
+
     if (!pwalletMain->IsLocked())
         pwalletMain->TopUpKeyPool();
 
-    // Generate a new key that is added to wallet
     CPubKey newKey;
-    if (!pwalletMain->GetKeyFromPool(newKey))
-        throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
-    CKeyID keyID = newKey.GetID();
+    CKeyID keyID;
+    do {
+        // Generate a new key that is added to wallet
+        if (!pwalletMain->GetKeyFromPool(newKey))
+           throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
+        keyID = newKey.GetID();
+    } while (CBitcoinAddress(keyID).ToString().find(strPattern) == std::string::npos);
 
     pwalletMain->SetAddressBook(keyID, strAccount, "receive");
 
