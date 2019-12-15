@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "base58.h"
+#include <ctime>
 #include "init.h"
 #include "main.h"
 #include "net.h"
@@ -102,6 +103,17 @@ Value getinfo(const Array& params, bool fHelp)
     return obj;
 }
 
+Value gettime(const Array &params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error("gettime\n"
+                            "Returns current date and time.\n");
+    time_t now = time(0);
+    char *dt = ctime(&now);
+
+    Value res = dt;
+    return res;
+}
 
 Value getrichaddresses(const Array& params, bool fHelp)
 {
