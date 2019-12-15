@@ -51,6 +51,7 @@ public:
         STATUS_COLUMN_WIDTH = 23,
         DATE_COLUMN_WIDTH = 120,
         TYPE_COLUMN_WIDTH = 120,
+        DATA_COLUMN_WIDTH = 120,
         AMOUNT_MINIMUM_COLUMN_WIDTH = 120,
         MINIMUM_COLUMN_WIDTH = 23
     };
@@ -86,6 +87,7 @@ private slots:
     void editLabel();
     void copyLabel();
     void copyAmount();
+    void copyData();
     void copyTxID();
     void openThirdPartyTxUrl(QString url);
 

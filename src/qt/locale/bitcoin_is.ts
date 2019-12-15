@@ -2890,6 +2890,11 @@ Address: %4
     </message>
     <message>
         <location line="+2"/>
+        <source>Data</source>
+        <translation>Gögn</translation>
+    </message>
+    <message>
+        <location line="+2"/>
         <source>Transaction ID</source>
         <translation>Færslunúmer</translation>
     </message>
@@ -2963,6 +2968,11 @@ Address: %4
         <location line="+0"/>
         <source>Address</source>
         <translation>Reikningsnúmer</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Data</source>
+        <translation>Gögn</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -3159,6 +3169,11 @@ Address: %4
         <location line="+1"/>
         <source>Copy label</source>
         <translation>Afrita tilvísun</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Copy data</source>
+        <translation>Afrita gögn</translation>
     </message>
     <message>
         <location line="+1"/>

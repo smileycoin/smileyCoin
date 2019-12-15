@@ -2893,6 +2893,11 @@ Adres: %4
     </message>
     <message>
         <location line="+2"/>
+        <source>Data</source>
+        <translation>Gegevens</translation>
+    </message>
+    <message>
+        <location line="+2"/>
         <source>Transaction ID</source>
         <translation>Transactie-ID</translation>
     </message>
@@ -2966,6 +2971,11 @@ Adres: %4
         <location line="+0"/>
         <source>Address</source>
         <translation>Adres</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Data</source>
+        <translation>Gegevens</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -3162,6 +3172,11 @@ Adres: %4
         <location line="+1"/>
         <source>Copy label</source>
         <translation>Kopieer label</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Copy data</source>
+        <translation>Kopieer gegevens</translation>
     </message>
     <message>
         <location line="+1"/>

@@ -45,6 +45,7 @@ QString TransactionDesc::FormatTxStatus(const CWalletTx& wtx)
 QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int unit)
 {
     QString strHTML;
+    QString dataStr;
 
     LOCK2(cs_main, wallet->cs_wallet);
     strHTML.reserve(4000);
@@ -90,6 +91,31 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
             {
                 if (wallet->IsMine(txout))
                 {
+                    for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++)
+                    {
+                      const CTxOut& txout2 = wtx.vout[nOut];
+                      std::string hexString = HexStr(txout2.scriptPubKey);
+                      for (int i=0; i<1; i++) {
+			// If there is any data in the hexString convert it to ascii
+                        if (hexString.substr(0,2) == "6a") {
+                          std::string datadata = hexString.substr(4, hexString.size());
+                          int len = datadata.length();
+                          std::string newString;
+                          for(int i=0; i<len; i+=2)
+                          {
+                              string byte = datadata.substr(i,2);
+				  // Write a dot(.) if the hex code stands for a control command
+				  if(byte == "00" || byte == "01" || byte == "02" || byte == "03" || byte == "04" || byte == "05" || byte == "06" || byte == "07" || byte == "08" || byte == "09" || byte == "0a" || byte == "0b" || byte == "0c" || byte == "0d" || byte == "0e" || byte == "0f" || byte == "10" || byte == "11" || byte == "12" || byte == "13" || byte == "14" || byte == "15" || byte == "16" || byte == "17" || byte == "18" || byte == "19" || byte == "1a" || byte == "1b" || byte == "1c" || byte == "1d" || byte == "1e" || byte == "1f" || byte == "20" || byte == "7f") {
+                       			byte = "2e";
+                      			}
+                              char chr = (char) (int)strtol(byte.c_str(), NULL, 16);
+                              newString.push_back(chr);
+                          }
+                          dataStr = QString::fromStdString(newString);
+                        }
+                      }
+                    }
+
                     CTxDestination address;
                     if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*wallet, address))
                     {
@@ -171,6 +197,31 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
                 if (wallet->IsMine(txout))
                     continue;
 
+                for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++)
+                {
+                  const CTxOut& txout2 = wtx.vout[nOut];
+                  std::string hexString = HexStr(txout2.scriptPubKey);
+                  for (int i=0; i<1; i++) {
+		    // If there is any data in the hexString convert it to ascii
+                    if (hexString.substr(0,2) == "6a") {
+                      std::string datadata = hexString.substr(4, hexString.size());
+                      int len = datadata.length();
+                      std::string newString;
+                      for(int i=0; i<len; i+=2)
+                      {
+                          string byte = datadata.substr(i,2);
+			   // Write a dot(.) if the hex code stands for a control command
+			   if(byte == "00" || byte == "01" || byte == "02" || byte == "03" || byte == "04" || byte == "05" || byte == "06" || byte == "07" || byte == "08" || byte == "09" || byte == "0a" || byte == "0b" || byte == "0c" || byte == "0d" || byte == "0e" || byte == "0f" || byte == "10" || byte == "11" || byte == "12" || byte == "13" || byte == "14" || byte == "15" || byte == "16" || byte == "17" || byte == "18" || byte == "19" || byte == "1a" || byte == "1b" || byte == "1c" || byte == "1d" || byte == "1e" || byte == "1f" || byte == "20" || byte == "7f") {
+                        	byte = "2e";
+                      		}
+                          char chr = (char) (int)strtol(byte.c_str(), NULL, 16);
+                          newString.push_back(chr);
+                      }
+                      dataStr = QString::fromStdString(newString);
+                    }
+                  }
+                }
+
                 if (!wtx.mapValue.count("to") || wtx.mapValue["to"].empty())
                 {
                     // Offline transaction
@@ -216,6 +267,8 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
     }
 
     strHTML += "<b>" + tr("Net amount") + ":</b> " + BitcoinUnits::formatWithUnit(unit, nNet, true) + "<br>";
+
+    strHTML += "<b>" + tr("Data") + ":</b> " + dataStr + "<br>";
 
     //
     // Message

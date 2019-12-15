@@ -18,6 +18,7 @@
 #include "uint256.h"
 #include "util.h"
 #include "wallet.h"
+#include "script.h"
 
 #include <QColor>
 #include <QDateTime>
@@ -31,6 +32,7 @@ static int column_alignments[] = {
         Qt::AlignLeft|Qt::AlignVCenter, /* date */
         Qt::AlignLeft|Qt::AlignVCenter, /* type */
         Qt::AlignLeft|Qt::AlignVCenter, /* address */
+        Qt::AlignLeft|Qt::AlignVCenter, /* data */
         Qt::AlignRight|Qt::AlignVCenter /* amount */
     };
 
@@ -235,7 +237,7 @@ TransactionTableModel::TransactionTableModel(CWallet* wallet, WalletModel *paren
         walletModel(parent),
         priv(new TransactionTablePriv(wallet, this))
 {
-    columns << QString() << tr("Date") << tr("Type") << tr("Address") << tr("Amount");
+    columns << QString() << tr("Date") << tr("Type") << tr("Address") << tr("Data") << tr("Amount");
 
     priv->refreshWallet();
 
@@ -328,6 +330,19 @@ QString TransactionTableModel::formatTxDate(const TransactionRecord *wtx) const
     {
         return QString();
     }
+}
+
+QString TransactionTableModel::formatTxData(const TransactionRecord *wtx) const
+{
+    if(wtx->data != "")
+    {
+        return QString::fromStdString(wtx->data);
+    }
+    else
+    {
+        return QString();
+    }
+
 }
 
 /* Look up address in address book, if found return label (address)
@@ -513,6 +528,8 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
             return formatTxToAddress(rec, false);
         case Amount:
             return formatTxAmount(rec);
+        case Data:
+            return formatTxData(rec);
         }
         break;
     case Qt::EditRole:
@@ -529,6 +546,8 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
             return formatTxToAddress(rec, true);
         case Amount:
             return rec->credit + rec->debit;
+        //case Data:
+        //    return rec->data;
         }
         break;
     case Qt::ToolTipRole:
@@ -572,6 +591,8 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
         return formatTxAmount(rec, false);
     case StatusRole:
         return rec->status.status;
+    case DataRole:
+       return QString::fromStdString(rec->data);
     }
     return QVariant();
 }
@@ -601,6 +622,8 @@ QVariant TransactionTableModel::headerData(int section, Qt::Orientation orientat
                 return tr("Destination address of transaction.");
             case Amount:
                 return tr("Amount removed from or added to balance.");
+            case Data:
+                return tr("Incoming messages");
             }
         }
     }

@@ -42,14 +42,40 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
         //
         // Credit
         //
+
         BOOST_FOREACH(const CTxOut& txout, wtx.vout)
         {
             if(wallet->IsMine(txout))
             {
                 TransactionRecord sub(hash, nTime);
+
                 CTxDestination address;
                 sub.idx = parts.size(); // sequence number
                 sub.credit = txout.nValue;
+
+                for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++)
+                {
+                    const CTxOut& txout2 = wtx.vout[nOut];
+                    std::string hexString = HexStr(txout2.scriptPubKey);
+                    // If there is any data in the hexString convert it to ascii
+                    if (hexString.substr(0,2) == "6a") {
+                      std::string datadata = hexString.substr(4, hexString.size());
+                      int len = datadata.length();
+                      std::string newString;
+                      for(int i=0; i<len; i+=2)
+                      {
+                          string byte = datadata.substr(i,2);
+                          // Write a dot(.) if the hex code stands for a control command
+                          if(byte == "00" || byte == "01" || byte == "02" || byte == "03" || byte == "04" || byte == "05" || byte == "06" || byte == "07" || byte == "08" || byte == "09" || byte == "0a" || byte == "0b" || byte == "0c" || byte == "0d" || byte == "0e" || byte == "0f" || byte == "10" || byte == "11" || byte == "12" || byte == "13" || byte == "14" || byte == "15" || byte == "16" || byte == "17" || byte == "18" || byte == "19" || byte == "1a" || byte == "1b" || byte == "1c" || byte == "1d" || byte == "1e" || byte == "1f" || byte == "20" || byte == "7f") {
+                            byte = "2e";
+                          }
+                          char chr = (char) (int)strtol(byte.c_str(), NULL, 16);
+                          newString.push_back(chr);
+                      }
+                      sub.data = newString;
+                    }
+                }
+
                 if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*wallet, address))
                 {
                     // Received by Bitcoin Address
@@ -88,7 +114,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             int64_t nChange = wtx.GetChange();
 
             parts.append(TransactionRecord(hash, nTime, TransactionRecord::SendToSelf, "",
-                            -(nDebit - nChange), nCredit - nChange));
+                            -(nDebit - nChange), nCredit - nChange,""));
         }
         else if (fAllFromMe)
         {
@@ -99,9 +125,27 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
 
             for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++)
             {
-                const CTxOut& txout = wtx.vout[nOut];
-                TransactionRecord sub(hash, nTime);
-                sub.idx = parts.size();
+               const CTxOut& txout = wtx.vout[nOut];
+               TransactionRecord sub(hash, nTime);
+               sub.idx = parts.size();
+               std::string hexString = HexStr(txout.scriptPubKey);
+	       // If there is any data in the hexString convert it to ascii
+               if (hexString.substr(0,2) == "6a") {
+                 std::string datadata = hexString.substr(4, hexString.size());
+                 int len = datadata.length();
+                 std::string newString;
+                 for(int i=0; i<len; i+=2)
+                 {
+                     string byte = datadata.substr(i,2);
+                     // Write a dot(.) if the hex code stands for a control command
+                     if(byte == "00" || byte == "01" || byte == "02" || byte == "03" || byte == "04" || byte == "05" || byte == "06" || byte == "07" || byte == "08" || byte == "09" || byte == "0a" || byte == "0b" || byte == "0c" || byte == "0d" || byte == "0e" || byte == "0f" || byte == "10" || byte == "11" || byte == "12" || byte == "13" || byte == "14" || byte == "15" || byte == "16" || byte == "17" || byte == "18" || byte == "19" || byte == "1a" || byte == "1b" || byte == "1c" || byte == "1d" || byte == "1e" || byte == "1f" || byte == "20" || byte == "7f") {
+                        byte = "2e";
+                      }
+                     char chr = (char) (int)strtol(byte.c_str(), NULL, 16);
+                     newString.push_back(chr);
+                 }
+                 sub.data = newString;
+               }
 
                 if(wallet->IsMine(txout))
                 {
@@ -141,7 +185,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             //
             // Mixed debit transaction, can't break down payees
             //
-            parts.append(TransactionRecord(hash, nTime, TransactionRecord::Other, "", nNet, 0));
+            parts.append(TransactionRecord(hash, nTime, TransactionRecord::Other, "", nNet, 0,""));
         }
     }
 
