@@ -27,6 +27,34 @@ using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
 
+Value hextomessage(const Array& params, bool fHelp){
+    if(fHelp || params.size() != 1){
+        throw runtime_error(
+            "hextomessage \"hex\"\n"
+            "\nConvert HEX to ASCII\n"
+            "\nArguments:\n"
+            "1. \"message\" (hex string, required) The hex to be converted. \n"
+            "\nResult: \n"
+            "message as a string (string) Message\n"
+            "\example: \n"
+            + HelpExampleCli("hextomessage", "\"48656c6c6f20576f726c64\"")
+        );
+
+        string hexMessage = params[0].get_str();
+
+        int len = hexMessage.length();
+        std::string newString;
+        for(int i=0; i< len; i+=2)
+        {
+            string byte = hexMessage.substr(i,2);
+            char chr = (char) (int)strtol(byte.c_str(), null, 16);
+            newString.push_back(chr);
+        }
+
+        return newString;
+    }
+}
+
 
 Value getinfo(const Array& params, bool fHelp)
 {
