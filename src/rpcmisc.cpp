@@ -143,20 +143,6 @@ Value getaddressinfo(const Array& params, bool fHelp)
     return obj; 
 }
 
-Value amicool(const Array& params, bool fHelp) {
-  if (fHelp || params.size() != 0)
-      throw runtime_error("amicool\n"
-                          "Returns a yes or a no answer to the question: Am i cool?.\n"
-                          );
-
-      Array amicool;
-
-      amicool.push_back("yes");
-      amicool.push_back("no");
-
-      return amicool[rand() % amicool.size()];
-}
-
 #ifdef ENABLE_WALLET
 class DescribeAddressVisitor : public boost::static_visitor<Object>
 {
