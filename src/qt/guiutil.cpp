@@ -204,10 +204,10 @@ QString formatBitcoinURI(const SendCoinsRecipient &info)
     return ret;
 }
 
-QString formatData(const SendCoinsRecipient &info) {
+/*QString formatData(const SendCoinsRecipient &info) {
     LogPrintStr(" FORMAT DATA - guiutil.cpp 208 ");
     LogPrintStr(info.data.toStdString());
-}
+}*/
 
 bool isDust(const QString& address, qint64 amount)
 {
