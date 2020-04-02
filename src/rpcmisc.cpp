@@ -143,15 +143,6 @@ Value getaddressinfo(const Array& params, bool fHelp)
     return obj; 
 }
 
-Value helloworld(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 0)
-        throw runtime_error("helloworld\n"
-                            "Returns the classic Hello World! string.\n"
-        );
-    return "Hello, World!";
-}
-
 #ifdef ENABLE_WALLET
 class DescribeAddressVisitor : public boost::static_visitor<Object>
 {

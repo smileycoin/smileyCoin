@@ -9,7 +9,6 @@
 #include "checkpoints.h"
 #include "coincontrol.h"
 #include "net.h"
-
 #include <boost/algorithm/string/replace.hpp>
 #include <openssl/rand.h>
 
@@ -1242,11 +1241,19 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
 
                 int64_t nTotalValue = nValue + nFeeRet;
                 double dPriority = 0;
+                bool isData = false;
+
                 // vouts to the payees
                 BOOST_FOREACH (const PAIRTYPE(CScript, int64_t)& s, vecSend)
                 {
                     CTxOut txout(s.second, s.first);
-                    if (txout.IsDust(CTransaction::nMinRelayTxFee))
+
+                    std::string hexString = HexStr(txout.scriptPubKey);
+                    if (hexString.substr(0,2) == "6a") {
+                        isData = true;
+                    }
+
+                    if (txout.IsDust(CTransaction::nMinRelayTxFee) && !isData)
                     {
                         strFailReason = _("Transaction amount too small");
                         return false;
@@ -1283,7 +1290,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
                     nFeeRet += nMoveToFee;
                 }
 
-                if (nChange > 0)
+                if (nChange > 0 && !isData)
                 {
                     // Fill a vout to ourself
                     // TODO: pass in scriptChange instead of reservekey so

@@ -10,14 +10,17 @@
 #include "guiutil.h"
 #include "optionsmodel.h"
 #include "walletmodel.h"
+#include "ui_interface.h"
+#include "guiconstants.h"
 
+#include <QMessageBox>
 #include <QApplication>
 #include <QClipboard>
 
 SendCoinsEntry::SendCoinsEntry(QWidget *parent) :
-    QStackedWidget(parent),
-    ui(new Ui::SendCoinsEntry),
-    model(0)
+        QStackedWidget(parent),
+        ui(new Ui::SendCoinsEntry),
+        model(0)
 {
     ui->setupUi(this);
 
@@ -28,6 +31,7 @@ SendCoinsEntry::SendCoinsEntry(QWidget *parent) :
 #endif
 #if QT_VERSION >= 0x040700
     ui->addAsLabel->setPlaceholderText(tr("Enter a label for this address to add it to your address book"));
+    ui->addAsData->setPlaceholderText(tr("Enter a message to send with your transfer"));
 #endif
 
     // normal bitcoin address field
@@ -77,6 +81,9 @@ void SendCoinsEntry::setModel(WalletModel *model)
     connect(ui->deleteButton_is, SIGNAL(clicked()), this, SLOT(deleteClicked()));
     connect(ui->deleteButton_s, SIGNAL(clicked()), this, SLOT(deleteClicked()));
 
+    // If one of the widgets changes, the combined content changes as well
+    connect(ui->addAsData, SIGNAL(valueChanged(QString)), this, SIGNAL(textChanged()));
+
     clear();
 }
 
@@ -86,6 +93,7 @@ void SendCoinsEntry::clear()
     ui->payTo->clear();
     ui->addAsLabel->clear();
     ui->payAmount->clear();
+    ui->addAsData->clear();
     ui->messageTextLabel->clear();
     ui->messageTextLabel->hide();
     ui->messageLabel->hide();
@@ -93,10 +101,12 @@ void SendCoinsEntry::clear()
     ui->payTo_is->clear();
     ui->memoTextLabel_is->clear();
     ui->payAmount_is->clear();
+    ui->addAsData_is->clear();
     // clear UI elements for secure payment request
     ui->payTo_s->clear();
     ui->memoTextLabel_s->clear();
     ui->payAmount_s->clear();
+    ui->addAsData_s->clear();
 
     // update the display unit, to not use the default ("BTC")
     updateDisplayUnit();
@@ -136,6 +146,13 @@ bool SendCoinsEntry::validate()
         retval = false;
     }
 
+    // If dropdown selection is 'Hex' and data input is in ASCII format
+    if (ui->addAsData2->currentText() == "HEX" && ui->addAsData->text().toLatin1() != 0) {
+        QMessageBox::critical(0, tr("Data input was rejected!"),
+                              tr("The data input must be a string in hexadecimal format."));
+        retval = false;
+    }
+
     return retval;
 }
 
@@ -151,6 +168,13 @@ SendCoinsRecipient SendCoinsEntry::getValue()
     recipient.amount = ui->payAmount->value();
     recipient.message = ui->messageTextLabel->text();
 
+    if(ui->addAsData2->currentText() == "TEXT") {
+        QString asciiData = ui->addAsData->text();
+        recipient.data = QString::fromLatin1(asciiData.toLatin1().toHex());
+    } else {
+        recipient.data = ui->addAsData->text();
+    }
+
     return recipient;
 }
 
@@ -158,7 +182,8 @@ QWidget *SendCoinsEntry::setupTabChain(QWidget *prev)
 {
     QWidget::setTabOrder(prev, ui->payTo);
     QWidget::setTabOrder(ui->payTo, ui->addAsLabel);
-    QWidget *w = ui->payAmount->setupTabChain(ui->addAsLabel);
+    QWidget::setTabOrder(ui->addAsLabel, ui->addAsData);
+    QWidget *w = ui->payAmount->setupTabChain(ui->addAsData);
     QWidget::setTabOrder(w, ui->addressBookButton);
     QWidget::setTabOrder(ui->addressBookButton, ui->pasteButton);
     QWidget::setTabOrder(ui->pasteButton, ui->deleteButton);
@@ -175,6 +200,7 @@ void SendCoinsEntry::setValue(const SendCoinsRecipient &value)
         {
             ui->payTo_is->setText(recipient.address);
             ui->memoTextLabel_is->setText(recipient.message);
+            ui->addAsData_is->setText(recipient.data);
             ui->payAmount_is->setValue(recipient.amount);
             ui->payAmount_is->setReadOnly(true);
             setCurrentWidget(ui->SendCoins_InsecurePaymentRequest);
@@ -183,6 +209,7 @@ void SendCoinsEntry::setValue(const SendCoinsRecipient &value)
         {
             ui->payTo_s->setText(recipient.authenticatedMerchant);
             ui->memoTextLabel_s->setText(recipient.message);
+            ui->addAsData_s->setText(recipient.data);
             ui->payAmount_s->setValue(recipient.amount);
             ui->payAmount_s->setReadOnly(true);
             setCurrentWidget(ui->SendCoins_SecurePaymentRequest);
@@ -192,6 +219,7 @@ void SendCoinsEntry::setValue(const SendCoinsRecipient &value)
     {
         // message
         ui->messageTextLabel->setText(recipient.message);
+        ui->addAsData->setText(recipient.data);
         ui->messageTextLabel->setVisible(!recipient.message.isEmpty());
         ui->messageLabel->setVisible(!recipient.message.isEmpty());
 

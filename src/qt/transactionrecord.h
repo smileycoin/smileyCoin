@@ -19,8 +19,8 @@ class TransactionStatus
 {
 public:
     TransactionStatus():
-        countsForBalance(false), sortKey(""),
-        matures_in(0), status(Offline), depth(0), open_for(0), cur_num_blocks(-1)
+            countsForBalance(false), sortKey(""),
+            matures_in(0), status(Offline), depth(0), open_for(0), cur_num_blocks(-1)
     { }
 
     enum Status {
@@ -82,21 +82,34 @@ public:
     static const int RecommendedNumConfirmations = 6;
 
     TransactionRecord():
-            hash(), time(0), type(Other), address(""), debit(0), credit(0), idx(0)
+            hash(), time(0), type(Other), address(""), debit(0), credit(0), idx(0), data("")
+    {
+    }
+
+    TransactionRecord(std::string data):
+            hash(), time(0), type(Other), address(""), debit(0), credit(0), idx(0), data(data)
     {
     }
 
     TransactionRecord(uint256 hash, qint64 time):
             hash(hash), time(time), type(Other), address(""), debit(0),
-            credit(0), idx(0)
+            credit(0), idx(0), data("")
     {
     }
 
     TransactionRecord(uint256 hash, qint64 time,
-                Type type, const std::string &address,
-                qint64 debit, qint64 credit):
+                      Type type, const std::string &address,
+                      qint64 debit, qint64 credit):
             hash(hash), time(time), type(type), address(address), debit(debit), credit(credit),
-            idx(0)
+            idx(0), data("")
+    {
+    }
+
+    TransactionRecord(uint256 hash, qint64 time,
+                      Type type, const std::string &address,
+                      qint64 debit, qint64 credit, std::string data):
+            hash(hash), time(time), type(type), address(address), debit(debit), credit(credit),
+            idx(0), data(data)
     {
     }
 
@@ -111,6 +124,7 @@ public:
     qint64 time;
     Type type;
     std::string address;
+    std::string data;
     qint64 debit;
     qint64 credit;
     /**@}*/
