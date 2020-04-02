@@ -18,7 +18,7 @@
 #include <stdint.h>
 #include <string>
 
-QString TransactionDesc::FormatTxStatus(const CWalletTx &wtx)
+QString TransactionDesc::FormatTxStatus(const CWalletTx& wtx)
 {
     AssertLockHeld(cs_main);
     if (!IsFinalTx(wtx, chainActive.Height() + 1))
@@ -86,7 +86,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
         if (nNet > 0)
         {
             // Credit
-            BOOST_FOREACH(const CTxOut &txout, wtx.vout)
+            BOOST_FOREACH(const CTxOut& txout, wtx.vout)
             {
                 if (wallet->IsMine(txout))
                 {
@@ -135,12 +135,11 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
         //
         int64_t nUnmatured = 0;
         int nDepth = wtx.GetDepthInMainChain();
-        BOOST_FOREACH(
-        const CTxOut &txout, wtx.vout)
-        nUnmatured += wallet->GetCredit(txout);
+        BOOST_FOREACH(const CTxOut& txout, wtx.vout)
+            nUnmatured += wallet->GetCredit(txout);
         strHTML += "<b>" + tr("Credit") + ":</b> ";
         if (wtx.IsInMainChain())
-            strHTML += BitcoinUnits::formatWithUnit(unit, nUnmatured) + " (" + tr("matures in %n more block(s)", "", wtx.GetBlocksToMaturity(chainActive.Height() - nDepth)) + ")";
+            strHTML += BitcoinUnits::formatWithUnit(unit, nUnmatured)+ " (" + tr("matures in %n more block(s)", "", wtx.GetBlocksToMaturity(chainActive.Height() - nDepth)) + ")";
         else
             strHTML += "(" + tr("not accepted") + ")";
         strHTML += "<br>";
@@ -155,11 +154,11 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
     else
     {
         bool fAllFromMe = true;
-        BOOST_FOREACH(const CTxIn &txin, wtx.vin)
+        BOOST_FOREACH(const CTxIn& txin, wtx.vin)
             fAllFromMe = fAllFromMe && wallet->IsMine(txin);
 
         bool fAllToMe = true;
-        BOOST_FOREACH(const CTxOut &txout, wtx.vout)
+        BOOST_FOREACH(const CTxOut& txout, wtx.vout)
             fAllToMe = fAllToMe && wallet->IsMine(txout);
 
         if (fAllFromMe)
@@ -167,7 +166,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
             //
             // Debit
             //
-            BOOST_FOREACH(const CTxOut &txout, wtx.vout)
+            BOOST_FOREACH(const CTxOut& txout, wtx.vout)
             {
                 if (wallet->IsMine(txout))
                     continue;
@@ -207,10 +206,10 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
             //
             // Mixed debit transaction
             //
-            BOOST_FOREACH(const CTxIn &txin, wtx.vin)
+            BOOST_FOREACH(const CTxIn& txin, wtx.vin)
                 if (wallet->IsMine(txin))
                     strHTML += "<b>" + tr("Debit") + ":</b> " + BitcoinUnits::formatWithUnit(unit, -wallet->GetDebit(txin)) + "<br>";
-            BOOST_FOREACH(const CTxOut &txout, wtx.vout)
+            BOOST_FOREACH(const CTxOut& txout, wtx.vout)
                 if (wallet->IsMine(txout))
                     strHTML += "<b>" + tr("Credit") + ":</b> " + BitcoinUnits::formatWithUnit(unit, wallet->GetCredit(txout)) + "<br>";
         }
@@ -221,7 +220,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
     //
     // Data sent with transaction
     //
-    foreach(const PAIRTYPE(string, string) &r, wtx.vOrderForm)
+    foreach(const PAIRTYPE(string, string)& r, wtx.vOrderForm)
     if (r.first == "Data")
     {
         std::string asciiData;
@@ -256,14 +255,14 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
     strHTML += "<b>" + tr("Transaction ID") + ":</b> " + TransactionRecord::formatSubTxId(wtx.GetHash(), vout) + "<br>";
 
     // Message from normal bitcoin:URI (bitcoin:123...?message=example)
-    foreach(const PAIRTYPE(string, string) &r, wtx.vOrderForm)
+    foreach(const PAIRTYPE(string, string)& r, wtx.vOrderForm)
         if (r.first == "Message")
             strHTML += "<br><b>" + tr("Message") + ":</b><br>" + GUIUtil::HtmlEscape(r.second, true) + "<br>";
 
     //
     // PaymentRequest info:
     //
-    foreach(const PAIRTYPE(string, string) &r, wtx.vOrderForm)
+    foreach(const PAIRTYPE(string, string)& r, wtx.vOrderForm)
     {
         if (r.first == "PaymentRequest")
         {
@@ -275,7 +274,8 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
         }
     }
 
-    if (wtx.IsCoinBase()) {
+    if (wtx.IsCoinBase())
+    {
         quint32 numBlocksToMaturity = COINBASE_MATURITY + 1;
         strHTML += "<br>" + tr("Generated coins must mature %1 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to \"not accepted\" and it won't be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.").arg(QString::number(numBlocksToMaturity)) + "<br>";
     }
@@ -286,10 +286,10 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
     if (fDebug)
     {
         strHTML += "<hr><br>" + tr("Debug information") + "<br><br>";
-        BOOST_FOREACH(const CTxIn &txin, wtx.vin)
+        BOOST_FOREACH(const CTxIn& txin, wtx.vin)
             if (wallet->IsMine(txin))
                 strHTML += "<b>" + tr("Debit") + ":</b> " + BitcoinUnits::formatWithUnit(unit, -wallet->GetDebit(txin)) + "<br>";
-        BOOST_FOREACH(const CTxOut &txout, wtx.vout)
+        BOOST_FOREACH(const CTxOut& txout, wtx.vout)
             if (wallet->IsMine(txout))
                 strHTML += "<b>" + tr("Credit") + ":</b> " + BitcoinUnits::formatWithUnit(unit, wallet->GetCredit(txout)) + "<br>";
 
@@ -299,12 +299,12 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, int vout, int u
         strHTML += "<br><b>" + tr("Inputs") + ":</b>";
         strHTML += "<ul>";
 
-        BOOST_FOREACH(const CTxIn &txin, wtx.vin)
+        BOOST_FOREACH(const CTxIn& txin, wtx.vin)
         {
             COutPoint prevout = txin.prevout;
 
             CCoins prev;
-            if (pcoinsTip->GetCoins(prevout.hash, prev))
+            if(pcoinsTip->GetCoins(prevout.hash, prev))
             {
                 if (prevout.n < prev.vout.size())
                 {
