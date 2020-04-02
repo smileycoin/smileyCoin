@@ -35,8 +35,8 @@
 #include <QVBoxLayout>
 
 TransactionView::TransactionView(QWidget *parent) :
-        QWidget(parent), model(0), transactionProxyModel(0),
-        transactionView(0)
+    QWidget(parent), model(0), transactionProxyModel(0),
+    transactionView(0)
 {
     // Build filter row
     setContentsMargins(0,0,0,0);
@@ -237,43 +237,43 @@ void TransactionView::chooseDate(int idx)
     dateRangeWidget->setVisible(false);
     switch(dateWidget->itemData(idx).toInt())
     {
-        case All:
-            transactionProxyModel->setDateRange(
-                    TransactionFilterProxy::MIN_DATE,
-                    TransactionFilterProxy::MAX_DATE);
-            break;
-        case Today:
-            transactionProxyModel->setDateRange(
-                    QDateTime(current),
-                    TransactionFilterProxy::MAX_DATE);
-            break;
-        case ThisWeek: {
-            // Find last Monday
-            QDate startOfWeek = current.addDays(-(current.dayOfWeek()-1));
-            transactionProxyModel->setDateRange(
-                    QDateTime(startOfWeek),
-                    TransactionFilterProxy::MAX_DATE);
+    case All:
+        transactionProxyModel->setDateRange(
+                TransactionFilterProxy::MIN_DATE,
+                TransactionFilterProxy::MAX_DATE);
+        break;
+    case Today:
+        transactionProxyModel->setDateRange(
+                QDateTime(current),
+                TransactionFilterProxy::MAX_DATE);
+        break;
+    case ThisWeek: {
+        // Find last Monday
+        QDate startOfWeek = current.addDays(-(current.dayOfWeek()-1));
+        transactionProxyModel->setDateRange(
+                QDateTime(startOfWeek),
+                TransactionFilterProxy::MAX_DATE);
 
         } break;
-        case ThisMonth:
-            transactionProxyModel->setDateRange(
-                    QDateTime(QDate(current.year(), current.month(), 1)),
-                    TransactionFilterProxy::MAX_DATE);
-            break;
-        case LastMonth:
-            transactionProxyModel->setDateRange(
-                    QDateTime(QDate(current.year(), current.month()-1, 1)),
-                    QDateTime(QDate(current.year(), current.month(), 1)));
-            break;
-        case ThisYear:
-            transactionProxyModel->setDateRange(
-                    QDateTime(QDate(current.year(), 1, 1)),
-                    TransactionFilterProxy::MAX_DATE);
-            break;
-        case Range:
-            dateRangeWidget->setVisible(true);
-            dateRangeChanged();
-            break;
+    case ThisMonth:
+        transactionProxyModel->setDateRange(
+                QDateTime(QDate(current.year(), current.month(), 1)),
+                TransactionFilterProxy::MAX_DATE);
+        break;
+    case LastMonth:
+        transactionProxyModel->setDateRange(
+                QDateTime(QDate(current.year(), current.month()-1, 1)),
+                QDateTime(QDate(current.year(), current.month(), 1)));
+        break;
+    case ThisYear:
+        transactionProxyModel->setDateRange(
+                QDateTime(QDate(current.year(), 1, 1)),
+                TransactionFilterProxy::MAX_DATE);
+        break;
+    case Range:
+        dateRangeWidget->setVisible(true);
+        dateRangeChanged();
+        break;
     }
 }
 
@@ -281,7 +281,8 @@ void TransactionView::chooseType(int idx)
 {
     if(!transactionProxyModel)
         return;
-    transactionProxyModel->setTypeFilter(typeWidget->itemData(idx).toInt());
+    transactionProxyModel->setTypeFilter(
+            typeWidget->itemData(idx).toInt());
 }
 
 void TransactionView::changedPrefix(const QString &prefix)
@@ -317,8 +318,8 @@ void TransactionView::exportClicked()
 {
     // CSV is currently the only supported format
     QString filename = GUIUtil::getSaveFileName(this,
-                                                tr("Export Transaction History"), QString(),
-                                                tr("Comma separated file (*.csv)"), NULL);
+            tr("Export Transaction History"), QString(),
+            tr("Comma separated file (*.csv)"), NULL);
 
     if (filename.isNull())
         return;
@@ -338,11 +339,11 @@ void TransactionView::exportClicked()
 
     if(!writer.write()) {
         emit message(tr("Exporting Failed"), tr("There was an error trying to save the transaction history to %1.").arg(filename),
-                     CClientUIInterface::MSG_ERROR);
+            CClientUIInterface::MSG_ERROR);
     }
     else {
         emit message(tr("Exporting Successful"), tr("The transaction history was successfully saved to %1.").arg(filename),
-                     CClientUIInterface::MSG_INFORMATION);
+             CClientUIInterface::MSG_INFORMATION);
     }
 }
 
@@ -407,9 +408,9 @@ void TransactionView::editLabel()
             QString type = modelIdx.data(AddressTableModel::TypeRole).toString();
 
             EditAddressDialog dlg(
-                    type == AddressTableModel::Receive
-                    ? EditAddressDialog::EditReceivingAddress
-                    : EditAddressDialog::EditSendingAddress, this);
+                type == AddressTableModel::Receive
+                ? EditAddressDialog::EditReceivingAddress
+                : EditAddressDialog::EditSendingAddress, this);
             dlg.setModel(addressBook);
             dlg.loadRow(idx);
             dlg.exec();
@@ -418,7 +419,7 @@ void TransactionView::editLabel()
         {
             // Add sending address
             EditAddressDialog dlg(EditAddressDialog::NewSendingAddress,
-                                  this);
+                this);
             dlg.setModel(addressBook);
             dlg.setAddress(address);
             dlg.exec();

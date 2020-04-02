@@ -475,7 +475,7 @@ void SendCoinsDialog::coinControlClipboardAmount()
     GUIUtil::setClipboard(ui->labelCoinControlAmount->text().left(ui->labelCoinControlAmount->text().indexOf(" ")));
 }
 
-// Coin Control: copy label "Amount" to clipboard
+// Coin Control: copy label "Data" to clipboard
 void SendCoinsDialog::coinControlClipboardData()
 {
     GUIUtil::setClipboard(ui->labelCoinControlData->text().left(ui->labelCoinControlData->text().indexOf(" ")));

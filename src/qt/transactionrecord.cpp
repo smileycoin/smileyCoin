@@ -41,10 +41,9 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
     //
     // Data sent with transaction
     //
-    foreach(const PAIRTYPE(string, string) &r, wtx.vOrderForm)
+    foreach(const PAIRTYPE(string, string)& r, wtx.vOrderForm)
     if (r.first == "Data")
     {
-        //LogPrintStr(r.second.append("=== DATA "));
         std::string asciiData;
         for(int a = 0; a < 1; a++)
         {
@@ -220,10 +219,10 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
 
     // Sort order, unrecorded transactions sort to the top
     status.sortKey = strprintf("%010d-%01d-%010u-%03d",
-                               (pindex ? pindex->nHeight : std::numeric_limits<int>::max()),
-                               (wtx.IsCoinBase() ? 1 : 0),
-                               wtx.nTimeReceived,
-                               idx);
+            (pindex ? pindex->nHeight : std::numeric_limits<int>::max()),
+            (wtx.IsCoinBase() ? 1 : 0),
+            wtx.nTimeReceived,
+            idx);
     status.countsForBalance = wtx.IsTrusted() && !(wtx.GetBlocksToMaturity(chainActive.Height() - wtx.GetDepthInMainChain()) > 0);
     status.depth = wtx.GetDepthInMainChain();
     status.cur_num_blocks = chainActive.Height();
@@ -241,7 +240,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
             status.open_for = wtx.nLockTime;
         }
     }
-        // For generated transactions, determine maturity
+    // For generated transactions, determine maturity
     else if(type == TransactionRecord::Generated)
     {
         if (wtx.GetBlocksToMaturity(status.depth) > 0)
