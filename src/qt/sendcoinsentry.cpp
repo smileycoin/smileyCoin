@@ -146,10 +146,10 @@ bool SendCoinsEntry::validate()
         retval = false;
     }
 
-    // If dropdown selection is 'Hex' and data input is in ASCII format
-    if (ui->addAsData2->currentText() == "HEX" && ui->addAsData->text().toLatin1() != 0) {
+    // If dropdown selection is 'Hex' and data input is in ASCII format reject it
+    if (ui->addAsData2->currentText() == "HEX" && !IsHex(ui->addAsData->text().toStdString())) {
         QMessageBox::critical(0, tr("Data input was rejected!"),
-                              tr("The data input must be a string in hexadecimal format."));
+                              tr("The data input must be a string in hexadecimal format"));
         retval = false;
     }
 
@@ -168,9 +168,9 @@ SendCoinsRecipient SendCoinsEntry::getValue()
     recipient.amount = ui->payAmount->value();
     recipient.message = ui->messageTextLabel->text();
 
-    if(ui->addAsData2->currentText() == "TEXT") {
+    if(ui->addAsData2->currentText() == "ASCII") {
         QString asciiData = ui->addAsData->text();
-        recipient.data = QString::fromLatin1(asciiData.toLatin1().toHex());
+        recipient.data = asciiData.toLatin1().toHex();
     } else {
         recipient.data = ui->addAsData->text();
     }
