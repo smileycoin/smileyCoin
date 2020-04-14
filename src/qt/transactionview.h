@@ -62,7 +62,6 @@ private:
     WalletModel *model;
     TransactionFilterProxy *transactionProxyModel;
     QTableView *transactionView;
-    //SendCoinsRecipient info;
 
     QComboBox *dateWidget;
     QComboBox *typeWidget;
@@ -94,8 +93,7 @@ private slots:
     void copyData();
     void copyTxID();
     void openThirdPartyTxUrl(QString url);
-    //void displayDataAsAscii();
-    //void displayDataAsHex();
+    void displayData();
 
     signals:
         void doubleClicked(const QModelIndex&);

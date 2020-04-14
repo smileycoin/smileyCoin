@@ -139,8 +139,7 @@ TransactionView::TransactionView(QWidget *parent) :
     QAction *copyTxIDAction = new QAction(tr("Copy transaction ID"), this);
     QAction *editLabelAction = new QAction(tr("Edit label"), this);
     QAction *showDetailsAction = new QAction(tr("Show transaction details"), this);
-    //QAction *displayDataAsAsciiAction = new QAction(tr("Display data as ASCII"), this);
-    //QAction *displayDataAsHexAction = new QAction(tr("Display data as hexadecimal"), this);
+    QAction *displayDataAction = new QAction(tr("Show data in ASCII/HEX"), this);
 
     contextMenu = new QMenu();
     contextMenu->addAction(copyAddressAction);
@@ -150,8 +149,7 @@ TransactionView::TransactionView(QWidget *parent) :
     contextMenu->addAction(copyTxIDAction);
     contextMenu->addAction(editLabelAction);
     contextMenu->addAction(showDetailsAction);
-    //contextMenu->addAction(displayDataAsAsciiAction);
-    //contextMenu->addAction(displayDataAsHexAction);
+    contextMenu->addAction(displayDataAction);
 
     mapperThirdPartyTxUrls = new QSignalMapper(this);
 
@@ -174,8 +172,7 @@ TransactionView::TransactionView(QWidget *parent) :
     connect(copyTxIDAction, SIGNAL(triggered()), this, SLOT(copyTxID()));
     connect(editLabelAction, SIGNAL(triggered()), this, SLOT(editLabel()));
     connect(showDetailsAction, SIGNAL(triggered()), this, SLOT(showDetails()));
-    //connect(displayDataAsAsciiAction, SIGNAL(triggered()), this, SLOT(displayDataAsAscii()));
-    //connect(displayDataAsHexAction, SIGNAL(triggered()), this, SLOT(displayDataAsHex()));
+    connect(displayDataAction, SIGNAL(triggered()), this, SLOT(displayData()));
 }
 
 void TransactionView::setModel(WalletModel *model)
@@ -296,7 +293,17 @@ void TransactionView::changedData(const QString &dataPrefix)
 {
     if(!transactionProxyModel)
         return;
-    transactionProxyModel->setDataPrefix(dataPrefix);
+
+    TransactionTableModel *transactionTableModel = model->getTransactionTableModel();
+    if (transactionTableModel->getAsciiData())
+    {
+        // Convert to hex to search ascii values in table
+        transactionProxyModel->setDataPrefix(dataPrefix.toLatin1().toHex());
+    }
+    else
+    {
+        transactionProxyModel->setDataPrefix(dataPrefix);
+    }
 }
 
 void TransactionView::changedAmount(const QString &amount)
@@ -448,31 +455,22 @@ void TransactionView::openThirdPartyTxUrl(QString url)
         QDesktopServices::openUrl(QUrl::fromUserInput(url.replace("%s", selection.at(0).data(TransactionTableModel::TxHashRole).toString())));
 }
 
-/*
-void TransactionView::displayDataAsAscii()
+void TransactionView::displayData()
 {
     if(!transactionView->selectionModel())
         return;
-    QModelIndexList selection = transactionView->selectionModel()->selectedRows();
-    if(!selection.isEmpty())
-    {
-        LogPrintStr(" DISPLAY DATA AS ASCII - transactionview.cpp 457 ");
-        GUIUtil::formatData(info);
-    }
-}
 
-void TransactionView::displayDataAsHex()
-{
-    if(!transactionView->selectionModel())
-        return;
-    QModelIndexList selection = transactionView->selectionModel()->selectedRows();
-    if(!selection.isEmpty())
+    TransactionTableModel *transactionTableModel = model->getTransactionTableModel();
+    if (transactionTableModel->getAsciiData())
     {
-        TransactionDescDialog dlg(selection.at(0));
-        dlg.exec();
+        transactionTableModel->setAsciiData(false);
     }
+    else
+    {
+        transactionTableModel->setAsciiData(true);
+    }
+
 }
-*/
 
 QWidget *TransactionView::createDateRangeWidget()
 {
