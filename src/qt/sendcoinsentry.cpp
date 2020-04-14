@@ -38,6 +38,8 @@ SendCoinsEntry::SendCoinsEntry(QWidget *parent) :
     GUIUtil::setupAddressWidget(ui->payTo, this);
     // just a label for displaying bitcoin address(es)
     ui->payTo_is->setFont(GUIUtil::bitcoinAddressFont());
+    ui->addAsData2->addItem("HEX");
+    ui->addAsData2->addItem("ASCII");
 }
 
 SendCoinsEntry::~SendCoinsEntry()
