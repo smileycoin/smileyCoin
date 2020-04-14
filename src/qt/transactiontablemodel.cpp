@@ -237,7 +237,7 @@ TransactionTableModel::TransactionTableModel(CWallet* wallet, WalletModel *paren
         walletModel(parent),
         priv(new TransactionTablePriv(wallet, this))
 {
-    columns << QString() << tr("Date") << tr("Type") << tr("Address") << tr("Data (Text)") << tr("Amount");
+    columns << QString() << tr("Date") << tr("Type") << tr("Address") << tr("Data") << tr("Amount");
 
     priv->refreshWallet();
 
@@ -265,6 +265,16 @@ void TransactionTableModel::updateConfirmations()
     //  visible rows.
     emit dataChanged(index(0, Status), index(priv->size()-1, Status));
     emit dataChanged(index(0, ToAddress), index(priv->size()-1, ToAddress));
+}
+
+bool TransactionTableModel::getAsciiData()
+{
+    return asAsciiData;
+}
+
+void TransactionTableModel::setAsciiData(bool convert)
+{
+    asAsciiData = convert;
 }
 
 int TransactionTableModel::rowCount(const QModelIndex &parent) const
@@ -406,21 +416,22 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, b
     }
 }
 
-QString TransactionTableModel::formatTxData(const TransactionRecord *wtx, bool tooltip) const
+QString TransactionTableModel::formatTxData(const TransactionRecord *wtx) const
 {
+    std::string asciiData = GUIUtil::hexToAscii(wtx->data);
     switch(wtx->type)
     {
-    case TransactionRecord::RecvFromOther:
-        return QString::fromStdString(wtx->data);
-    case TransactionRecord::RecvWithAddress:
-    case TransactionRecord::SendToAddress:
-    case TransactionRecord::Generated:
-        return QString::fromStdString(wtx->data);
-    case TransactionRecord::SendToOther:
-        return QString::fromStdString(wtx->data);
-    case TransactionRecord::SendToSelf:
-    default:
-        return tr("(n/a)");
+        case TransactionRecord::RecvFromOther:
+            return (asAsciiData ? QString::fromStdString(asciiData) : QString::fromStdString(wtx->data));
+        case TransactionRecord::RecvWithAddress:
+        case TransactionRecord::SendToAddress:
+        case TransactionRecord::Generated:
+            return (asAsciiData ? QString::fromStdString(asciiData) : QString::fromStdString(wtx->data));
+        case TransactionRecord::SendToOther:
+            return (asAsciiData ? QString::fromStdString(asciiData) : QString::fromStdString(wtx->data));
+        case TransactionRecord::SendToSelf:
+        default:
+            return tr("(n/a)");
     }
 }
 
@@ -532,7 +543,7 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
             case ToAddress:
                 return formatTxToAddress(rec, false);
             case Data:
-                return formatTxData(rec, false);
+                return formatTxData(rec);
             case Amount:
                 return formatTxAmount(rec);
         }
@@ -550,7 +561,7 @@ QVariant TransactionTableModel::data(const QModelIndex &index, int role) const
             case ToAddress:
                 return formatTxToAddress(rec, true);
             case Data:
-                return formatTxData(rec, true);
+                return formatTxData(rec);
             case Amount:
                 return rec->credit + rec->debit;
         }

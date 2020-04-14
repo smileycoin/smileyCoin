@@ -44,7 +44,9 @@ namespace GUIUtil
     bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out);
     bool parseBitcoinURI(QString uri, SendCoinsRecipient *out);
     QString formatBitcoinURI(const SendCoinsRecipient &info);
-    //QString formatData(const SendCoinsRecipient &info);
+
+    // Convert hexadecimal string to ASCII string
+    std::string hexToAscii(std::string dataStr);
 
     // Returns true if given address+amount meets "dust" definition
     bool isDust(const QString& address, qint64 amount);
