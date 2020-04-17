@@ -149,7 +149,7 @@ bool SendCoinsEntry::validate()
     }
 
     // If dropdown selection is 'Hex' and data input is in ASCII format reject it
-    if (ui->addAsData2->currentText() == "HEX" && !IsHex(ui->addAsData->text().toStdString())) {
+    if (ui->addAsData2->currentText() == "HEX" && !IsHex(ui->addAsData->text().toStdString()) && !ui->addAsData->text().isEmpty()) {
         QMessageBox::critical(0, tr("Data input was rejected!"),
                               tr("The data input must be a string in hexadecimal format"));
         retval = false;
