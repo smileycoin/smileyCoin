@@ -404,6 +404,25 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, b
     }
 }
 
+QString TransactionTableModel::formatTxData(const TransactionRecord *wtx) const
+{
+    std::string asciiData = hexToAscii(wtx->data);
+    switch(wtx->type)
+    {
+        case TransactionRecord::RecvFromOther:
+            return (asAsciiData ? QString::fromStdString(asciiData) : QString::fromStdString(wtx->data));
+        case TransactionRecord::RecvWithAddress:
+        case TransactionRecord::SendToAddress:
+        case TransactionRecord::Generated:
+            return (asAsciiData ? QString::fromStdString(asciiData) : QString::fromStdString(wtx->data));
+        case TransactionRecord::SendToOther:
+            return (asAsciiData ? QString::fromStdString(asciiData) : QString::fromStdString(wtx->data));
+        case TransactionRecord::SendToSelf:
+        default:
+            return tr("(n/a)");
+    }
+}
+
 QVariant TransactionTableModel::addressColor(const TransactionRecord *wtx) const
 {
     // Show addresses without label in a less visible color

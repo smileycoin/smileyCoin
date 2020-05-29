@@ -273,6 +273,13 @@ void BitcoinGUI::createActions()
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 
+    serviceAction = new QAction(QIcon(":/icons/overview"), tr("&Services"), this);
+    serviceAction->setStatusTip(tr("Create or confirm new services"));
+    serviceAction->setToolTip(serviceAction->statusTip());
+    serviceAction->setCheckable(true);
+    serviceAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
+    tabGroup->addAction(serviceAction);
+
     // These showNormalIfMinimized are needed because Send Coins and Receive Coins
     // can be triggered from the tray menu, and need to show the GUI to be useful.
     connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -287,6 +294,8 @@ void BitcoinGUI::createActions()
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
     connect(addressBookAction, SIGNAL(triggered()), walletFrame, SLOT(usedSendingAddresses()));
     //connect(usedSendingAddressesAction, SIGNAL(triggered()), walletFrame, SLOT(usedSendingAddresses()))
+    connect(serviceAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(serviceAction, SIGNAL(triggered()), this, SLOT(gotoServicePage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setStatusTip(tr("Quit application"));
@@ -421,6 +430,7 @@ void BitcoinGUI::createToolBars()
         toolbar->addAction(receiveCoinsAction);
         toolbar->addAction(historyAction);
         toolbar->addAction(addressBookAction);
+        toolbar->addAction(serviceAction);
 
     }
 }
@@ -485,6 +495,7 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     sendCoinsAction->setEnabled(enabled);
     receiveCoinsAction->setEnabled(enabled);
     historyAction->setEnabled(enabled);
+    serviceAction->setEnabled(enabled);
     encryptWalletAction->setEnabled(enabled);
     backupWalletAction->setEnabled(enabled);
     changePassphraseAction->setEnabled(enabled);
@@ -616,6 +627,12 @@ void BitcoinGUI::gotoSendCoinsPage(QString addr)
 {
     sendCoinsAction->setChecked(true);
     if (walletFrame) walletFrame->gotoSendCoinsPage(addr);
+}
+
+void BitcoinGUI::gotoServicePage()
+{
+    serviceAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoServicePage();
 }
 
 void BitcoinGUI::gotoSignMessageTab(QString addr)
