@@ -418,7 +418,7 @@ QString TransactionTableModel::formatTxToAddress(const TransactionRecord *wtx, b
 
 QString TransactionTableModel::formatTxData(const TransactionRecord *wtx) const
 {
-    std::string asciiData = GUIUtil::hexToAscii(wtx->data);
+    std::string asciiData = hexToAscii(wtx->data);
     switch(wtx->type)
     {
         case TransactionRecord::RecvFromOther:

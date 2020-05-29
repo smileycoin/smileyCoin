@@ -78,6 +78,7 @@ private:
     QAction *overviewAction;
     QAction *historyAction;
     QAction *addressBookAction;
+    QAction *serviceAction;
     QAction *quitAction;
     QAction *sendCoinsAction;
     QAction *usedSendingAddressesAction;
@@ -167,6 +168,7 @@ private slots:
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
     void gotoSendCoinsPage(QString addr = "");
+    void gotoServicePage();
 
     /** Show Sign/Verify Message dialog and switch to sign message tab */
     void gotoSignMessageTab(QString addr = "");

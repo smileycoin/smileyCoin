@@ -11,6 +11,7 @@
 #include "rpcserver.h"
 #include "util.h"
 #include "richlistdb.h"
+#include "servicelistdb.h"
 #ifdef ENABLE_WALLET
 #include "wallet.h"
 #include "walletdb.h"
@@ -97,7 +98,7 @@ Value getinfo(const Array& params, bool fHelp)
         ExtractDestination(richpubkey, des);
         obj.push_back(Pair("oldest_rich_address", CBitcoinAddress(des).ToString()));
     }
-    else obj.push_back(Pair("oldest_rich_address", ""));   
+    else obj.push_back(Pair("oldest_rich_address", ""));
     obj.push_back(Pair("errors",        GetWarnings("statusbar")));
     return obj;
 }
@@ -118,6 +119,25 @@ Value getrichaddresses(const Array& params, bool fHelp)
         CTxDestination des;
         ExtractDestination(it->first, des);
         obj.push_back(Pair(CBitcoinAddress(des).ToString(), it -> second.second));
+    }
+    return obj;
+}
+
+Value getserviceaddresses(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error("getserviceaddresses\n"
+                           "Returns all verified addresses, ordered by ???????.\n"
+                            );
+
+    Object obj;
+    std::multiset<std::pair< CScript, std::pair<std::string, std::string>>> retset;
+
+    ServiceList.GetServiceAddresses(retset);
+
+    for(std::set< std::pair< CScript, std::pair<std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
+    {
+        obj.push_back(Pair(it->second.second, it->second.first));
     }
     return obj;
 }

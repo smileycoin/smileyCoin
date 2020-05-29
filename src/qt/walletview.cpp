@@ -5,6 +5,7 @@
 #include "walletview.h"
 
 #include "addressbookpage.h"
+#include "servicepage.h"
 #include "askpassphrasedialog.h"
 #include "bitcoingui.h"
 #include "clientmodel.h"
@@ -17,6 +18,7 @@
 #include "transactiontablemodel.h"
 #include "transactionview.h"
 #include "walletmodel.h"
+#include "init.h"
 
 #include "ui_interface.h"
 
@@ -27,6 +29,7 @@
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <wallet.h>
 
 WalletView::WalletView(QWidget *parent):
     QStackedWidget(parent),
@@ -59,11 +62,20 @@ WalletView::WalletView(QWidget *parent):
     //addressBookPage->setAttribute(Qt::WA_DeleteOnClose);
     //addressBookPage->setModel(walletModel->getAddressTableModel());
 
+    CBitcoinAddress address = CBitcoinAddress("B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc ");
+    if (IsMine(*pwalletMain, address.Get())) {
+        servicePage = new ServicePage(ServicePage::ForConfirmingService, this);
+    } else {
+        servicePage = new ServicePage(ServicePage::ForCreatingService, this);
+    }
+    servicePage->setWindowFlags(Qt::Widget);
+
     addWidget(overviewPage);
     addWidget(transactionsPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
     addWidget(addressBookPage);
+    addWidget(servicePage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
@@ -165,6 +177,12 @@ void WalletView::gotoOverviewPage()
 void WalletView::gotoHistoryPage()
 {
     setCurrentWidget(transactionsPage);
+}
+
+void WalletView::gotoServicePage()
+{
+    servicePage->setModel(walletModel);
+    setCurrentWidget(servicePage);
 }
 
 void WalletView::gotoReceiveCoinsPage()

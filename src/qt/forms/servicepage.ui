@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>ServicePage</class>
+    <widget class="QWidget" name="ServicePage">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>1086</width>
+                <height>380</height>
+            </rect>
+        </property>
+        <property name="focusPolicy">
+            <enum>Qt::TabFocus</enum>
+        </property>
+        <property name="autoFillBackground">
+            <bool>false</bool>
+        </property>
+        <widget class="QFrame" name="Service">
+            <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                </sizepolicy>
+            </property>
+            <property name="toolTip">
+                <string>This to create a new service.</string>
+            </property>
+            <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+                <enum>QFrame::Sunken</enum>
+            </property>
+            <layout class="QGridLayout" name="gridLayout">
+                <property name="spacing">
+                    <number>12</number>
+                </property>
+                <item row="0" column="1">
+                    <widget class="QLabel" name="serviceExplanation">
+                    </widget>
+                </item>
+                <item row="1" column="0">
+                    <widget class="QLabel" name="serviceNameLabel">
+                        <property name="text">
+                            <string>Service Name:</string>
+                        </property>
+                        <property name="alignment">
+                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                        </property>
+                        <property name="buddy">
+                            <cstring>serviceName</cstring>
+                        </property>
+                    </widget>
+                </item>
+                <item row="1" column="1">
+                    <widget class="QValidatedLineEdit" name="serviceName">
+                        <property name="toolTip">
+                            <string>Name for new service</string>
+                        </property>
+                    </widget>
+                </item>
+                <item row="2" column="0">
+                    <widget class="QLabel" name="serviceAddressLabel">
+                        <property name="text">
+                            <string>Service Address:</string>
+                        </property>
+                        <property name="alignment">
+                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                        </property>
+                        <property name="buddy">
+                            <cstring>serviceAddress</cstring>
+                        </property>
+                    </widget>
+                </item>
+                <item row="2" column="1">
+                    <widget class="QValidatedLineEdit" name="serviceAddress">
+                        <property name="toolTip">
+                            <string>Address for new service</string>
+                        </property>
+                    </widget>
+                </item>
+                <item row="3" column="1">
+                    <widget class="QPushButton" name="serviceButton">
+                        <property name="font">
+                            <font>
+                                <family>Helvetica</family>
+                                <weight>50</weight>
+                                <bold>false</bold>
+                            </font>
+                        </property>
+                        <property name="icon">
+                            <iconset resource="../bitcoin.qrc">
+                                <normaloff>:/icons/export</normaloff>:/icons/export</iconset>
+                        </property>
+                    </widget>
+                </item>
+            </layout>
+        </widget>
+    </widget>
+    <tabstops>
+        <tabstop>serviceName</tabstop>
+        <tabstop>serviceAddress</tabstop>
+        <tabstop>serviceButton</tabstop>
+    </tabstops>
+    <resources>
+        <include location="../bitcoin.qrc"/>
+    </resources>
+    <connections/>
+</ui>

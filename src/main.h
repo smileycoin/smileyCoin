@@ -149,6 +149,7 @@ bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp = NULL);
 bool InitBlockIndex();
 /** Initialize the chainstate database for rich list iteration and verify that we have the necessary address info*/
 bool InitRichList(CCoinsView &dbview);
+bool InitServiceList(CCoinsView &dbview);
 /** Load the block tree and coins database from disk */
 bool LoadBlockIndex();
 /** Unload database information */
