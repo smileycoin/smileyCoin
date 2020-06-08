@@ -15,6 +15,7 @@
 #include "miner.h"
 #include "net.h"
 #include "rpcserver.h"
+#include "script.h"
 #include "txdb.h"
 #include "ui_interface.h"
 #include "util.h"
@@ -291,6 +292,7 @@ std::string HelpMessage(HelpMessageMode hmm)
     strUsage += "  -mintxfee=<amt>        " + _("Fees smaller than this are considered zero fee (for transaction creation) (default:") + " " + FormatMoney(CTransaction::nMinTxFee) + ")" + "\n";
     strUsage += "  -minrelaytxfee=<amt>   " + _("Fees smaller than this are considered zero fee (for relaying) (default:") + " " + FormatMoney(CTransaction::nMinRelayTxFee) + ")" + "\n";
     strUsage += "  -printtoconsole        " + _("Send trace/debug info to console instead of debug.log file") + "\n";
+    strUsage += "  -datacarriersize       " + strprintf(_("Maximum size of data in data carrier transactions we relay and mine (default: %u)"), MAX_OP_RETURN_RELAY) + "\n";
     if (GetBoolArg("-help-debug", false))
     {
         strUsage += "  -printblock=<hash>     " + _("Print block on startup, if found in block index") + "\n";
@@ -606,6 +608,9 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     strWalletFile = GetArg("-wallet", "wallet.dat");
 #endif
+
+    nMaxDatacarrierBytes = GetArg("-datacarriersize", nMaxDatacarrierBytes);
+    
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
 
     std::string strDataDir = GetDataDir().string();
