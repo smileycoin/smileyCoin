@@ -19,6 +19,7 @@
 #include "transactionview.h"
 #include "walletmodel.h"
 #include "init.h"
+#include "servicelistdb.h"
 
 #include "ui_interface.h"
 
@@ -62,12 +63,28 @@ WalletView::WalletView(QWidget *parent):
     //addressBookPage->setAttribute(Qt::WA_DeleteOnClose);
     //addressBookPage->setModel(walletModel->getAddressTableModel());
 
+    std::vector<std::tuple<std::string, std::string, std::string>> serviceObject;
+    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
+
+    ServiceList.GetServiceAddresses(retset);
+
+    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
+    {
+        // Check if any of the service addresses belongs to this wallet
+        if (IsMine(*pwalletMain, CBitcoinAddress(get<1>(it->second)).Get())) {
+            serviceObject.push_back(std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second)));
+        }
+    }
+
     CBitcoinAddress address = CBitcoinAddress("B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc ");
     if (IsMine(*pwalletMain, address.Get())) {
-        servicePage = new ServicePage(ServicePage::ForConfirmingService, this);
+        servicePage = new ServicePage(ServicePage::ForConfirmingService, serviceObject, this);
+    } else if (!serviceObject.empty()) {
+        servicePage = new ServicePage(ServicePage::ForServiceOwner, serviceObject, this);
     } else {
-        servicePage = new ServicePage(ServicePage::ForCreatingService, this);
+        servicePage = new ServicePage(ServicePage::ForCreatingService, serviceObject, this);
     }
+
     servicePage->setWindowFlags(Qt::Widget);
 
     addWidget(overviewPage);

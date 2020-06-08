@@ -18,8 +18,9 @@
 #include <boost/version.hpp>
 #include <boost/filesystem.hpp>
 
-inline std::string ServiceName(const CServiceInfo &ai) {return ai.second;}
-inline std::string ServiceType(const CServiceInfo &ai) {return ai.first;}
+inline std::string ServiceType(const CServiceInfo &ai) {return get<2>(ai);}
+inline std::string ServiceName(const CServiceInfo &ai) {return get<1>(ai);}
+inline std::string ServiceAddress(const CServiceInfo &ai) {return get<0>(ai);}
 
 bool CServiceList::SetForked(const bool &fFork)
 {
@@ -27,14 +28,16 @@ bool CServiceList::SetForked(const bool &fFork)
     return true;
 }
 
-bool CServiceList::UpdateServiceInfo(const std::map<CScript, std::pair<std::string, std::string> > &map)
+bool CServiceList::UpdateServiceInfo(const std::map<CScript, std::tuple<std::string, std::string, std::string> > &map)
 {
-    for(std::map<CScript, std::pair<std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
+    for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
         LogPrintStr("UPDATESERVICEINFO");
         LogPrintStr(it->first.ToString());
-        LogPrintStr(it->second.first);
-        LogPrintStr(it->second.second);
+        LogPrintStr(get<0>(it->second));
+        LogPrintStr(get<1>(it->second));
+        LogPrintStr(get<2>(it->second));
+
         /*mapScriptPubKeys::iterator itService = maddresses.find(it->first);
         if(itService!=maddresses.end()){                   // ef addressan er a listanum
             if(it->second.first < RICH_AMOUNT) {            // ath hvort addressa sé enn þá rich
@@ -72,7 +75,7 @@ bool CServiceList::UpdateServiceAddressHeights()
     }
 
     CBlock block;
-    std::map<CScript, std::pair<std::string, std::string> > serviceInfo;
+    std::map<CScript, std::tuple<std::string, std::string, std::string> > serviceInfo;
     mapServiceScriptPubKeys mforkedAddresses;
 
     for(mapServiceScriptPubKeys::const_iterator it = maddresses.begin(); it!=maddresses.end(); it++)
@@ -144,7 +147,7 @@ bool CServiceList::UpdateServiceAddressHeights()
                         }
                     }
                 }*/
-                serviceInfo.insert(std::make_pair(key, std::make_pair(ServiceType(it), ServiceName(it))));
+                serviceInfo.insert(std::make_pair(key, std::make_tuple(ServiceAddress(it), ServiceName(it), ServiceType(it))));
                 mforkedAddresses.erase(it);
                 if(fDebug) {
                     CTxDestination dest;
@@ -168,7 +171,7 @@ bool CServiceList::UpdateServiceAddressHeights()
                     mapServiceScriptPubKeys::iterator it = mforkedAddresses.find(key);
                     if(it == mforkedAddresses.end())
                         continue;
-                    serviceInfo.insert(std::make_pair(it->first, std::make_pair(ServiceType(it), ServiceName(it))));
+                    serviceInfo.insert(std::make_pair(it->first, std::make_tuple(ServiceAddress(it), ServiceName(it), ServiceType(it))));
                     mforkedAddresses.erase(it);
                     if(fDebug) {
                         CTxDestination dest;
@@ -188,9 +191,8 @@ bool CServiceList::UpdateServiceAddressHeights()
     }
 
     bool ret;
-    typedef std::pair<CScript,std::pair<std::string,std::string> > pairType;
+    typedef std::pair<CScript, std::tuple<std::string,std::string, std::string> > pairType;
     BOOST_FOREACH(const pairType &pair, serviceInfo) {
-        LogPrintStr("BOOST_FOREACH servicelistdb.cpp lina 174 ");
         ret = pcoinsTip->SetServiceInfo(pair.first, pair.second);
         assert(ret);
     }
@@ -200,14 +202,10 @@ bool CServiceList::UpdateServiceAddressHeights()
     return mforkedAddresses.empty();
 }
 
-bool CServiceList::GetServiceAddresses(std::multiset<std::pair<CScript, std::pair<std::string, std::string>>> &retset) const {
-    for(std::map<CScript, std::pair<std::string, std::string> >::const_iterator it=maddresses.begin(); it!=maddresses.end(); it++)
+bool CServiceList::GetServiceAddresses(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string>>> &retset) const {
+    for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it=maddresses.begin(); it!=maddresses.end(); it++)
     {
-        LogPrintStr(" GETSERVICEADDRESSES servicelistdb.cpp ");
-        LogPrintStr(it->first.ToString());
-        LogPrintStr(it->second.first);
-        LogPrintStr(it->second.second);
-        retset.insert(std::make_pair(it->first, std::make_pair(it->second.first,it->second.second)));
+        retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
     }
     return true;
 }

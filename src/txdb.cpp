@@ -43,22 +43,15 @@ void static BatchWriteAddressInfo(CLevelDBBatch &batch, const CScript &key, cons
         batch.Write(make_pair(DB_ADDRESSINFO, key), value);
 }
 
-void static BatchWriteServiceInfo(CLevelDBBatch &batch, const CScript &key, const std::pair<std::string, std::string> &value) {
+void static BatchWriteServiceInfo(CLevelDBBatch &batch, const CScript &key, const std::tuple<std::string, std::string, std::string> &value) {
     opcodetype opcode;
     CScript::const_iterator pc = key.begin();
 
     if(key.GetOp(pc, opcode) && opcode == OP_RETURN) {
-        LogPrintStr(" OPCODE == OP_RETURN txdb.cpp lina 58 ");
         batch.Write(make_pair(DB_SERVICEINFO, key), value);
     } else {
-        LogPrintStr(" OPCODE != OP_RETURN  txdb.cpp lina 62 ");
         batch.Erase(make_pair(DB_SERVICEINFO, key));
     }
-
-    /*if(value.first.empty())
-        batch.Erase(make_pair(DB_SERVICEINFO, key));
-    else
-        batch.Write(make_pair(DB_SERVICEINFO, key), value);*/
 }
 
 void static BatchWriteHashBestChain(CLevelDBBatch &batch, const uint256 &hash) {
@@ -78,11 +71,11 @@ bool CCoinsViewDB::SetAddressInfo(const CScript &key, const std::pair<int64_t, i
     return db.WriteBatch(batch);
 }
 
-bool CCoinsViewDB::GetServiceInfo(const CScript &key, std::pair<std::string, std::string> &value) {
+bool CCoinsViewDB::GetServiceInfo(const CScript &key, std::tuple<std::string, std::string, std::string> &value) {
     return db.Read(make_pair(DB_SERVICEINFO, key), value);
 }
 
-bool CCoinsViewDB::SetServiceInfo(const CScript &key, const std::pair<std::string, std::string> &value) {
+bool CCoinsViewDB::SetServiceInfo(const CScript &key, const std::tuple<std::string, std::string, std::string> &value) {
     CLevelDBBatch batch;
     BatchWriteServiceInfo(batch, key, value);
     return db.WriteBatch(batch);
@@ -117,7 +110,7 @@ bool CCoinsViewDB::SetBestBlock(const uint256 &hashBlock) {
 
 bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
                               const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
-                              const std::map<CScript, std::pair<std::string, std::string>> &mapServiceInfo,
+                              const std::map<CScript, std::tuple<std::string, std::string, std::string>> &mapServiceInfo,
                               const uint256 &hashBlock) {
     LogPrint("coindb", "Committing %u changed transactions and %u address balances to coin database...\n",(unsigned int)mapCoins.size(), (unsigned int)mapAddressInfo.size());
 
@@ -126,7 +119,7 @@ bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
         BatchWriteCoins(batch, it->first, it->second);
     for (std::map<CScript, std::pair<int64_t,int> >::const_iterator it = mapAddressInfo.begin(); it != mapAddressInfo.end(); it++)
         BatchWriteAddressInfo(batch, it->first, it->second);
-    for (std::map<CScript, std::pair<std::string, std::string>>::const_iterator it = mapServiceInfo.begin(); it != mapServiceInfo.end(); it++)
+    for (std::map<CScript, std::tuple<std::string, std::string, std::string>>::const_iterator it = mapServiceInfo.begin(); it != mapServiceInfo.end(); it++)
         BatchWriteServiceInfo(batch, it->first, it->second);
 
     if (hashBlock != uint256(0))
@@ -198,7 +191,7 @@ bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist) {
             {
                 leveldb::Slice slValue = pcursor->value();
                 CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
-                std::pair<std::string, std::string> serviceinfo;
+                std::tuple<std::string, std::string, std::string> serviceinfo;
                 ssValue >> serviceinfo;
 
                 //if(addressinfo.first >= RICH_AMOUNT)
