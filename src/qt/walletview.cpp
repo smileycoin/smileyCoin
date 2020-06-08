@@ -79,9 +79,9 @@ WalletView::WalletView(QWidget *parent):
     CBitcoinAddress address = CBitcoinAddress("B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc ");
     if (IsMine(*pwalletMain, address.Get())) {
         servicePage = new ServicePage(ServicePage::ForConfirmingService, serviceObject, this);
-    } else if (!serviceObject.empty()) {
+    } /*else if (!serviceObject.empty()) {
         servicePage = new ServicePage(ServicePage::ForServiceOwner, serviceObject, this);
-    } else {
+    }*/ else {
         servicePage = new ServicePage(ServicePage::ForCreatingService, serviceObject, this);
     }
 
