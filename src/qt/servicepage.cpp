@@ -90,11 +90,7 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
         }
 
         case ForServiceOwner: {
-            LogPrintStr("ForServiceOwner");
-
             for(int i=0; i<serviceObject.size(); i++) {
-                //ticketType = get<2>(serviceObject[i]);
-
                 if (get<2>(serviceObject[i]) == "TicketSales") {
                     LogPrintStr("TicketSales i servicepage.cpp");
 
@@ -121,6 +117,7 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     layout->addRow(new QLabel(tr("Ticket Address:")), ticketAddressInput);
 
                     ticketButton = new QPushButton(tr("Create Ticket"));
+                    ticketButton->setObjectName(QStringLiteral("ticketButton"));
                     QIcon icon;
                     icon.addFile(QStringLiteral(":/icons/export"), QSize(), QIcon::Normal, QIcon::Off);
                     ticketButton->setIcon(icon);
@@ -130,7 +127,6 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     formGroupBox->setLayout(layout);
                     mainLayout->addWidget(formGroupBox);
                 }
-
                 if (get<2>(serviceObject[i]) == "BookChapter") {
                     LogPrintStr("Book i servicepage.cpp");
 
@@ -145,6 +141,7 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     layout->addRow(new QLabel(tr("Book Chapter Address:")), serviceAddressInput);
 
                     ticketButton = new QPushButton(tr("Create Book Chapter"));
+                    ticketButton->setObjectName(QStringLiteral("ticketButton"));
                     QIcon icon;
                     icon.addFile(QStringLiteral(":/icons/export"), QSize(), QIcon::Normal, QIcon::Off);
                     ticketButton->setIcon(icon);
@@ -154,7 +151,6 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     formGroupBox->setLayout(layout);
                     mainLayout->addWidget(formGroupBox);
                 }
-
                 if (get<2>(serviceObject[i]) == "UBI") {
                     //formGroupBox = new QGroupBox(tr("UBI recipients"));
                     formGroupBox = new QGroupBox(QString::fromStdString(get<0>(serviceObject[i])));
@@ -167,6 +163,7 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     layout->addRow(new QLabel(tr("Recipient Address:")), serviceAddressInput);
 
                     ticketButton = new QPushButton(tr("Create Recipient"));
+                    ticketButton->setObjectName(QStringLiteral("ticketButton"));
                     QIcon icon;
                     icon.addFile(QStringLiteral(":/icons/export"), QSize(), QIcon::Normal, QIcon::Off);
                     ticketButton->setIcon(icon);
@@ -176,7 +173,6 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     formGroupBox->setLayout(layout);
                     mainLayout->addWidget(formGroupBox);
                 }
-
                 if (get<2>(serviceObject[i]) == "NonprofitOrganization") {
                     //formGroupBox = new QGroupBox(tr("Nonprofit Organization"));
                     formGroupBox = new QGroupBox(QString::fromStdString(get<0>(serviceObject[i])));
@@ -189,6 +185,7 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     layout->addRow(new QLabel(tr("Organization Address:")), serviceAddressInput);
 
                     ticketButton = new QPushButton(tr("Create Nonprofit Organization"));
+                    ticketButton->setObjectName(QStringLiteral("ticketButton"));
                     QIcon icon;
                     icon.addFile(QStringLiteral(":/icons/export"), QSize(), QIcon::Normal, QIcon::Off);
                     ticketButton->setIcon(icon);
@@ -198,7 +195,6 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     formGroupBox->setLayout(layout);
                     mainLayout->addWidget(formGroupBox);
                 }
-
                 if (get<2>(serviceObject[i]) == "Traceability") {
                     //formGroupBox = new QGroupBox(tr("Traceability"));
                     formGroupBox = new QGroupBox(QString::fromStdString(get<0>(serviceObject[i])));
@@ -211,6 +207,7 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     layout->addRow(new QLabel(tr("Traceability Address:")), serviceAddressInput);
 
                     ticketButton = new QPushButton(tr("Create Traceability"));
+                    ticketButton->setObjectName(QStringLiteral("ticketButton"));
                     QIcon icon;
                     icon.addFile(QStringLiteral(":/icons/export"), QSize(), QIcon::Normal, QIcon::Off);
                     ticketButton->setIcon(icon);
@@ -223,6 +220,7 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
             }
 
             newService = new QPushButton(tr("New Service"));
+            newService->setObjectName(QStringLiteral("newService"));
             QIcon icon;
             icon.addFile(QStringLiteral(":/icons/add"), QSize(), QIcon::Normal, QIcon::Off);
             newService->setIcon(icon);
@@ -232,10 +230,10 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
         }
     }
 
-    LogPrintStr(" CONNECT ");
     // Connect signals for context menu actions
     connect(serviceButton, SIGNAL(clicked()), this, SLOT(onServiceAction()));
     connect(ticketButton, SIGNAL(clicked()), this, SLOT(onTicketAction()));
+    connect(newService, SIGNAL(clicked()), this, SLOT(onNewServiceAction()));
 }
 
 void ServicePage::setModel(WalletModel *model) {
@@ -245,7 +243,6 @@ void ServicePage::setModel(WalletModel *model) {
 }
 
 void ServicePage::onServiceAction() {
-    LogPrintStr(" ONSERVICEACTION() ");
     // Get new service name and convert to hex
     QString serviceName = serviceNameInput->text().toLatin1().toHex();
     // Get new service address and convert to hex
@@ -349,8 +346,6 @@ void ServicePage::onServiceAction() {
 }
 
 void ServicePage::onTicketAction() {
-    LogPrintStr("ONTICKETACTION efst ");
-
     QPushButton* buttonSender = qobject_cast<QPushButton*>(sender());
     QString buttonText = buttonSender->text();
 
@@ -493,6 +488,8 @@ void ServicePage::onTicketAction() {
             CoinControlDialog::coinControl->UnSelectAll();
         }
     }
+}
+void ServicePage::onNewServiceAction() {
 }
 
 void ServicePage::clear()

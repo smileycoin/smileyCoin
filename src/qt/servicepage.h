@@ -22,10 +22,6 @@ class OptionsModel;
 class SendCoinsDialog;
 class QValidatedLineEdit;
 
-namespace Ui {
-    class ServicePage;
-}
-
 /** Widget that shows a list of sending or receiving addresses.
   */
 class ServicePage : public QWidget
@@ -39,7 +35,6 @@ public:
         ForServiceOwner
     };
 
-    //explicit ServicePage(Mode mode, SubService subService, QWidget *parent);
     explicit ServicePage(Mode mode, std::vector<std::tuple<std::string, std::string, std::string>> serviceObject, QWidget *parent);
 
     void setModel(WalletModel *model);
@@ -49,17 +44,18 @@ public slots:
     void accept();
 
 private:
-    Ui::ServicePage *ui;
     WalletModel *model;
     Mode mode;
-    //SubService subService;
     std::vector<std::tuple<std::string, std::string, std::string>> serviceObject;
 
     SendCoinsDialog *sendCoinsDialog;
 
     QGroupBox *formGroupBox;
+
     QValidatedLineEdit *serviceNameInput;
     QValidatedLineEdit *serviceAddressInput;
+    QComboBox *serviceTypeCombo;
+    QPushButton *serviceButton;
 
     QValidatedLineEdit *ticketNameInput;
     QValidatedLineEdit *ticketDateInput;
@@ -67,19 +63,16 @@ private:
     QValidatedLineEdit *ticketLocInput;
     QValidatedLineEdit *ticketPriceInput;
     QValidatedLineEdit *ticketAddressInput;
-
-    QComboBox *serviceTypeCombo;
-    QPushButton *serviceButton;
-    QPushButton *newService;
     QPushButton *ticketButton;
+
+    QPushButton *newService;
 
     void processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg = QString());
 
 private slots:
     void onServiceAction();
-
-private slots:
     void onTicketAction();
+    void onNewServiceAction();
 
 };
 
