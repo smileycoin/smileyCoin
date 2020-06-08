@@ -1758,7 +1758,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 		return error("DisconnectBlock() : block and undo data inconsistent");
 
 	std::map<CScript, std::pair<int64_t, int> > addressInfo;
-    std::map<CScript, std::pair<std::string, std::string> > serviceInfo;
+    std::map<CScript, std::tuple<std::string, std::string, std::string> > serviceInfo;
 
 	// undo transactions in reverse order
 	for (int i = block.vtx.size() - 1; i >= 0; i--) {
@@ -1784,28 +1784,32 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                         std::string newService;
                         std::string serviceName;
                         std::string serviceAddress;
+                        std::string serviceType;
 
                         if (hexString.substr(0, 2) == "6a") {
+                            // Check if op_return starts with "new service"
                             hexData = hexString.substr(4, hexString.size()); //tetta gefur mer gildið i op_return
                             if (hexData.substr(0, 22) == "6e65772073657276696365") { //ef data hefst a "new service"
                                 newService = hexData.substr(22, hexString.size()); //op_return gildid a eftir "new service"
                                 std::vector<std::string> strs = splitString(newService, "20");
-                                if (strs.size() == 2) {
+                                if (strs.size() == 3) {
                                     serviceName = strs.at(0);
                                     serviceAddress = strs.at(1);
-                                    CBitcoinAddress sAddress = CBitcoinAddress(serviceAddress);
-                                    //if (sAddress.IsValid()) {
-                                        std::pair<std::string, std::string> value;
+                                    serviceType = strs.at(2);
+
+                                    CBitcoinAddress sAddress = CBitcoinAddress(hexToAscii(serviceAddress));
+                                    if (sAddress.IsValid()) {
+                                        //std::pair<std::string, std::string> value;
+                                        std::tuple<std::string, std::string, std::string> value;
                                         if(!view.GetServiceInfo(key,value))
                                             return state.Abort(_("Failed to read service index"));
                                         else {
-                                            value = std::make_pair(hexToAscii(serviceName), hexToAscii(serviceAddress));
+                                            //value = std::make_pair(hexToAscii(serviceName), hexToAscii(serviceAddress), hexToAscii(serviceType));
+                                            value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress), hexToAscii(serviceType));
                                             assert(view.SetServiceInfo(key,value));
                                             serviceInfo[key]=value;
                                         }
-                                    /*} else {
-                                        LogPrintStr(" addressan er ekki valid 1807 ");
-                                    }*/
+                                    }
                                 }
                             }
                         }
@@ -1892,25 +1896,25 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                             std::string newService;
                             std::string serviceName;
                             std::string serviceAddress;
+                            std::string serviceType;
 
                             if (hexString.substr(0, 2) == "6a") {
                                 hexData = hexString.substr(4, hexString.size()); //tetta gefur mer gildið i op_return
                                 if (hexData.substr(0, 22) == "6e65772073657276696365") { //ef data hefst a "new service"
                                     newService = hexData.substr(22, hexString.size()); //op_return gildid a eftir "new service"
                                     std::vector<std::string> strs = splitString(newService, "20");
-                                    if (strs.size() == 2) {
+                                    if (strs.size() == 3) {
                                         serviceName = strs.at(0);
                                         serviceAddress = strs.at(1);
+                                        serviceType = strs.at(2);
 
-                                        CBitcoinAddress sAddress = CBitcoinAddress(serviceAddress);
-                                        //if (sAddress.IsValid()) {
-                                            std::pair<std::string, std::string> value;
-                                            value = std::make_pair(hexToAscii(serviceName), hexToAscii(serviceAddress));
+                                        CBitcoinAddress sAddress = CBitcoinAddress(hexToAscii(serviceAddress));
+                                        if (sAddress.IsValid()) {
+                                            std::tuple<std::string, std::string, std::string> value;
+                                            value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress), hexToAscii(serviceType));
                                             assert(view.SetServiceInfo(key, value));
                                             serviceInfo[key] = value;
-                                        /*} else {
-                                            LogPrintStr(" addressan er ekki valid 1912 ");
-                                        }*/
+                                        }
                                     }
                                 }
                             }
@@ -2033,7 +2037,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	std::vector<std::pair<uint256, CDiskTxPos> > vPos;
 	vPos.reserve(block.vtx.size());
 	std::map<CScript, std::pair<int64_t, int> > addressInfo;
-    std::map<CScript, std::pair<std::string, std::string> > serviceInfo;
+    std::map<CScript, std::tuple<std::string, std::string, std::string> > serviceInfo;
 
 	for (unsigned int i = 0; i < block.vtx.size(); i++)
 	{
@@ -2078,30 +2082,31 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                             std::string newService;
                             std::string serviceName;
                             std::string serviceAddress;
+                            std::string serviceType;
 
                             if (hexString.substr(0, 2) == "6a") {
                                 hexData = hexString.substr(4, hexString.size()); //tetta gefur mer gildið i op_return
                                 if (hexData.substr(0, 22) == "6e65772073657276696365") { //ef data hefst a "new service"
                                     newService = hexData.substr(22, hexString.size()); //op_return gildid a eftir "new service"
                                     std::vector<std::string> strs = splitString(newService, "20");
-                                    if (strs.size() == 2) {
+                                    if (strs.size() == 3) {
                                         serviceName = strs.at(0);
                                         serviceAddress = strs.at(1);
+                                        serviceType = strs.at(2);
 
-                                        CBitcoinAddress sAddress = CBitcoinAddress(serviceAddress);
-                                        //if (sAddress.IsValid()) {
-                                            std::pair<std::string, std::string> value;
+                                        CBitcoinAddress sAddress = CBitcoinAddress(hexToAscii(serviceAddress));
+                                        if (sAddress.IsValid()) {
+                                            std::tuple<std::string, std::string, std::string> value;
                                             if (!view.GetServiceInfo(key, value))
                                                 return state.Abort(_("Failed to get service index"));
                                             else {
-                                                value = std::make_pair(hexToAscii(serviceName),
-                                                                       hexToAscii(serviceAddress));
+                                                value = std::make_tuple(hexToAscii(serviceName),
+                                                                       hexToAscii(serviceAddress),
+                                                                       hexToAscii(serviceType));
                                                 assert(view.SetServiceInfo(key, value));
                                                 serviceInfo[key] = value;
                                             }
-                                        /*} else {
-                                            LogPrintStr(" addressan er ekki valid 2103 ");
-                                        }*/
+                                        }
                                     }
                                 }
                             }
@@ -2156,31 +2161,35 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                         std::string newService;
                         std::string serviceName;
                         std::string serviceAddress;
+                        std::string serviceType;
 
                         if (hexString.substr(0, 2) == "6a") {
-                            hexData = hexString.substr(4, hexString.size()); //tetta gefur mer gildið i op_return
-                            if (hexData.substr(0, 22) == "6e65772073657276696365") { //ef data hefst a "new service"
-                                newService = hexData.substr(22, hexString.size()); //op_return gildid a eftir "new service"
+                            // Get the op_return value
+                            hexData = hexString.substr(4, hexString.size());
+                            // Continue if data string begins with "new service"
+                            if (hexData.substr(0, 22) == "6e65772073657276696365") {
+                                // Retrieve data that follows "new service"
+                                newService = hexData.substr(22, hexString.size());
                                 std::vector<std::string> strs = splitString(newService, "20");
-                                if (strs.size() == 2) {
+                                if (strs.size() == 3) {
                                     serviceName = strs.at(0);
                                     serviceAddress = strs.at(1);
+                                    serviceType = strs.at(2);
 
-                                    CBitcoinAddress sAddress = CBitcoinAddress(serviceAddress);
-                                    //if (sAddress.IsValid()) {
-                                        std::pair<std::string, std::string> value;
-                                        if (!view.GetServiceInfo(key, value)) {
-                                            //value = std::make_pair("2","3");
+                                    CBitcoinAddress sAddress = CBitcoinAddress(hexToAscii(serviceAddress));
+                                    // Check whether address field contains a valid address
+                                    if (sAddress.IsValid()) {
+                                        std::tuple<std::string, std::string, std::string> value;
+
+                                        /*if (!view.GetServiceInfo(key, value)) {
                                             value = std::make_pair(hexToAscii(serviceName), hexToAscii(serviceAddress));
                                         } else {
                                             value = std::make_pair(hexToAscii(serviceName), hexToAscii(serviceAddress));
-                                        }
-
+                                        }*/
+                                        value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress), hexToAscii(serviceType));
                                         assert(view.SetServiceInfo(key, value));
                                         serviceInfo[key] = value;
-                                    /*} else {
-                                        LogPrintStr(" addressan er ekki valid 2180 ");
-                                    }*/
+                                    }
                                 }
                             }
                         }
@@ -3533,7 +3542,7 @@ bool InitServiceList(CCoinsView &dbview)
     if (fReindex || chainActive.Genesis() == NULL) {
         std::vector<unsigned char> v;
         v.assign(21,'0');
-        if(!dbview.SetServiceInfo(CScript(v),std::make_pair("1", "0"))) {
+        if(!dbview.SetServiceInfo(CScript(v),std::make_tuple("1", "0", "0"))) {
             return false; }
         pblocktree->WriteFlag("serviceinfo", true);
     }

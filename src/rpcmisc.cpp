@@ -17,6 +17,7 @@
 #include "walletdb.h"
 #endif
 
+#include <boost/tuple/tuple.hpp>
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
@@ -131,13 +132,13 @@ Value getserviceaddresses(const Array& params, bool fHelp)
                             );
 
     Object obj;
-    std::multiset<std::pair< CScript, std::pair<std::string, std::string>>> retset;
+    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
 
     ServiceList.GetServiceAddresses(retset);
 
-    for(std::set< std::pair< CScript, std::pair<std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
+    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
     {
-        obj.push_back(Pair(it->second.second, it->second.first));
+        obj.push_back(Pair(get<1>(it->second), get<0>(it->second)));
     }
     return obj;
 }

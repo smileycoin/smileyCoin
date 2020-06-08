@@ -32,7 +32,6 @@ QT_FORMS_UI = \
   forms/rpcconsole.ui \
   forms/sendcoinsdialog.ui \
   forms/sendcoinsentry.ui \
-  forms/servicepage.ui \
   forms/signverifymessagedialog.ui \
   forms/transactiondescdialog.ui
 

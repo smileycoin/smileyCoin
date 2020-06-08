@@ -126,6 +126,40 @@
      </widget>
     </item>
     <item row="2" column="0">
+     <widget class="QLabel" name="dataLabel">
+      <property name="text">
+       <string>Data:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="buddy">
+       <cstring>addAsData</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <layout class="QHBoxLayout" name="dataLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLineEdit" name="addAsData">
+       <property name="toolTip">
+        <string>Data to be sent with this transaction.</string>
+       </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="addAsData2">
+       <property name="toolTip">
+        <string>Data can be sent as hexadecimal or plain text.</string>
+       </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="3" column="0">
      <widget class="QLabel" name="amountLabel">
       <property name="text">
        <string>A&amp;mount:</string>
