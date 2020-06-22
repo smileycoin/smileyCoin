@@ -32,12 +32,6 @@ bool CServiceList::UpdateServiceInfo(const std::map<CScript, std::tuple<std::str
 {
     for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
-        LogPrintStr("UPDATESERVICEINFO");
-        LogPrintStr(it->first.ToString());
-        LogPrintStr(get<0>(it->second));
-        LogPrintStr(get<1>(it->second));
-        LogPrintStr(get<2>(it->second));
-
         /*mapScriptPubKeys::iterator itService = maddresses.find(it->first);
         if(itService!=maddresses.end()){                   // ef addressan er a listanum
             if(it->second.first < RICH_AMOUNT) {            // ath hvort addressa sé enn þá rich
@@ -65,7 +59,6 @@ bool CServiceList::UpdateServiceInfo(const std::map<CScript, std::tuple<std::str
 // TODO: We should try to get rid of this and write the height undo information to the disk instead.
 bool CServiceList::UpdateServiceAddressHeights()
 {
-    LogPrintStr("UPDATESERVICEADDRESSHEIGHTS ");
     if(!fForked)
         return true;
 

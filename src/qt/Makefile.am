@@ -22,6 +22,7 @@ QT_FORMS_UI = \
   forms/askpassphrasedialog.ui \
   forms/coincontroldialog.ui \
   forms/editaddressdialog.ui \
+  forms/editservicedialog.ui \
   forms/helpmessagedialog.ui \
   forms/intro.ui \
   forms/openuridialog.ui \
@@ -48,6 +49,7 @@ QT_MOC_CPP = \
   moc_coincontroltreewidget.cpp \
   moc_csvmodelwriter.cpp \
   moc_editaddressdialog.cpp \
+  moc_editservicedialog.cpp \
   moc_guiutil.cpp \
   moc_intro.cpp \
   moc_macdockiconhandler.cpp \
@@ -111,6 +113,7 @@ BITCOIN_QT_H = \
   coincontroltreewidget.h \
   csvmodelwriter.h \
   editaddressdialog.h \
+  editservicedialog.h \
   guiconstants.h \
   guiutil.h \
   intro.h \
@@ -222,6 +225,7 @@ BITCOIN_QT_CPP += \
   coincontroldialog.cpp \
   coincontroltreewidget.cpp \
   editaddressdialog.cpp \
+  editservicedialog.cpp \
   openuridialog.cpp \
   overviewpage.cpp \
   paymentrequestplus.cpp \
