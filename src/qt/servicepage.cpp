@@ -8,7 +8,6 @@
 #include "bitcoingui.h"
 #include "bitcoinunits.h"
 #include "csvmodelwriter.h"
-#include "editaddressdialog.h"
 #include "optionsmodel.h"
 #include "walletmodel.h"
 #include "guiutil.h"
@@ -17,48 +16,224 @@
 #include "coincontrol.h"
 #include "sendcoinsentry.h"
 #include "sendcoinsdialog.h"
-
-#include <QGroupBox>
-#include <QFormLayout>
-#include <QComboBox>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QVBoxLayout>
-#include <QIcon>
-#include <QPushButton>
+#include "servicelistdb.h"
+#include "init.h"
+#include "editservicedialog.h"
 
 #include <qvalidatedlineedit.h>
 #include <wallet.h>
 
-//ServicePage::ServicePage(Mode mode, SubService subService, QWidget *parent) :
-ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::string, std::string>> serviceObject, QWidget *parent) :
-        QWidget(parent),
-        model(0),
-        mode(mode),
-        serviceObject(serviceObject)
+//ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::string, std::string>> serviceObject, QWidget *parent) :
+ServicePage::ServicePage(QWidget *parent) :
+    QDialog(parent),
+    //mode(mode),
+    //serviceObject(serviceObject),
+    model(0)
 {
-    QWidget *mainWindow = new QWidget(this);
-    QVBoxLayout *mainLayout = new QVBoxLayout;
-    mainLayout->setSizeConstraint(QLayout::SetMaximumSize);
-    mainWindow->setLayout(mainLayout);
-    //ui->setupUi(this);
-    setContentsMargins(0,0,0,0);
+    QFont font;
+    font.setFamily(QStringLiteral("Helvetica"));
+    font.setBold(false);
+    font.setWeight(50);
+
+    // Top horizontal layout
+    /*QHBoxLayout *hlayout = new QHBoxLayout();
+    hlayout->setContentsMargins(0,0,0,0);
+
+#ifdef Q_OS_MAC
+    hlayout->setSpacing(5);
+    hlayout->addSpacing(26);
+#else
+    hlayout->setSpacing(0);
+    hlayout->addSpacing(23);
+#endif
+
+    nameWidget = new QLineEdit(this);
+#if QT_VERSION >= 0x040700
+    nameWidget->setPlaceholderText(tr("Enter service name to search"));
+#endif
+    hlayout->addWidget(nameWidget);
+
+    addressWidget = new QLineEdit(this);
+#if QT_VERSION >= 0x040700
+    addressWidget->setPlaceholderText(tr("Enter address to search"));
+#endif
+    hlayout->addWidget(addressWidget);
+
+    typeWidget = new QComboBox(this);
+
+    typeWidget->addItem(tr("All"), All);
+    typeWidget->addItem(tr("Ticket Sales"), TicketSales);
+    typeWidget->addItem(tr("UBI"), UBI);
+    typeWidget->addItem(tr("Book Chapter"), BookChapter);
+    typeWidget->addItem(tr("Traceability"), Traceability);
+    typeWidget->addItem(tr("Nonprofit Organization"), NonprofitOrganization);
+    hlayout->addWidget(typeWidget);*/
+
+    // Vertical layout of whole window
+    QVBoxLayout *vlayout = new QVBoxLayout(this);
+    /*labelExplanation = new QLabel(this);
+    labelExplanation->setObjectName(QStringLiteral("labelExplanation"));
+    labelExplanation->setFont(font);
+    labelExplanation->setTextFormat(Qt::PlainText);
+    labelExplanation->setWordWrap(true);
+
+    vlayout->addWidget(labelExplanation);*/
+
+    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
+    ServiceList.GetServiceAddresses(retset);
+    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
+    {
+        // Check if any of the service addresses belongs to this wallet
+        if (IsMine(*pwalletMain, CBitcoinAddress(get<1>(it->second)).Get())) {
+            myServices.push_back(std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second)));
+        }
+        allServices.push_back(std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second)));
+    }
+
+    if(!ServiceList.UpdateServiceAddressHeights())
+        LogPrintStr("!SERVICELIST.UpdateServiceAddressHeights()"); //TODO: láta vita?
+    else {
+        ServiceList.SetForked(false);
+    }
+
+    // Table view of services
+    table = new QTableWidget(this);
+    table->setObjectName(QStringLiteral("table"));
+    table->setRowCount(0);
+    table->setColumnCount(3);
+    QStringList labels;
+    labels << "Name" << "Address" << "Type";
+    table->setHorizontalHeaderLabels(labels);
+
+    table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    table->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+
+    table->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    table->verticalHeader()->setDefaultSectionSize(50);
+    table->verticalHeader()->setVisible(false);
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    table->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table->setSelectionMode(QAbstractItemView::SingleSelection);
+    table->setFont(font);
+    table->setAlternatingRowColors(true);
+    table->setSortingEnabled(true);
+
+    //table->setShowGrid(false);
+    //table->setGeometry(QApplication::desktop()->screenGeometry());
+
+    //vlayout->addLayout(hlayout);
+    int width = table->verticalScrollBar()->sizeHint().width();
+
+    // Cover scroll bar width with spacing
+#ifdef Q_OS_MAC
+    //hlayout->addSpacing(width+2);
+#else
+    //hlayout->addSpacing(width);
+#endif
+    // Always show scroll bar
+    table->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    table->setTabKeyNavigation(false);
+    table->setContextMenuPolicy(Qt::CustomContextMenu);
+    table->setColumnCount(3);
+
+    // If service belongs to this wallet
+    if (!myServices.empty())
+    {
+        QHBoxLayout *hlayout = new QHBoxLayout();
+        hlayout->setObjectName(QStringLiteral("hlayout"));
+
+        viewAllServices = new QRadioButton("All Services", this);
+        viewAllServices->setObjectName(QStringLiteral("viewAllServices"));
+        QSizePolicy sizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(viewAllServices->sizePolicy().hasHeightForWidth());
+        viewAllServices->setSizePolicy(sizePolicy);
+        viewAllServices->setChecked(true);
+
+        hlayout->addWidget(viewAllServices);
+
+        viewMyServices = new QRadioButton("My Services", this);
+        viewMyServices->setObjectName(QStringLiteral("viewMyServices"));
+        sizePolicy.setHeightForWidth(viewMyServices->sizePolicy().hasHeightForWidth());
+        viewMyServices->setSizePolicy(sizePolicy);
+        viewMyServices->setChecked(false);
+
+        hlayout->addWidget(viewMyServices);
+
+        if (viewAllServices->isChecked()) {
+            LogPrintStr("viewAllServices is checked");
+            table->setRowCount(allServices.size());
+            for(int i=0; i<allServices.size(); i++) {
+                table->setItem(i, 0, new QTableWidgetItem(QString::fromStdString(get<0>(allServices[i]))));
+                table->setItem(i, 1, new QTableWidgetItem(QString::fromStdString(get<1>(allServices[i]))));
+                table->setItem(i, 2, new QTableWidgetItem(QString::fromStdString(get<2>(allServices[i]))));
+            }
+        } else {
+            LogPrintStr("viewMyServices is checked");
+            table->setRowCount(myServices.size());
+            for(int i=0; i<myServices.size(); i++) {
+                table->setItem(i, 0, new QTableWidgetItem(QString::fromStdString(get<0>(myServices[i]))));
+                table->setItem(i, 1, new QTableWidgetItem(QString::fromStdString(get<1>(myServices[i]))));
+                table->setItem(i, 2, new QTableWidgetItem(QString::fromStdString(get<2>(myServices[i]))));
+            }
+        }
+        vlayout->addLayout(hlayout);
+    } else {
+        table->setRowCount(allServices.size());
+        for(int i=0; i<allServices.size(); i++) {
+            table->setItem(i, 0, new QTableWidgetItem(QString::fromStdString(get<0>(allServices[i]))));
+            table->setItem(i, 1, new QTableWidgetItem(QString::fromStdString(get<1>(allServices[i]))));
+            table->setItem(i, 2, new QTableWidgetItem(QString::fromStdString(get<2>(allServices[i]))));
+        }
+    }
+
+    vlayout->addWidget(table);
+
+
+    // Bottom horizontal layout
+    QHBoxLayout *bottomLayout = new QHBoxLayout();
+    bottomLayout->setObjectName(QStringLiteral("bottomLayout"));
+
+    QPushButton *newService = new QPushButton(tr("New Service"));
+    newService->setObjectName(QStringLiteral("newService"));
+    newService->setFont(font);
+    QIcon icon;
+    icon.addFile(QStringLiteral(":/icons/add"), QSize(), QIcon::Normal, QIcon::Off);
+    newService->setIcon(icon);
+    bottomLayout->addWidget(newService);
+
+    QPushButton *deleteService = new QPushButton(tr("Delete Service"));
+    deleteService->setObjectName(QStringLiteral("deleteService"));
+    deleteService->setFont(font);
+    QIcon icon1;
+    icon1.addFile(QStringLiteral(":/icons/remove"), QSize(), QIcon::Normal, QIcon::Off);
+    deleteService->setIcon(icon1);
+    bottomLayout->addWidget(deleteService);
+
+    QSpacerItem *horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+    bottomLayout->addItem(horizontalSpacer);
+
+    vlayout->addLayout(bottomLayout);
 
 #ifdef Q_OS_MAC // Icons on push buttons are very uncommon on Mac
     serviceButton->setIcon(QIcon());
     ticketButton->setIcon(QIcon());
 #endif
 
-    switch(mode) {
+    /*switch(mode) {
         case ForConfirmingService: {
             formGroupBox = new QGroupBox(tr("This form is to confirm services"));
 
             serviceButton = new QPushButton(tr("Confirm New Service"));
-            mainLayout->addWidget(formGroupBox);
+            //mainLayout->addWidget(formGroupBox);
+            verticalLayout->addWidget(formGroupBox);
             break;
         }
-        case ForCreatingService: {
+        case AllServices: {
+            labelExplanation->setText(tr("These are the official Smileycoin services."));
+
             formGroupBox = new QGroupBox(tr("This form is to create a new service"));
             QFormLayout *layout = new QFormLayout(this);
 
@@ -85,27 +260,31 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
             layout->addRow(serviceButton);
 
             formGroupBox->setLayout(layout);
-            mainLayout->addWidget(formGroupBox);
+            //mainLayout->addWidget(formGroupBox);
+            verticalLayout->addWidget(formGroupBox);
             break;
         }
 
-        case ForServiceOwner: {
-            for(int i=0; i<serviceObject.size(); i++) {
-                if (get<2>(serviceObject[i]) == "TicketSales") {
-                    LogPrintStr("TicketSales i servicepage.cpp");
+        case MyServices: {
+            table->setRowCount(serviceObject.size());
+            table->setColumnCount(3);
 
-                    //formGroupBox = new QGroupBox(tr("Ticket Sales"));
+            //labelExplanation->setText(tr("These are your Smileycoin services."));
+            for (int i = 0; i < serviceObject.size(); i++) {
+                table->setItem(i, 0, new QTableWidgetItem(QString::fromStdString(get<0>(serviceObject[i]))));
+                table->setItem(i, 1, new QTableWidgetItem(QString::fromStdString(get<1>(serviceObject[i]))));
+                table->setItem(i, 2, new QTableWidgetItem(QString::fromStdString(get<2>(serviceObject[i]))));
+
+                if (get<2>(serviceObject[i]) == "TicketSales") {
+                    // Gamla ui-ið
                     formGroupBox = new QGroupBox(QString::fromStdString(get<0>(serviceObject[i])));
                     QFormLayout *layout = new QFormLayout(this);
 
                     ticketNameInput = new QValidatedLineEdit(this);
                     layout->addRow(new QLabel(tr("Ticket Name:")), ticketNameInput);
 
-                    ticketDateInput = new QValidatedLineEdit(this);
-                    layout->addRow(new QLabel(tr("Date:")), ticketDateInput);
-
-                    ticketTimeInput = new QValidatedLineEdit(this);
-                    layout->addRow(new QLabel(tr("Time:")), ticketTimeInput);
+                    dateTimeEdit = new QDateTimeEdit(QDateTime::currentDateTime(), this);
+                    layout->addRow(new QLabel(tr("DateTime:")), dateTimeEdit);
 
                     ticketLocInput = new QValidatedLineEdit(this);
                     layout->addRow(new QLabel(tr("Location:")), ticketLocInput);
@@ -128,9 +307,8 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     mainLayout->addWidget(formGroupBox);
                 }
                 if (get<2>(serviceObject[i]) == "BookChapter") {
-                    LogPrintStr("Book i servicepage.cpp");
 
-                    //formGroupBox = new QGroupBox(tr("Book Chapter"));
+                    // Gamla ui-ið
                     formGroupBox = new QGroupBox(QString::fromStdString(get<0>(serviceObject[i])));
                     QFormLayout *layout = new QFormLayout(this);
 
@@ -152,7 +330,8 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     mainLayout->addWidget(formGroupBox);
                 }
                 if (get<2>(serviceObject[i]) == "UBI") {
-                    //formGroupBox = new QGroupBox(tr("UBI recipients"));
+
+                    // Gamla ui-ið
                     formGroupBox = new QGroupBox(QString::fromStdString(get<0>(serviceObject[i])));
                     QFormLayout *layout = new QFormLayout(this);
 
@@ -174,7 +353,8 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     mainLayout->addWidget(formGroupBox);
                 }
                 if (get<2>(serviceObject[i]) == "NonprofitOrganization") {
-                    //formGroupBox = new QGroupBox(tr("Nonprofit Organization"));
+
+                    // Gamla ui-ið
                     formGroupBox = new QGroupBox(QString::fromStdString(get<0>(serviceObject[i])));
                     QFormLayout *layout = new QFormLayout(this);
 
@@ -196,7 +376,6 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     mainLayout->addWidget(formGroupBox);
                 }
                 if (get<2>(serviceObject[i]) == "Traceability") {
-                    //formGroupBox = new QGroupBox(tr("Traceability"));
                     formGroupBox = new QGroupBox(QString::fromStdString(get<0>(serviceObject[i])));
                     QFormLayout *layout = new QFormLayout(this);
 
@@ -218,28 +397,42 @@ ServicePage::ServicePage(Mode mode, std::vector<std::tuple<std::string, std::str
                     mainLayout->addWidget(formGroupBox);
                 }
             }
-
-            newService = new QPushButton(tr("New Service"));
-            newService->setObjectName(QStringLiteral("newService"));
-            QIcon icon;
-            icon.addFile(QStringLiteral(":/icons/add"), QSize(), QIcon::Normal, QIcon::Off);
-            newService->setIcon(icon);
-            mainLayout->addWidget(newService);
-
+            }
             break;
         }
-    }
+    }*/
 
     // Connect signals for context menu actions
     connect(serviceButton, SIGNAL(clicked()), this, SLOT(onServiceAction()));
     connect(ticketButton, SIGNAL(clicked()), this, SLOT(onTicketAction()));
     connect(newService, SIGNAL(clicked()), this, SLOT(onNewServiceAction()));
+    connect(viewAllServices, SIGNAL(toggled(bool)), this, SLOT(onViewAllServices()));
+    connect(viewMyServices, SIGNAL(toggled(bool)), this, SLOT(onViewMyServices()));
+    //connect(table, SIGNAL(cellClicked(int, int)), this, SLOT(cellSelected2(int, int)));
+    //connect(table, SIGNAL(cellDoubleClicked()), this, SLOT(cellSelected(int, int)));
+
+    QMetaObject::connectSlotsByName(this);
+
 }
 
 void ServicePage::setModel(WalletModel *model) {
     this->model = model;
+
     if(!model)
         return;
+
+    /*if(model)
+    {
+        serviceView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        serviceView->setAlternatingRowColors(true);
+        serviceView->setSelectionBehavior(QAbstractItemView::SelectRows);
+        serviceView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+        serviceView->setSortingEnabled(true);
+        serviceView->sortByColumn(ServiceTableModel::Name, Qt::DescendingOrder);
+        serviceView->verticalHeader()->hide();
+
+        columnResizingFixer = new GUIUtil::TableViewLastColumnResizingFixer(serviceView, AMOUNT_MINIMUM_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH);
+    }*/
 }
 
 void ServicePage::onServiceAction() {
@@ -356,8 +549,8 @@ void ServicePage::onTicketAction() {
     if (buttonText.toStdString() == "Create Ticket") {
         LogPrintStr("Create ticket buttonText ");
         QString rawTicketName = ticketNameInput->text().toLatin1().toHex();
-        QString ticketDate = ticketDateInput->text().toLatin1().toHex();
-        QString ticketTime = ticketTimeInput->text().toLatin1().toHex();
+        /*QString ticketDate = ticketDateInput->text().toLatin1().toHex();
+        QString ticketTime = ticketTimeInput->text().toLatin1().toHex();*/
         QString rawTicketLoc = ticketLocInput->text().toLatin1().toHex();
         QString ticketPrice = ticketPriceInput->text().toLatin1().toHex();
         QString ticketAddress = ticketAddressInput->text().toLatin1().toHex();
@@ -388,8 +581,8 @@ void ServicePage::onTicketAction() {
         ticketOpReturn = QString::fromStdString("6e6577207469636b657420") +
                          ticketLoc + QString::fromStdString("20") +
                          ticketName + QString::fromStdString("20") +
-                         ticketDate + QString::fromStdString("20") +
-                         ticketTime + QString::fromStdString("20") +
+                         //ticketDate + QString::fromStdString("20") +
+                         //ticketTime + QString::fromStdString("20") +
                          ticketPrice + QString::fromStdString("20") +
                          ticketAddress;
     }
@@ -489,7 +682,16 @@ void ServicePage::onTicketAction() {
         }
     }
 }
+
 void ServicePage::onNewServiceAction() {
+    if(!model)
+        return;
+
+    EditServiceDialog dlg(EditServiceDialog::NewService, this);
+    connect(&dlg, SIGNAL(accepted()), this, SLOT(EditServiceDialog::accept()));
+    dlg.setModel(model);
+    //int result = dlg.exec();
+    dlg.exec();
 }
 
 void ServicePage::clear()
@@ -505,7 +707,6 @@ void ServicePage::accept()
 
 void ServicePage::processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg)
 {
-    LogPrintStr("fer i processsendcoinsreturn");
     QPair<QString, CClientUIInterface::MessageBoxFlags> msgParams;
     // Default to a warning message, override if error message is needed
     msgParams.second = CClientUIInterface::MSG_WARNING;
@@ -516,19 +717,10 @@ void ServicePage::processSendCoinsReturn(const WalletModel::SendCoinsReturn &sen
     switch(sendCoinsReturn.status)
     {
         case WalletModel::InvalidAddress:
-            msgParams.first = tr("The recipient address is not valid, please recheck.");
-            break;
-        case WalletModel::InvalidAmount:
-            msgParams.first = tr("The amount to pay must be larger than 0.");
-            break;
-        case WalletModel::AmountExceedsBalance:
-            msgParams.first = tr("The amount exceeds your balance.");
+            msgParams.first = tr("The entered address \"%1\" is not a valid Smileycoin address.");
             break;
         case WalletModel::AmountWithFeeExceedsBalance:
             msgParams.first = tr("The total exceeds your balance when the %1 transaction fee is included.").arg(msgArg);
-            break;
-        case WalletModel::DuplicateAddress:
-            msgParams.first = tr("Duplicate address found, can only send to each address once per send operation.");
             break;
         case WalletModel::TransactionCreationFailed:
             msgParams.first = tr("Transaction creation failed!");
@@ -543,4 +735,23 @@ void ServicePage::processSendCoinsReturn(const WalletModel::SendCoinsReturn &sen
         default:
             return;
     }
+}
+
+void ServicePage::onViewAllServices()
+{
+    LogPrintStr("onViewAllServices");
+}
+
+void ServicePage::onViewMyServices()
+{
+    LogPrintStr("onViewMyServices");
+}
+
+void ServicePage::cellSelected2(int nRow, int nCol)
+{
+    LogPrintStr("eg er ad double clicka1!!");
+    QMessageBox::information(this, "",
+                             "Cell at row " + QString::number(nRow) +
+    " column " + QString::number(nCol) +
+    " was double clicked.");
 }

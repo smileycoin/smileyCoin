@@ -1778,7 +1778,6 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                     const CScript &keyService = outService.scriptPubKey;*/
 
                     if (ContainsOpReturn(tx)) {
-                        LogPrintStr(" CONTAINSOPRETURN(TX) main.cpp lina 1815 ");
                         std::string hexString = HexStr(key);
                         std::string hexData;
                         std::string newService;
@@ -1799,12 +1798,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 
                                     CBitcoinAddress sAddress = CBitcoinAddress(hexToAscii(serviceAddress));
                                     if (sAddress.IsValid()) {
-                                        //std::pair<std::string, std::string> value;
                                         std::tuple<std::string, std::string, std::string> value;
                                         if(!view.GetServiceInfo(key,value))
                                             return state.Abort(_("Failed to read service index"));
                                         else {
-                                            //value = std::make_pair(hexToAscii(serviceName), hexToAscii(serviceAddress), hexToAscii(serviceType));
                                             value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress), hexToAscii(serviceType));
                                             assert(view.SetServiceInfo(key,value));
                                             serviceInfo[key]=value;
@@ -1889,8 +1886,6 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                         const CScript &keyService = outService.scriptPubKey;*/
 
                         if (ContainsOpReturn(tx)) {
-                            LogPrintStr(" CONTAINSOPRETURN(TX) main.cpp lina 1929 ");
-
                             std::string hexString = HexStr(key);
                             std::string hexData;
                             std::string newService;
@@ -1946,7 +1941,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
     	return state.Abort(_("Failed to update rich list"));
     }
 
-    if(!ServiceList.UpdateServiceInfo(serviceInfo)) { //Virkar ef a að vera eins og richlist
+    if(!ServiceList.UpdateServiceInfo(serviceInfo)) {
         return state.Abort(_("Failed to update service list"));
     }
 
@@ -2076,7 +2071,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                         const CScript &keyService = outService.scriptPubKey;*/
 
                         if (ContainsOpReturn(tx)) {
-                            LogPrintStr(" CONTAINSOPRETURN(TX) main.cpp lina 2111 ");
                             std::string hexString = HexStr(key);
                             std::string hexData;
                             std::string newService;
@@ -2155,7 +2149,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                     const CScript &keyService = outService.scriptPubKey;*/
 
                     if (ContainsOpReturn(tx)) {
-                        LogPrintStr(" CONTAINSOPRETURN(TX) main.cpp lina 2181 ");
                         std::string hexString = HexStr(key);
                         std::string hexData;
                         std::string newService;

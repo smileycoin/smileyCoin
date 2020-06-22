@@ -63,7 +63,8 @@ WalletView::WalletView(QWidget *parent):
     //addressBookPage->setAttribute(Qt::WA_DeleteOnClose);
     //addressBookPage->setModel(walletModel->getAddressTableModel());
 
-    std::vector<std::tuple<std::string, std::string, std::string>> serviceObject;
+    /*std::vector<std::tuple<std::string, std::string, std::string>> serviceObject;
+    //std::vector<std::tuple<std::string, std::string, std::string>> allServices;
     std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
 
     ServiceList.GetServiceAddresses(retset);
@@ -80,10 +81,12 @@ WalletView::WalletView(QWidget *parent):
     if (IsMine(*pwalletMain, address.Get())) {
         servicePage = new ServicePage(ServicePage::ForConfirmingService, serviceObject, this);
     } else if (!serviceObject.empty()) {
-        servicePage = new ServicePage(ServicePage::ForServiceOwner, serviceObject, this);
+        servicePage = new ServicePage(ServicePage::MyServices, serviceObject, this);
     } else {
-        servicePage = new ServicePage(ServicePage::ForCreatingService, serviceObject, this);
-    }
+        servicePage = new ServicePage(ServicePage::AllServices, serviceObject, this);
+    }*/
+
+    servicePage = new ServicePage();
 
     servicePage->setWindowFlags(Qt::Widget);
 

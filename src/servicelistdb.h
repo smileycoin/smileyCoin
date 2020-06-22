@@ -15,14 +15,6 @@
 class CServiceList;
 extern CServiceList ServiceList;
 
-struct ServiceOrderCompare
-{
-    bool operator()(const std::pair< CScript, std::pair<std::string, std::string> >& lhs, const std::pair< CScript, std::pair<std::string, std::string> >& rhs)
-    {
-        return lhs.second.second < rhs.second.second;
-    }
-};
-
 typedef std::tuple<std::string, std::string, std::string> CServiceInfo;
 typedef std::map< CScript, CServiceInfo> mapServiceScriptPubKeys;
 
