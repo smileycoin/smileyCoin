@@ -373,6 +373,11 @@ Value createrawtransaction(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, vout must be positive");
 
         CTxIn in(COutPoint(txid, nOutput));
+
+        const Value& sequence = find_value(o, "sequence");
+        if (sequence.type() == int_type)
+            in.nSequence = sequence.get_int();
+
         rawTx.vin.push_back(in);
     }
 
