@@ -21,7 +21,7 @@
 // Boost Support for 1.70+
 #if BOOST_VERSION >= 107000
     #define GetIOService(s) ((boost::asio::io_context&)(s).get_executor().context())
-    #define GetIOServiceFromPtr(s) ((boost::asio::io_context&)(s->get_executor().context())) /
+    #define GetIOServiceFromPtr(s) ((boost::asio::io_context&)(s->get_executor().context())) 
     typedef boost::asio::io_context ioContext;
 
 #else
