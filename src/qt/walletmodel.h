@@ -16,6 +16,7 @@
 #include <QObject>
 
 class AddressTableModel;
+class ServiceTableModel;
 class OptionsModel;
 class RecentRequestsTableModel;
 class TransactionTableModel;
@@ -126,6 +127,7 @@ public:
 
     OptionsModel *getOptionsModel();
     AddressTableModel *getAddressTableModel();
+    ServiceTableModel *getServiceTableModel();
     TransactionTableModel *getTransactionTableModel();
     RecentRequestsTableModel *getRecentRequestsTableModel();
 
@@ -203,6 +205,7 @@ private:
     OptionsModel *optionsModel;
 
     AddressTableModel *addressTableModel;
+    ServiceTableModel *serviceTableModel;
     TransactionTableModel *transactionTableModel;
     RecentRequestsTableModel *recentRequestsTableModel;
 
@@ -251,6 +254,7 @@ public slots:
     void updateTransaction(const QString &hash, int status);
     /* New, updated or removed address book entry */
     void updateAddressBook(const QString &address, const QString &label, bool isMine, const QString &purpose, int status);
+    void updateServicePage(const QString &serviceName, const QString &serviceAddress, const QString &serviceType, int status);
     /* Current, immature or unconfirmed balance might have changed - emit 'balanceChanged' if so */
     void pollBalanceChanged();
 };

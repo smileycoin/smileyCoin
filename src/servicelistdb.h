@@ -6,8 +6,7 @@
 #define SMILEYCOIN_SERVICELISTDB_H
 
 #include "txdb.h"
-#include "init.h"
-#include "core.h"
+
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -36,6 +35,7 @@ public:
     friend bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist);
 
     bool GetServiceAddresses(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string>>> &retset) const;
+    bool GetMyServiceAddresses(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string>>> &retset) const;
 
     bool SetForked(const bool &fFork);
     bool IsForked(){return fForked;}

@@ -6,6 +6,7 @@
 
 #include "addressbookpage.h"
 #include "servicepage.h"
+#include "ticketpage.h"
 #include "askpassphrasedialog.h"
 #include "bitcoingui.h"
 #include "clientmodel.h"
@@ -63,32 +64,12 @@ WalletView::WalletView(QWidget *parent):
     //addressBookPage->setAttribute(Qt::WA_DeleteOnClose);
     //addressBookPage->setModel(walletModel->getAddressTableModel());
 
-    /*std::vector<std::tuple<std::string, std::string, std::string>> serviceObject;
-    //std::vector<std::tuple<std::string, std::string, std::string>> allServices;
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
-
-    ServiceList.GetServiceAddresses(retset);
-
-    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
-    {
-        // Check if any of the service addresses belongs to this wallet
-        if (IsMine(*pwalletMain, CBitcoinAddress(get<1>(it->second)).Get())) {
-            serviceObject.push_back(std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second)));
-        }
-    }
-
-    CBitcoinAddress address = CBitcoinAddress("B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc ");
-    if (IsMine(*pwalletMain, address.Get())) {
-        servicePage = new ServicePage(ServicePage::ForConfirmingService, serviceObject, this);
-    } else if (!serviceObject.empty()) {
-        servicePage = new ServicePage(ServicePage::MyServices, serviceObject, this);
-    } else {
-        servicePage = new ServicePage(ServicePage::AllServices, serviceObject, this);
-    }*/
-
-    servicePage = new ServicePage();
-
+    servicePage = new ServicePage(this);
+    //servicePage->setModel(walletModel->getServiceTableModel());
     servicePage->setWindowFlags(Qt::Widget);
+
+    ticketPage = new TicketPage(this);
+    ticketPage->setWindowFlags(Qt::Widget);
 
     addWidget(overviewPage);
     addWidget(transactionsPage);
@@ -96,6 +77,7 @@ WalletView::WalletView(QWidget *parent):
     addWidget(sendCoinsPage);
     addWidget(addressBookPage);
     addWidget(servicePage);
+    addWidget(ticketPage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
@@ -201,8 +183,15 @@ void WalletView::gotoHistoryPage()
 
 void WalletView::gotoServicePage()
 {
-    servicePage->setModel(walletModel);
+    servicePage->setWalletModel(walletModel);
+    servicePage->setServiceModel(walletModel->getServiceTableModel());
     setCurrentWidget(servicePage);
+}
+
+void WalletView::gotoTicketPage() {
+    ticketPage->setWalletModel(walletModel);
+    ticketPage->setTicketModel(walletModel->getServiceTableModel());
+    setCurrentWidget(ticketPage);
 }
 
 void WalletView::gotoReceiveCoinsPage()

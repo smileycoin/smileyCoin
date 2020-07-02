@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>TicketPage</class>
+    <widget class="QWidget" name="TicketPage">
+        <property name="geometry">
+            <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>1086</width>
+                <height>380</height>
+            </rect>
+        </property>
+        <property name="windowTitle">
+            <string>Ticket Page</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+                <widget class="QTableView" name="tableView">
+                    <property name="font">
+                        <font>
+                            <family>Helvetica</family>
+                            <weight>50</weight>
+                            <bold>false</bold>
+                        </font>
+                    </property>
+                    <property name="contextMenuPolicy">
+                        <enum>Qt::CustomContextMenu</enum>
+                    </property>
+                    <property name="toolTip">
+                        <string>Double-click to ??????? </string>
+                    </property>
+                    <property name="tabKeyNavigation">
+                        <bool>false</bool>
+                    </property>
+                    <property name="alternatingRowColors">
+                        <bool>true</bool>
+                    </property>
+                    <property name="selectionMode">
+                        <enum>QAbstractItemView::SingleSelection</enum>
+                    </property>
+                    <property name="selectionBehavior">
+                        <enum>QAbstractItemView::SelectRows</enum>
+                    </property>
+                    <property name="sortingEnabled">
+                        <bool>true</bool>
+                    </property>
+                    <attribute name="verticalHeaderVisible">
+                        <bool>false</bool>
+                    </attribute>
+                </widget>
+            </item>
+            <item>
+                <layout class="QHBoxLayout" name="bottomLayout">
+                    <item>
+                        <widget class="QPushButton" name="newTicket">
+                            <property name="font">
+                                <font>
+                                    <family>Helvetica</family>
+                                    <weight>50</weight>
+                                    <bold>false</bold>
+                                </font>
+                            </property>
+                            <property name="toolTip">
+                                <string>Create a new ticket</string>
+                            </property>
+                            <property name="text">
+                                <string>&amp;New Ticket</string>
+                            </property>
+                            <property name="icon">
+                                <iconset resource="../bitcoin.qrc">
+                                    <normaloff>:/icons/add</normaloff>:/icons/add</iconset>
+                            </property>
+                        </widget>
+                    </item>
+                    <item>
+                        <widget class="QPushButton" name="deleteTicket">
+                            <property name="font">
+                                <font>
+                                    <family>Helvetica</family>
+                                    <weight>50</weight>
+                                    <bold>false</bold>
+                                </font>
+                            </property>
+                            <property name="toolTip">
+                                <string>Delete the currently selected ticket</string>
+                            </property>
+                            <property name="text">
+                                <string>&amp;Delete</string>
+                            </property>
+                            <property name="icon">
+                                <iconset resource="../bitcoin.qrc">
+                                    <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
+                            </property>
+                        </widget>
+                    </item>
+                    <item>
+                        <spacer name="horizontalSpacer">
+                            <property name="orientation">
+                                <enum>Qt::Horizontal</enum>
+                            </property>
+                            <property name="sizeHint" stdset="0">
+                                <size>
+                                    <width>40</width>
+                                    <height>20</height>
+                                </size>
+                            </property>
+                        </spacer>
+                    </item>
+                </layout>
+            </item>
+        </layout>
+    </widget>
+    <resources>
+        <include location="../bitcoin.qrc"/>
+    </resources>
+    <connections/>
+</ui>

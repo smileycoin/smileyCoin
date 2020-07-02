@@ -1,9 +1,9 @@
 //
-// Created by Lenovo on 4/28/2020.
+// Created by Lenovo on 6/30/2020.
 //
 
-#ifndef SERVICEPAGE_H
-#define SERVICEPAGE_H
+#ifndef SMILEYCOIN_TICKETPAGE_H
+#define SMILEYCOIN_TICKETPAGE_H
 
 #include <QDialog>
 
@@ -42,7 +42,7 @@ class QValidatedLineEdit;
 class ServiceTableModel;
 
 namespace Ui {
-    class ServicePage;
+    class TicketPage;
 }
 
 QT_BEGIN_NAMESPACE
@@ -55,23 +55,23 @@ QT_END_NAMESPACE
 
 /** Widget that shows a list of sending or receiving addresses.
   */
-class ServicePage : public QDialog
+class TicketPage : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit ServicePage(QWidget *parent);
-    ~ServicePage();
+    explicit TicketPage(QWidget *parent);
+    ~TicketPage();
 
     void setWalletModel(WalletModel *walletModel);
-    void setServiceModel(ServiceTableModel *serviceModel);
+    void setTicketModel(ServiceTableModel *ticketModel);
 
 public slots:
-    void done(int retval);
+        void done(int retval);
 
 private:
-    Ui::ServicePage *serviceUi;
-    ServiceTableModel *serviceModel;
+    Ui::TicketPage *ui;
+    ServiceTableModel *ticketModel;
     WalletModel *walletModel;
     QString returnValue;
     std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> myServices;
@@ -81,14 +81,12 @@ private:
     QComboBox *typeWidget;
 
 private slots:
-    void onNewServiceAction();
-    void onViewAllServices();
-    void onViewMyServices();
-    void showServiceDetails();
+        void onNewTicketAction();
 
     signals:
         void doubleClicked(const QModelIndex&);
 
 };
 
-#endif //SERVICEPAGE_H
+
+#endif //SMILEYCOIN_TICKETPAGE_H

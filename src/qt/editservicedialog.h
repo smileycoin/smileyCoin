@@ -20,6 +20,7 @@
 #include <QVBoxLayout>
 #include <QDateTimeEdit>
 #include <QDateTime>
+#include <QDate>
 #include <QTabWidget>
 #include <QTableView>
 #include <QScrollBar>
@@ -59,11 +60,6 @@ public:
 
     void setModel(WalletModel *model);
 
-    QString getAddress() const;
-    void setAddress(const QString &address);
-
-    //void dialogIsFinished(int);
-
 public slots:
     void accept();
 
@@ -71,13 +67,8 @@ private:
     Ui::EditServiceDialog *ui;
     Mode mode;
     WalletModel *model;
-    //QMessageBox *mgx;
-
-    QString address;
+    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> myServices;
     void processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg = QString());
-
-//private slots:
-  //  void buttonBoxClicked(QAbstractButton*);
 };
 
 #endif //SMILEYCOIN_EDITSERVICEDIALOG_H

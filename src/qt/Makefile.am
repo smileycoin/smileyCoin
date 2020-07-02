@@ -33,6 +33,8 @@ QT_FORMS_UI = \
   forms/rpcconsole.ui \
   forms/sendcoinsdialog.ui \
   forms/sendcoinsentry.ui \
+  forms/servicepage.ui \
+  forms/ticketpage.ui \
   forms/signverifymessagedialog.ui \
   forms/transactiondescdialog.ui
 
@@ -70,6 +72,8 @@ QT_MOC_CPP = \
   moc_sendcoinsdialog.cpp \
   moc_sendcoinsentry.cpp \
   moc_servicepage.cpp \
+  moc_servicetablemodel.cpp \
+  moc_ticketpage.cpp \
   moc_signverifymessagedialog.cpp \
   moc_splashscreen.cpp \
   moc_trafficgraphwidget.cpp \
@@ -136,6 +140,8 @@ BITCOIN_QT_H = \
   sendcoinsdialog.h \
   sendcoinsentry.h \
   servicepage.h \
+  ticketpage.h \
+  servicetablemodel.h \
   signverifymessagedialog.h \
   splashscreen.h \
   trafficgraphwidget.h \
@@ -236,6 +242,8 @@ BITCOIN_QT_CPP += \
   sendcoinsdialog.cpp \
   sendcoinsentry.cpp \
   servicepage.cpp \
+  ticketpage.cpp \
+  servicetablemodel.cpp \
   signverifymessagedialog.cpp \
   transactiondesc.cpp \
   transactiondescdialog.cpp \

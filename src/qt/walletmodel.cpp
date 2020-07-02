@@ -8,6 +8,7 @@
 #include "guiconstants.h"
 #include "recentrequeststablemodel.h"
 #include "transactiontablemodel.h"
+#include "servicetablemodel.h"
 
 #include "base58.h"
 #include "db.h"
@@ -27,6 +28,7 @@
 
 WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent) :
     QObject(parent), wallet(wallet), optionsModel(optionsModel), addressTableModel(0),
+    serviceTableModel(0),
     transactionTableModel(0),
     recentRequestsTableModel(0),
     cachedBalance(0), cachedUnconfirmedBalance(0), cachedImmatureBalance(0),
@@ -35,6 +37,7 @@ WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *p
     cachedNumBlocks(0)
 {
     addressTableModel = new AddressTableModel(wallet, this);
+    serviceTableModel = new ServiceTableModel(true, wallet, this);
     transactionTableModel = new TransactionTableModel(wallet, this);
     recentRequestsTableModel = new RecentRequestsTableModel(wallet, this);
 
@@ -156,6 +159,13 @@ void WalletModel::updateAddressBook(const QString &address, const QString &label
 {
     if(addressTableModel)
         addressTableModel->updateEntry(address, label, isMine, purpose, status);
+}
+
+void WalletModel::updateServicePage(const QString &serviceName, const QString &serviceAddress,
+        const QString &serviceType, int status)
+{
+    if(serviceTableModel)
+        serviceTableModel->updateEntry(serviceName, serviceAddress, serviceType, status);
 }
 
 bool WalletModel::validateAddress(const QString &address)
@@ -360,6 +370,11 @@ AddressTableModel *WalletModel::getAddressTableModel()
     return addressTableModel;
 }
 
+ServiceTableModel *WalletModel::getServiceTableModel()
+{
+    return serviceTableModel;
+}
+
 TransactionTableModel *WalletModel::getTransactionTableModel()
 {
     return transactionTableModel;
@@ -454,6 +469,21 @@ static void NotifyAddressBookChanged(WalletModel *walletmodel, CWallet *wallet,
                               Q_ARG(int, status));
 }
 
+static void NotifyServicePageChanged(WalletModel *walletmodel, CWallet *wallet, const std::string &name,
+                                    const CTxDestination &address, const std::string &type,
+                                    ChangeType status)
+{
+    QString strName = QString::fromStdString(name);
+    QString strAddress = QString::fromStdString(CBitcoinAddress(address).ToString());
+    QString strType = QString::fromStdString(type);
+
+    QMetaObject::invokeMethod(walletmodel, "updateServicePage", Qt::QueuedConnection,
+                              Q_ARG(QString, strName),
+                              Q_ARG(QString, strAddress),
+                              Q_ARG(QString, strType),
+                              Q_ARG(int, status));
+}
+
 // queue notifications to show a non freezing progress dialog e.g. for rescan
 static bool fQueueNotifications = false;
 static std::vector<std::pair<uint256, ChangeType> > vQueueNotifications;
@@ -497,6 +527,7 @@ void WalletModel::subscribeToCoreSignals()
     // Connect signals to wallet
     wallet->NotifyStatusChanged.connect(boost::bind(&NotifyKeyStoreStatusChanged, this, _1));
     wallet->NotifyAddressBookChanged.connect(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5, _6));
+    wallet->NotifyServicePageChanged.connect(boost::bind(NotifyServicePageChanged, this, _1, _2, _3, _4, _5 ));
     wallet->NotifyTransactionChanged.connect(boost::bind(NotifyTransactionChanged, this, _1, _2, _3));
     wallet->ShowProgress.connect(boost::bind(ShowProgress, this, _1, _2));
 }
@@ -506,6 +537,7 @@ void WalletModel::unsubscribeFromCoreSignals()
     // Disconnect signals from wallet
     wallet->NotifyStatusChanged.disconnect(boost::bind(&NotifyKeyStoreStatusChanged, this, _1));
     wallet->NotifyAddressBookChanged.disconnect(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5, _6));
+    wallet->NotifyServicePageChanged.disconnect(boost::bind(NotifyServicePageChanged, this, _1, _2, _3, _4, _5));
     wallet->NotifyTransactionChanged.disconnect(boost::bind(NotifyTransactionChanged, this, _1, _2, _3));
     wallet->ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));
 }
