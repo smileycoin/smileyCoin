@@ -273,12 +273,19 @@ void BitcoinGUI::createActions()
     addressBookAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(addressBookAction);
 
-    serviceAction = new QAction(QIcon(":/icons/overview"), tr("&Services"), this);
-    serviceAction->setStatusTip(tr("Create or confirm new services"));
+    serviceAction = new QAction(QIcon(":/icons/history"), tr("&Services"), this);
+    serviceAction->setStatusTip(tr("Browse Smileycoin services or create new one"));
     serviceAction->setToolTip(serviceAction->statusTip());
     serviceAction->setCheckable(true);
     serviceAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(serviceAction);
+
+    ticketAction = new QAction(QIcon(":/icons/history"), tr("&Tickets"), this);
+    ticketAction->setStatusTip(tr("Browse available tickets"));
+    ticketAction->setToolTip(ticketAction->statusTip());
+    ticketAction->setCheckable(true);
+    ticketAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
+    tabGroup->addAction(ticketAction);
 
     // These showNormalIfMinimized are needed because Send Coins and Receive Coins
     // can be triggered from the tray menu, and need to show the GUI to be useful.
@@ -296,6 +303,8 @@ void BitcoinGUI::createActions()
     //connect(usedSendingAddressesAction, SIGNAL(triggered()), walletFrame, SLOT(usedSendingAddresses()))
     connect(serviceAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(serviceAction, SIGNAL(triggered()), this, SLOT(gotoServicePage()));
+    connect(ticketAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(ticketAction, SIGNAL(triggered()), this, SLOT(gotoTicketPage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setStatusTip(tr("Quit application"));
@@ -431,7 +440,7 @@ void BitcoinGUI::createToolBars()
         toolbar->addAction(historyAction);
         toolbar->addAction(addressBookAction);
         toolbar->addAction(serviceAction);
-
+        toolbar->addAction(ticketAction);
     }
 }
 
@@ -496,6 +505,7 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     receiveCoinsAction->setEnabled(enabled);
     historyAction->setEnabled(enabled);
     serviceAction->setEnabled(enabled);
+    ticketAction->setEnabled(enabled);
     encryptWalletAction->setEnabled(enabled);
     backupWalletAction->setEnabled(enabled);
     changePassphraseAction->setEnabled(enabled);
@@ -633,6 +643,12 @@ void BitcoinGUI::gotoServicePage()
 {
     serviceAction->setChecked(true);
     if (walletFrame) walletFrame->gotoServicePage();
+}
+
+void BitcoinGUI::gotoTicketPage()
+{
+    ticketAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoTicketPage();
 }
 
 void BitcoinGUI::gotoSignMessageTab(QString addr)

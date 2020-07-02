@@ -9,11 +9,17 @@
 
 #include "servicelistdb.h"
 
-#include "main.h"
 #include "base58.h"
-#include "chainparams.h"
-
+#include "net.h"
+#include "netbase.h"
+#include "rpcserver.h"
+#include "util.h"
 #include <vector>
+
+#include "init.h"
+#include "main.h"
+#include "sync.h"
+#include "wallet.h"
 
 #include <boost/version.hpp>
 #include <boost/filesystem.hpp>
@@ -32,23 +38,10 @@ bool CServiceList::UpdateServiceInfo(const std::map<CScript, std::tuple<std::str
 {
     for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
-        /*mapScriptPubKeys::iterator itService = maddresses.find(it->first);
-        if(itService!=maddresses.end()){                   // ef addressan er a listanum
-            if(it->second.first < RICH_AMOUNT) {            // ath hvort addressa sé enn þá rich
-                maddresses.erase(itService);                // ef hún er ekki rich lengur henda henni út af listanum
-            } else {
-                itService->second = it->second;             // annars uppfæra height og balance
-            }
-        }
-        else if(it->second.first >= RICH_AMOUNT)           // ef addressan er ekki a listanum
-            maddresses.insert(*it); */                       // bæta við listann ef hún er með > rich_amount
-
         CScript script = it->first;
         opcodetype opcode;
         CScript::const_iterator pc = script.begin();
         if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
-            LogPrintStr(" OPCODE == OP_RETURN ");
-            LogPrintStr(script.ToString());
             maddresses.insert(*it);
         }
     }
@@ -88,9 +81,7 @@ bool CServiceList::UpdateServiceAddressHeights()
 
     while(pindexSeek->pprev && !mforkedAddresses.empty())
     {
-
         // return false;
-
         ReadBlockFromDisk(block,pindexSeek);
         block.BuildMerkleTree();
         BOOST_FOREACH(const CTransaction &tx, block.vtx)
@@ -101,45 +92,7 @@ bool CServiceList::UpdateServiceAddressHeights()
                 mapServiceScriptPubKeys::iterator it = mforkedAddresses.find(key);
                 if(it == mforkedAddresses.end())
                     continue;
-
-/*                for (unsigned int k = 0; k < tx.vout.size(); k++) {
-                    const CTxOut &out = tx.vout[k];
-                    const CScript &key = out.scriptPubKey;
-
-                    CTxDestination des;
-                    ExtractDestination(key, des);
-                    if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc") {
-                        for (unsigned int l = 0; l < tx.vout.size(); l++) {
-                            const CTxOut &outService = tx.vout[l];
-                            const CScript &keyService = outService.scriptPubKey;
-
-                            if (ContainsOpReturn(tx)) {
-                                LogPrintStr(" CONTAINSOPRETURN(TX) servicelistdb.cpp lina 120 ");
-                                std::string hexString = HexStr(keyService);
-                                std::string hexData;
-                                std::string newService;
-                                std::string serviceName;
-                                std::string serviceAddress;
-
-                                if (hexString.substr(0, 2) == "6a") {
-                                    hexData = hexString.substr(4, hexString.size()); //tetta gefur mer gildið i op_return
-                                    if (hexData.substr(0, 22) == "6e65772073657276696365") { //ef data hefst a "new service"
-                                        newService = hexData.substr(22, hexString.size()); //op_return gildid a eftir "new service"
-                                        std::vector<std::string> strs = splitString(newService, "20");
-                                        if (strs.size() == 2) {
-                                            serviceName = strs.at(0);
-                                            serviceAddress = strs.at(1);
-
-                                            std::pair<std::string, std::string> value;
-                                            value = std::make_pair(hexToAscii(serviceName), hexToAscii(serviceAddress));
-                                            serviceInfo[keyService]=value;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }*/
+                LogPrintStr("SERVICELISTDB UPDATESERVICEADDRESSHEIGHTS")
                 serviceInfo.insert(std::make_pair(key, std::make_tuple(ServiceAddress(it), ServiceName(it), ServiceType(it))));
                 mforkedAddresses.erase(it);
                 if(fDebug) {
@@ -199,6 +152,15 @@ bool CServiceList::GetServiceAddresses(std::multiset<std::pair<CScript, std::tup
     for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it=maddresses.begin(); it!=maddresses.end(); it++)
     {
         retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
+    }
+    return true;
+}
+
+bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string>>> &retset) const {
+    for (std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = maddresses.begin();it != maddresses.end(); it++) {
+        if (IsMine(*pwalletMain, CBitcoinAddress(get<1>(it->second)).Get())) {
+            retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
+        }
     }
     return true;
 }

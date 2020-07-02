@@ -388,6 +388,12 @@ public:
             const std::string &purpose,
             ChangeType status)> NotifyAddressBookChanged;
 
+    /** Service page entry changed.
+    * @note called with lock cs_wallet held.
+    */
+    boost::signals2::signal<void (CWallet *wallet, const std::string &name, const CTxDestination
+            &address, const std::string &type, ChangeType status)> NotifyServicePageChanged;
+
     /** Wallet transaction added, removed or updated.
      * @note called with lock cs_wallet held.
      */

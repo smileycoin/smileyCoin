@@ -1770,15 +1770,16 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 			const CTxOut &out = tx.vout[k];
 			const CScript &key = out.scriptPubKey;
 
-            /*CTxDestination des;
-            ExtractDestination(key, des);
-            if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc") {
-                for (unsigned int l = 0; l < tx.vout.size(); l++) {
-                    const CTxOut &outService = tx.vout[l];
-                    const CScript &keyService = outService.scriptPubKey;*/
+			if (ContainsOpReturn(tx)) {
+                CTxDestination des;
+                ExtractDestination(key, des);
+                //if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc") {
+                if (CBitcoinAddress(des).ToString() == "B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn") { // min addressa vid testun
+                    for (unsigned int l = 0; l < tx.vout.size(); l++) {
+                        const CTxOut &outService = tx.vout[l];
+                        const CScript &keyService = outService.scriptPubKey;
 
-                    if (ContainsOpReturn(tx)) {
-                        std::string hexString = HexStr(key);
+                        std::string hexString = HexStr(keyService);
                         std::string hexData;
                         std::string newService;
                         std::string serviceName;
@@ -1799,20 +1800,24 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                     CBitcoinAddress sAddress = CBitcoinAddress(hexToAscii(serviceAddress));
                                     if (sAddress.IsValid()) {
                                         std::tuple<std::string, std::string, std::string> value;
-                                        if(!view.GetServiceInfo(key,value))
+                                        if(!view.GetServiceInfo(keyService,value))
                                             return state.Abort(_("Failed to read service index"));
                                         else {
-                                            value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress), hexToAscii(serviceType));
-                                            assert(view.SetServiceInfo(key,value));
-                                            serviceInfo[key]=value;
+                                            value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress),
+                                                                    hexToAscii(serviceType));
+                                            assert(view.SetServiceInfo(keyService,value));
+                                            serviceInfo[keyService]=value;
+
+                                            pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName), sAddress.Get(),
+                                                                                  hexToAscii(serviceType), CT_NEW);
                                         }
                                     }
                                 }
                             }
                         }
                     }
-              //  }
-            //}
+                }
+			}
 
 			if (key.IsPayToPublicKeyHash() || key.IsPayToScriptHash())
 			{
@@ -1878,44 +1883,6 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 				const CTxOut &prevout = view.GetOutputFor(tx.vin[j]);
 				const CScript &key = prevout.scriptPubKey;
 
-                /*CTxDestination des;
-                ExtractDestination(key, des);
-                if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc") {
-                    for (unsigned int l = 0; l < tx.vout.size(); l++) {
-                        const CTxOut &outService = tx.vout[l];
-                        const CScript &keyService = outService.scriptPubKey;*/
-
-                        if (ContainsOpReturn(tx)) {
-                            std::string hexString = HexStr(key);
-                            std::string hexData;
-                            std::string newService;
-                            std::string serviceName;
-                            std::string serviceAddress;
-                            std::string serviceType;
-
-                            if (hexString.substr(0, 2) == "6a") {
-                                hexData = hexString.substr(4, hexString.size()); //tetta gefur mer gildið i op_return
-                                if (hexData.substr(0, 22) == "6e65772073657276696365") { //ef data hefst a "new service"
-                                    newService = hexData.substr(22, hexString.size()); //op_return gildid a eftir "new service"
-                                    std::vector<std::string> strs = splitString(newService, "20");
-                                    if (strs.size() == 3) {
-                                        serviceName = strs.at(0);
-                                        serviceAddress = strs.at(1);
-                                        serviceType = strs.at(2);
-
-                                        CBitcoinAddress sAddress = CBitcoinAddress(hexToAscii(serviceAddress));
-                                        if (sAddress.IsValid()) {
-                                            std::tuple<std::string, std::string, std::string> value;
-                                            value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress), hexToAscii(serviceType));
-                                            assert(view.SetServiceInfo(key, value));
-                                            serviceInfo[key] = value;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                  //  }
-                //}
 				if (key.IsPayToPublicKeyHash() || key.IsPayToScriptHash()) 
 				{					
 					std::pair<int64_t, int> value;
@@ -2063,51 +2030,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 				const CTxOut &prevout = view.GetOutputFor(tx.vin[j]);
 				const CScript &key = prevout.scriptPubKey;
 
-                /*CTxDestination des;
-                ExtractDestination(key, des);
-                if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc") {
-                    for (unsigned int l = 0; l < tx.vout.size(); l++) {
-                        const CTxOut &outService = tx.vout[l];
-                        const CScript &keyService = outService.scriptPubKey;*/
-
-                        if (ContainsOpReturn(tx)) {
-                            std::string hexString = HexStr(key);
-                            std::string hexData;
-                            std::string newService;
-                            std::string serviceName;
-                            std::string serviceAddress;
-                            std::string serviceType;
-
-                            if (hexString.substr(0, 2) == "6a") {
-                                hexData = hexString.substr(4, hexString.size()); //tetta gefur mer gildið i op_return
-                                if (hexData.substr(0, 22) == "6e65772073657276696365") { //ef data hefst a "new service"
-                                    newService = hexData.substr(22, hexString.size()); //op_return gildid a eftir "new service"
-                                    std::vector<std::string> strs = splitString(newService, "20");
-                                    if (strs.size() == 3) {
-                                        serviceName = strs.at(0);
-                                        serviceAddress = strs.at(1);
-                                        serviceType = strs.at(2);
-
-                                        CBitcoinAddress sAddress = CBitcoinAddress(hexToAscii(serviceAddress));
-                                        if (sAddress.IsValid()) {
-                                            std::tuple<std::string, std::string, std::string> value;
-                                            if (!view.GetServiceInfo(key, value))
-                                                return state.Abort(_("Failed to get service index"));
-                                            else {
-                                                value = std::make_tuple(hexToAscii(serviceName),
-                                                                       hexToAscii(serviceAddress),
-                                                                       hexToAscii(serviceType));
-                                                assert(view.SetServiceInfo(key, value));
-                                                serviceInfo[key] = value;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    //}
-                //}
-
 				if (key.IsPayToPublicKeyHash() || key.IsPayToScriptHash())
 				{					
 					std::pair<int64_t, int> value;
@@ -2140,16 +2062,16 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 			const CTxOut &out = tx.vout[k];
 			const CScript &key = out.scriptPubKey;
 
-            /*CTxDestination des;
-            ExtractDestination(key, des);
-            //if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc") {
-            if (CBitcoinAddress(des).ToString() == "B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn") { // min addressa vid testun
-                for (unsigned int l = 0; l < tx.vout.size(); l++) {
-                    const CTxOut &outService = tx.vout[l];
-                    const CScript &keyService = outService.scriptPubKey;*/
+			if (ContainsOpReturn(tx)) {
+                CTxDestination des;
+                ExtractDestination(key, des);
+                //if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc") {
+                if (CBitcoinAddress(des).ToString() == "B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn") { // min addressa vid testun
+                    for (unsigned int l = 0; l < tx.vout.size(); l++) {
+                        const CTxOut &outService = tx.vout[l];
+                        const CScript &keyService = outService.scriptPubKey;
 
-                    if (ContainsOpReturn(tx)) {
-                        std::string hexString = HexStr(key);
+                        std::string hexString = HexStr(keyService);
                         std::string hexData;
                         std::string newService;
                         std::string serviceName;
@@ -2173,22 +2095,20 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                     // Check whether address field contains a valid address
                                     if (sAddress.IsValid()) {
                                         std::tuple<std::string, std::string, std::string> value;
-
-                                        /*if (!view.GetServiceInfo(key, value)) {
-                                            value = std::make_pair(hexToAscii(serviceName), hexToAscii(serviceAddress));
-                                        } else {
-                                            value = std::make_pair(hexToAscii(serviceName), hexToAscii(serviceAddress));
-                                        }*/
                                         value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress), hexToAscii(serviceType));
-                                        assert(view.SetServiceInfo(key, value));
-                                        serviceInfo[key] = value;
+                                        assert(view.SetServiceInfo(keyService, value));
+                                        serviceInfo[keyService] = value;
+
+                                        pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName), sAddress.Get(),
+                                                                              hexToAscii(serviceType), CT_NEW);
                                     }
                                 }
                             }
                         }
                     }
-               // }
-            //}
+                }
+			}
+
             if (key.IsPayToScriptHash() || key.IsPayToPublicKeyHash())
 			{					
 				std::pair<int64_t, int> value;
