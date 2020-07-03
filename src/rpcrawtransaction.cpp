@@ -327,7 +327,8 @@ Value createrawtransaction(const Array& params, bool fHelp)
             "     [\n"
             "       {\n"
             "         \"txid\":\"id\",  (string, required) The transaction id\n"
-            "         \"vout\":n        (numeric, required) The output number\n"
+            "         \"vout\":n,       (numeric, required) The output number\n"
+            "         \"sequence\":n    (numeric, optional) The sequence number\n"
             "       }\n"
             "       ,...\n"
             "     ]\n"
@@ -373,6 +374,15 @@ Value createrawtransaction(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, vout must be positive");
 
         CTxIn in(COutPoint(txid, nOutput));
+
+        const Value& sequence = find_value(o, "sequence");
+        if (sequence.type() == int_type) {
+            int nSequence = sequence.get_int();
+            if (nSequence < 0)
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid parameter, sequence must be positive");
+            in.nSequence = nSequence;
+        }
+
         rawTx.vin.push_back(in);
     }
 
