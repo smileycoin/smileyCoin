@@ -1759,8 +1759,9 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 
 	std::map<CScript, std::pair<int64_t, int> > addressInfo;
     std::map<CScript, std::tuple<std::string, std::string, std::string> > serviceInfo;
+    std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> > serviceAddressInfo;
 
-	// undo transactions in reverse order
+    // undo transactions in reverse order
 	for (int i = block.vtx.size() - 1; i >= 0; i--) {
 		const CTransaction &tx = block.vtx[i];
 		uint256 hash = tx.GetHash();
@@ -1808,8 +1809,38 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                             assert(view.SetServiceInfo(keyService,value));
                                             serviceInfo[keyService]=value;
 
-                                            pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName), sAddress.Get(),
+                                            /*pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName), sAddress.Get(),
+                                                                                  hexToAscii(serviceType), CT_NEW);*/
+                                            pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName), hexToAscii(serviceAddress),
                                                                                   hexToAscii(serviceType), CT_NEW);
+                                        }
+                                    }
+                                }
+                            }
+                            // Ef það byrjar á new ticket
+                            else if (hexData.substr(0, 20) == "6e6577207469636b6574") {
+                                std::string newTicket = hexData.substr(20, hexString.size());
+                                std::vector<std::string> strs = splitString(newTicket, "20");
+                                // Ef þetta er miðasala
+                                if (strs.size() == 5) {
+                                    std::string ticketLocation = strs.at(0);
+                                    std::string ticketName = strs.at(1);
+                                    std::string ticketDateTime = strs.at(2);
+                                    std::string ticketPrice = strs.at(3);
+                                    std::string ticketAddress = strs.at(4);
+                                    CBitcoinAddress newTicketAddress = CBitcoinAddress(hexToAscii(ticketAddress));
+                                    if (newTicketAddress.IsValid()) {
+                                        std::tuple<std::string, std::string, std::string, std::string, std::string> value;
+                                        if(!view.GetServiceAddressInfo(keyService,value))
+                                            return state.Abort(_("Failed to read serviceinfo index"));
+                                        else {
+                                            value = std::make_tuple(hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateTime), hexToAscii(ticketPrice), hexToAscii(ticketAddress));
+                                            assert(view.SetServiceAddressInfo(keyService,value));
+                                            serviceAddressInfo[keyService]=value;
+
+                                            pwalletMain->NotifyTicketPageChanged(pwalletMain, hexToAscii(ticketName),
+                                                                                 hexToAscii(ticketLocation), hexToAscii(ticketDateTime),
+                                                                                 hexToAscii(ticketPrice), hexToAscii(ticketAddress), CT_NEW);
                                         }
                                     }
                                 }
@@ -1912,6 +1943,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
         return state.Abort(_("Failed to update service list"));
     }
 
+    if(!ServiceList.UpdateServiceAddressInfo(serviceAddressInfo)) { //Virkar ef a að vera eins og richlist
+        return state.Abort(_("Failed to update service info list"));
+    }
+
 	return fClean;
 }
 
@@ -2000,8 +2035,9 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	vPos.reserve(block.vtx.size());
 	std::map<CScript, std::pair<int64_t, int> > addressInfo;
     std::map<CScript, std::tuple<std::string, std::string, std::string> > serviceInfo;
+    std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> > serviceAddressInfo;
 
-	for (unsigned int i = 0; i < block.vtx.size(); i++)
+    for (unsigned int i = 0; i < block.vtx.size(); i++)
 	{
 		const CTransaction &tx = block.vtx[i];
 
@@ -2099,8 +2135,34 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         assert(view.SetServiceInfo(keyService, value));
                                         serviceInfo[keyService] = value;
 
-                                        pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName), sAddress.Get(),
+                                        /*pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName), sAddress.Get(),
+                                                                              hexToAscii(serviceType), CT_NEW);*/
+                                        pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName), hexToAscii(serviceAddress),
                                                                               hexToAscii(serviceType), CT_NEW);
+                                    }
+                                }
+                            }
+                            // Ef það byrjar á new ticket
+                            if (hexData.substr(0, 20) == "6e6577207469636b6574") {
+                                std::string newTicket = hexData.substr(20, hexString.size());
+                                std::vector<std::string> strs = splitString(newTicket, "20");
+                                // Ef þetta er miðasala
+                                if (strs.size() == 5) {
+                                    std::string ticketLocation = strs.at(0);
+                                    std::string ticketName = strs.at(1);
+                                    std::string ticketDateTime = strs.at(2);
+                                    std::string ticketPrice = strs.at(3);
+                                    std::string ticketAddress = strs.at(4);
+                                    CBitcoinAddress newTicketAddress = CBitcoinAddress(hexToAscii(ticketAddress));
+                                    if (newTicketAddress.IsValid()) {
+                                        std::tuple<std::string, std::string, std::string, std::string, std::string> value;
+                                        value = std::make_tuple(hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateTime), hexToAscii(ticketPrice), hexToAscii(ticketAddress));
+                                        assert(view.SetServiceAddressInfo(keyService,value));
+                                        serviceAddressInfo[keyService]=value;
+
+                                        pwalletMain->NotifyTicketPageChanged(pwalletMain, hexToAscii(ticketName),
+                                                hexToAscii(ticketLocation), hexToAscii(ticketDateTime),
+                                                hexToAscii(ticketPrice), hexToAscii(ticketAddress), CT_NEW);
                                     }
                                 }
                             }
@@ -2229,6 +2291,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         return state.Abort(_("Failed to update service list"));
     }
 
+    if(!ServiceList.UpdateServiceAddressInfo(serviceAddressInfo)) {
+        return state.Abort(_("Failed to update service info list"));
+    }
+
 	// add this block to the view's block chain
 	bool ret;
 	ret = view.SetBestBlock(pindex->GetBlockHash());
@@ -2255,7 +2321,8 @@ bool static WriteChainState(CValidationState &state) {
 			return state.Abort(_("Failed to write to coin database"));
 		pblocktree->WriteRichListFork(RichList.IsForked());
 		pblocktree->WriteServiceListFork(ServiceList.IsForked());
-		nLastWrite = GetTimeMicros();
+        pblocktree->WriteServiceInfoListFork(ServiceList.IsForked());
+        nLastWrite = GetTimeMicros();
 	}
 	return true;
 }
@@ -2465,6 +2532,11 @@ bool ActivateBestChain(CValidationState &state) {
             ServiceList.SetForked(false);
         }
 
+        if(!ServiceList.UpdateServiceAddressInfoHeights())
+            return false; //TODO: láta vita?
+        else {
+            ServiceList.SetForked(false);
+        }
 		
 		// Connect new blocks.
 		while (!chainActive.Contains(chainMostWork.Tip())) {
@@ -3461,6 +3533,23 @@ bool InitServiceList(CCoinsView &dbview)
     }
     bool dummy;
     if(!pblocktree->ReadFlag("serviceinfo", dummy))
+        return false;
+    return true;
+
+}
+
+bool InitServiceInfoList(CCoinsView &dbview)
+{
+    LOCK(cs_main);
+    if (fReindex || chainActive.Genesis() == NULL) {
+        std::vector<unsigned char> v;
+        v.assign(21,'0');
+        if(!dbview.SetServiceAddressInfo(CScript(v),std::make_tuple("1", "0", "0", "0", "0"))) {
+            return false; }
+        pblocktree->WriteFlag("serviceaddressinfo", true);
+    }
+    bool dummy;
+    if(!pblocktree->ReadFlag("serviceaddressinfo", dummy))
         return false;
     return true;
 

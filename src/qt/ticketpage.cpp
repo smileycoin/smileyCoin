@@ -19,7 +19,7 @@
 #include "servicelistdb.h"
 #include "init.h"
 #include "editservicedialog.h"
-#include "servicetablemodel.h"
+#include "tickettablemodel.h"
 #include "transactiondescdialog.h"
 
 #include <qvalidatedlineedit.h>
@@ -50,7 +50,7 @@ TicketPage::~TicketPage()
     delete ui;
 }
 
-void TicketPage::setTicketModel(ServiceTableModel *ticketModel) {
+void TicketPage::setTicketModel(TicketTableModel *ticketModel) {
     this->ticketModel = ticketModel;
     if(!ticketModel)
         return;
@@ -67,13 +67,17 @@ void TicketPage::setTicketModel(ServiceTableModel *ticketModel) {
 
     // Set column widths
 #if QT_VERSION < 0x050000
-    ui->tableView->horizontalHeader()->setResizeMode(ServiceTableModel::Name, QHeaderView::ResizeToContents);
-    ui->tableView->horizontalHeader()->setResizeMode(ServiceTableModel::Address, QHeaderView::Stretch);
-    ui->tableView->horizontalHeader()->setResizeMode(ServiceTableModel::Type, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Name, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Location, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::DateTime, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Price, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Address, QHeaderView::Stretch);
 #else
-    ui->tableView->horizontalHeader()->setSectionResizeMode(ServiceTableModel::Name, QHeaderView::ResizeToContents);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(ServiceTableModel::Address, QHeaderView::Stretch);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(ServiceTableModel::Type, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Name, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Location, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::DateTime, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Price, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Address, QHeaderView::Stretch);
 #endif
 
     // Select row for newly created address
@@ -93,7 +97,7 @@ void TicketPage::done(int retval)
         return;
 
     // Figure out which address was selected, and return it
-    QModelIndexList indexes = table->selectionModel()->selectedRows(ServiceTableModel::Address);
+    QModelIndexList indexes = table->selectionModel()->selectedRows(TicketTableModel::Address);
 
     foreach (QModelIndex index, indexes)
     {

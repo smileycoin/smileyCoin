@@ -190,7 +190,7 @@ void WalletView::gotoServicePage()
 
 void WalletView::gotoTicketPage() {
     ticketPage->setWalletModel(walletModel);
-    ticketPage->setTicketModel(walletModel->getServiceTableModel());
+    ticketPage->setTicketModel(walletModel->getTicketTableModel());
     setCurrentWidget(ticketPage);
 }
 

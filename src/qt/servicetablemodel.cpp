@@ -15,13 +15,6 @@
 
 struct ServiceTableEntry
 {
-    /*enum Type {
-        Sending,
-        Receiving,
-        Hidden //QSortFilterProxyModel will filter these out
-    };*/
-
-    //Type type;
     QString name;
     QString address;
     QString type;
@@ -68,7 +61,6 @@ public:
             //LOCK(wallet->cs_wallet);
             std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
             if (viewAll) {
-                LogPrintStr("viewAll");
                 ServiceList.GetServiceAddresses(retset);
                 for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator
                 it = retset.begin(); it!=retset.end(); it++ )
@@ -78,7 +70,6 @@ public:
                                                                 QString::fromStdString(get<2>(it->second))));
                 }
             } else {
-                LogPrintStr("viewMy");
                 ServiceList.GetMyServiceAddresses(retset);
                 for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator
                 it = retset.begin(); it!=retset.end(); it++ )
@@ -92,7 +83,7 @@ public:
         // qLowerBound() and qUpperBound() require our cachedAddressTable list to be sorted in asc order
         // Even though the map is already sorted this re-sorting step is needed because the originating map
         // is sorted by binary address, not by base58() address.
-        //qSort(cachedAddressTable.begin(), cachedAddressTable.end(), AddressTableEntryLessThan());
+        qSort(cachedServiceTable.begin(), cachedServiceTable.end(), ServiceTableEntryLessThan());
     }
 
     void updateEntry(const QString &name, const QString &address, const QString &type, int status)

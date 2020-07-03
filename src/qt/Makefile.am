@@ -73,6 +73,7 @@ QT_MOC_CPP = \
   moc_sendcoinsentry.cpp \
   moc_servicepage.cpp \
   moc_servicetablemodel.cpp \
+  moc_tickettablemodel.cpp \
   moc_ticketpage.cpp \
   moc_signverifymessagedialog.cpp \
   moc_splashscreen.cpp \
@@ -142,6 +143,7 @@ BITCOIN_QT_H = \
   servicepage.h \
   ticketpage.h \
   servicetablemodel.h \
+  tickettablemodel.h \
   signverifymessagedialog.h \
   splashscreen.h \
   trafficgraphwidget.h \
@@ -244,6 +246,7 @@ BITCOIN_QT_CPP += \
   servicepage.cpp \
   ticketpage.cpp \
   servicetablemodel.cpp \
+  tickettablemodel.cpp \
   signverifymessagedialog.cpp \
   transactiondesc.cpp \
   transactiondescdialog.cpp \
