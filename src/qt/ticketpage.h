@@ -39,7 +39,7 @@ class WalletModel;
 class OptionsModel;
 class SendCoinsDialog;
 class QValidatedLineEdit;
-class ServiceTableModel;
+class TicketTableModel;
 
 namespace Ui {
     class TicketPage;
@@ -64,14 +64,14 @@ public:
     ~TicketPage();
 
     void setWalletModel(WalletModel *walletModel);
-    void setTicketModel(ServiceTableModel *ticketModel);
+    void setTicketModel(TicketTableModel *ticketModel);
 
 public slots:
         void done(int retval);
 
 private:
     Ui::TicketPage *ui;
-    ServiceTableModel *ticketModel;
+    TicketTableModel *ticketModel;
     WalletModel *walletModel;
     QString returnValue;
     std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> myServices;

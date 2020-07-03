@@ -858,8 +858,13 @@ bool AppInit2(boost::thread_group& threadGroup)
                     break;
                 }
 
-                if (!InitServiceList(*pcoinsdbview)) { //ef þetta er ekki kemur stuttur listi (bara nýjustu)
+                if (!InitServiceList(*pcoinsdbview)) {
                     strLoadError = _("Error initializing service list. You need to rebuild the database using -reindex");
+                    break;
+                }
+
+                if (!InitServiceInfoList(*pcoinsdbview)) {
+                    strLoadError = _("Error initializing service info list. You need to rebuild the database using -reindex");
                     break;
                 }
 
@@ -872,6 +877,12 @@ bool AppInit2(boost::thread_group& threadGroup)
                 // Reading service addresses into memory
                 if(!pcoinsdbview -> GetServiceAddresses(ServiceList)) {
                     strLoadError = _("Error loading service list");
+                    break;
+                }
+
+                // Reading service addresses into memory
+                if(!pcoinsdbview -> GetServiceAddressInfo(ServiceList)) {
+                    strLoadError = _("Error loading service info list");
                     break;
                 }
 
@@ -901,6 +912,13 @@ bool AppInit2(boost::thread_group& threadGroup)
                     ServiceList.SetForked(fFork);
                 }
 
+                if(!pblocktree -> ReadServiceInfoListFork(fFork)) {
+                    strLoadError = _("Error reading service info list fork status");
+                    break;
+                } else {
+                    ServiceList.SetForked(fFork);
+                }
+
                 uiInterface.InitMessage(_("Verifying blocks..."));
                 if (!VerifyDB(GetArg("-checklevel", 3),
                               GetArg("-checkblocks", 288))) {
@@ -921,6 +939,16 @@ bool AppInit2(boost::thread_group& threadGroup)
                 if(fFork) {
                     if(!ServiceList.UpdateServiceAddressHeights()) {
                         strLoadError = _("Error rollbacking service list heights");
+                        break;
+                    }
+                    else {
+                        ServiceList.SetForked(false);
+                    }
+                }
+
+                if(fFork) {
+                    if(!ServiceList.UpdateServiceAddressInfoHeights()) {
+                        strLoadError = _("Error rollbacking service info list heights");
                         break;
                     }
                     else {

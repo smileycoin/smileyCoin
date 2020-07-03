@@ -17,6 +17,7 @@
 
 class AddressTableModel;
 class ServiceTableModel;
+class TicketTableModel;
 class OptionsModel;
 class RecentRequestsTableModel;
 class TransactionTableModel;
@@ -124,6 +125,7 @@ public:
     OptionsModel *getOptionsModel();
     AddressTableModel *getAddressTableModel();
     ServiceTableModel *getServiceTableModel();
+    TicketTableModel *getTicketTableModel();
     TransactionTableModel *getTransactionTableModel();
     RecentRequestsTableModel *getRecentRequestsTableModel();
 
@@ -202,6 +204,7 @@ private:
 
     AddressTableModel *addressTableModel;
     ServiceTableModel *serviceTableModel;
+    TicketTableModel *ticketTableModel;
     TransactionTableModel *transactionTableModel;
     RecentRequestsTableModel *recentRequestsTableModel;
 
@@ -251,6 +254,7 @@ public slots:
     /* New, updated or removed address book entry */
     void updateAddressBook(const QString &address, const QString &label, bool isMine, const QString &purpose, int status);
     void updateServicePage(const QString &serviceName, const QString &serviceAddress, const QString &serviceType, int status);
+    void updateTicketPage(const QString &name, const QString &location, const QString &datetime, const QString &price, const QString &address, int status);
     /* Current, immature or unconfirmed balance might have changed - emit 'balanceChanged' if so */
     void pollBalanceChanged();
 };

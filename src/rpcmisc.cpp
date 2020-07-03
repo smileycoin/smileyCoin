@@ -143,6 +143,51 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     return obj;
 }
 
+Value getserviceaddressinfo(const Array& params, bool fHelp)
+{
+
+    if (fHelp || params.size() != 1)
+        throw runtime_error("getserviceaddressinfo\n"
+                            "Returns all addresses that belong to a specific service\n"
+        );
+
+    CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
+    if(!address.IsValid())
+        throw runtime_error("Not a valid Smileycoin address");
+
+
+    /*std::vector<std::string> addresslist = getserviceaddresses.listAddress;
+
+    bool found = (std::find(addresslist.begin(), addresslist.end(), CBitcoinAddress(address).ToString()) != addresslist.end());
+    if(!found)
+        throw runtime_error("Not a service address");
+    */
+
+    Object obj;
+    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string>>> info;
+
+    ServiceList.GetServiceAddressInfo(info);
+
+    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    {
+        CTxDestination des;
+        ExtractDestination(it->first, des);
+        //std::string ServiceAddress = get<4>(it->second);
+        //if (ServiceAddress == address.ToString()) {
+        obj.push_back(Pair("Location: ", get<0>(it->second)));
+        obj.push_back(Pair("Name: ", get<1>(it->second)));
+        obj.push_back(Pair("Date and Time: ", get<2>(it->second)));
+        obj.push_back(Pair("Value: ", get<3>(it->second)));
+        obj.push_back(Pair("Address: ", get<4>(it->second)));
+        //}
+    }
+    // Athuga ef það er service addressa
+    // if(!address.IsService())
+    //  throw runtime_error("Not a service address");
+
+    return obj;
+}
+
 Value getaddressinfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)

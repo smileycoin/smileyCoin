@@ -55,11 +55,15 @@ bool CCoinsView::GetAddressInfo(const CScript &key, std::pair<int64_t,int> &valu
 bool CCoinsView::SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value) { return false; }
 bool CCoinsView::GetServiceInfo(const CScript &key, std::tuple<std::string, std::string, std::string> &value) { return false; }
 bool CCoinsView::SetServiceInfo(const CScript &key, const std::tuple<std::string, std::string, std::string> &value) { return false; }
+bool CCoinsView::GetServiceAddressInfo(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string> &value) { return false; }
+bool CCoinsView::SetServiceAddressInfo(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string> &value) { return false; }
 bool CCoinsView::HaveCoins(const uint256 &txid) { return false; }
 uint256 CCoinsView::GetBestBlock() { return uint256(0); }
 bool CCoinsView::SetBestBlock(const uint256 &hashBlock) { return false; }
 bool CCoinsView::BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
-                            const std::map<CScript, std::tuple<std::string, std::string, std::string> > &mapServiceInfo, const uint256 &hashBlock) { return false; }
+                            const std::map<CScript, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
+                            const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> > &mapServiceAddressInfo,
+                            const uint256 &hashBlock) { return false; }
 bool CCoinsView::GetStats(CCoinsStats &stats) { return false; }
 
 
@@ -70,12 +74,16 @@ bool CCoinsViewBacked::GetAddressInfo(const CScript &key, std::pair<int64_t,int>
 bool CCoinsViewBacked::SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value) { return base->SetAddressInfo(key, value); }
 bool CCoinsViewBacked::GetServiceInfo(const CScript &key, std::tuple<std::string, std::string, std::string> &value) { return base->GetServiceInfo(key, value); }
 bool CCoinsViewBacked::SetServiceInfo(const CScript &key, const std::tuple<std::string, std::string, std::string> &value) { return base->SetServiceInfo(key, value); }
+bool CCoinsViewBacked::GetServiceAddressInfo(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string> &value) { return base->GetServiceAddressInfo(key, value); }
+bool CCoinsViewBacked::SetServiceAddressInfo(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string> &value) { return base->SetServiceAddressInfo(key, value); }
 bool CCoinsViewBacked::HaveCoins(const uint256 &txid) { return base->HaveCoins(txid); }
 uint256 CCoinsViewBacked::GetBestBlock() { return base->GetBestBlock(); }
 bool CCoinsViewBacked::SetBestBlock(const uint256 &hashBlock) { return base->SetBestBlock(hashBlock); }
 void CCoinsViewBacked::SetBackend(CCoinsView &viewIn) { base = &viewIn; }
 bool CCoinsViewBacked::BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
-                                  const std::map<CScript, std::tuple<std::string, std::string, std::string> > &mapServiceInfo, const uint256 &hashBlock) { return base->BatchWrite(mapCoins, mapAddressInfo, mapServiceInfo, hashBlock); }
+                                  const std::map<CScript, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
+                                  const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> > &mapServiceAddressInfo,
+                                  const uint256 &hashBlock) { return base->BatchWrite(mapCoins, mapAddressInfo, mapServiceInfo, mapServiceAddressInfo, hashBlock); }
 bool CCoinsViewBacked::GetStats(CCoinsStats &stats) { return base->GetStats(stats); }
 
 CCoinsViewCache::CCoinsViewCache(CCoinsView &baseIn, bool fDummy) : CCoinsViewBacked(baseIn), hashBlock(0) { }
@@ -129,6 +137,25 @@ bool CCoinsViewCache::SetServiceInfo(const CScript &key, const std::tuple<std::s
     return true;
 }
 
+bool CCoinsViewCache::GetServiceAddressInfo(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string> &value) {
+    std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> >::iterator it = cacheServiceAddressInfo.find(key);
+
+    if(it!=cacheServiceAddressInfo.end()) {
+        value = it->second;
+        return true;
+    }
+    if(base->GetServiceAddressInfo(key,value)) {
+        cacheServiceAddressInfo[key] = value;
+        return true;
+    }
+    return false;
+}
+
+bool CCoinsViewCache::SetServiceAddressInfo(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string> &value) {
+    cacheServiceAddressInfo[key] = value;
+    return true;
+}
+
 std::map<uint256,CCoins>::iterator CCoinsViewCache::FetchCoins(const uint256 &txid) {
     std::map<uint256,CCoins>::iterator it = cacheCoins.lower_bound(txid);
     if (it != cacheCoins.end() && it->first == txid)
@@ -170,6 +197,7 @@ bool CCoinsViewCache::SetBestBlock(const uint256 &hashBlockIn) {
 bool CCoinsViewCache::BatchWrite(const std::map<uint256, CCoins> &mapCoins, 
                                  const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
                                  const std::map<CScript, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
+                                 const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> > &mapServiceAddressInfo,
                                  const uint256 &hashBlockIn) {
     for (std::map<uint256, CCoins>::const_iterator it = mapCoins.begin(); it != mapCoins.end(); it++)
         cacheCoins[it->first] = it->second;
@@ -177,17 +205,20 @@ bool CCoinsViewCache::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
         cacheAddressInfo[it->first] = it->second;
     for (std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = mapServiceInfo.begin(); it != mapServiceInfo.end(); it++)
         cacheServiceInfo[it->first] = it->second;
+    for (std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> >::const_iterator it = mapServiceAddressInfo.begin(); it != mapServiceAddressInfo.end(); it++)
+        cacheServiceAddressInfo[it->first] = it->second;
 
     hashBlock = hashBlockIn;
     return true;
 }
 
 bool CCoinsViewCache::Flush() {
-    bool fOk = base->BatchWrite(cacheCoins, cacheAddressInfo, cacheServiceInfo, hashBlock);
+    bool fOk = base->BatchWrite(cacheCoins, cacheAddressInfo, cacheServiceInfo, cacheServiceAddressInfo, hashBlock);
     if (fOk) {
         cacheCoins.clear();
         cacheAddressInfo.clear();
         cacheServiceInfo.clear();
+        cacheServiceAddressInfo.clear();
     }
     return fOk;
 }
