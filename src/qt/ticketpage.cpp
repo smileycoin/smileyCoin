@@ -72,12 +72,14 @@ void TicketPage::setTicketModel(TicketTableModel *ticketModel) {
     ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::DateTime, QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Price, QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Address, QHeaderView::Stretch);
+    ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Service, QHeaderView::ResizeToContents);
 #else
     ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Name, QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Location, QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::DateTime, QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Price, QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Address, QHeaderView::Stretch);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Service, QHeaderView::ResizeToContents);
 #endif
 
     // Select row for newly created address

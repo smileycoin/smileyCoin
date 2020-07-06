@@ -52,6 +52,7 @@ class EditServiceDialog : public QDialog
 public:
     enum Mode {
         NewService,
+        DeleteService,
         NewTicket
     };
 

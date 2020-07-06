@@ -136,7 +136,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
 
     ServiceList.GetServiceAddresses(retset);
 
-    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
+    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
     {
         obj.push_back(Pair(get<1>(it->second), get<0>(it->second)));
     }
@@ -164,11 +164,11 @@ Value getserviceaddressinfo(const Array& params, bool fHelp)
     */
 
     Object obj;
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string>>> info;
+    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> info;
 
     ServiceList.GetServiceAddressInfo(info);
 
-    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         CTxDestination des;
         ExtractDestination(it->first, des);

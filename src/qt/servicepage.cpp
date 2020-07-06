@@ -29,41 +29,42 @@
 
 ServicePage::ServicePage(QWidget *parent) :
     QDialog(parent),
-    serviceUi(new Ui::ServicePage),
+    ui(new Ui::ServicePage),
     serviceModel(0),
     walletModel(0)
 {
-    serviceUi->setupUi(this);
+    ui->setupUi(this);
 
     ServiceList.GetMyServiceAddresses(myServices);
     if (myServices.empty()) {
-        serviceUi->viewAllServices->hide();
-        serviceUi->viewMyServices->hide();
-        serviceUi->deleteService->hide();
+        ui->viewAllServices->hide();
+        ui->viewMyServices->hide();
+        ui->deleteService->hide();
     } else {
         QSizePolicy sizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(serviceUi->viewAllServices->sizePolicy().hasHeightForWidth());
-        serviceUi->viewAllServices->setSizePolicy(sizePolicy);
-        serviceUi->viewAllServices->setChecked(true);
+        sizePolicy.setHeightForWidth(ui->viewAllServices->sizePolicy().hasHeightForWidth());
+        ui->viewAllServices->setSizePolicy(sizePolicy);
+        ui->viewAllServices->setChecked(true);
 
-        sizePolicy.setHeightForWidth(serviceUi->viewMyServices->sizePolicy().hasHeightForWidth());
-        serviceUi->viewMyServices->setSizePolicy(sizePolicy);
-        serviceUi->viewMyServices->setChecked(false);
+        sizePolicy.setHeightForWidth(ui->viewMyServices->sizePolicy().hasHeightForWidth());
+        ui->viewMyServices->setSizePolicy(sizePolicy);
+        ui->viewMyServices->setChecked(false);
 
-        serviceUi->horizontalLayout->setAlignment(serviceUi->viewAllServices, Qt::AlignHCenter);
-        serviceUi->horizontalLayout->setAlignment(serviceUi->viewMyServices, Qt::AlignHCenter);
+        ui->horizontalLayout->setAlignment(ui->viewAllServices, Qt::AlignHCenter);
+        ui->horizontalLayout->setAlignment(ui->viewMyServices, Qt::AlignHCenter);
     }
 
-    connect(serviceUi->newService, SIGNAL(clicked()), this, SLOT(onNewServiceAction()));
-    connect(serviceUi->viewAllServices, SIGNAL(toggled(bool)), this, SLOT(onViewAllServices()));
-    connect(serviceUi->viewMyServices, SIGNAL(toggled(bool)), this, SLOT(onViewMyServices()));
+    connect(ui->newService, SIGNAL(clicked()), this, SLOT(onNewServiceAction()));
+    connect(ui->deleteService, SIGNAL(clicked()), this, SLOT(onDeleteServiceAction()));
+    connect(ui->viewAllServices, SIGNAL(toggled(bool)), this, SLOT(onViewAllServices()));
+    connect(ui->viewMyServices, SIGNAL(toggled(bool)), this, SLOT(onViewMyServices()));
 }
 
 ServicePage::~ServicePage()
 {
-    delete serviceUi;
+    delete ui;
 }
 
 void ServicePage::setServiceModel(ServiceTableModel *serviceModel) {
@@ -77,19 +78,19 @@ void ServicePage::setServiceModel(ServiceTableModel *serviceModel) {
     proxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
     proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
-    serviceUi->tableView->setModel(proxyModel);
-    serviceUi->tableView->sortByColumn(0, Qt::AscendingOrder);
-    serviceUi->tableView->verticalHeader()->setDefaultSectionSize(50);
+    ui->tableView->setModel(proxyModel);
+    ui->tableView->sortByColumn(0, Qt::AscendingOrder);
+    ui->tableView->verticalHeader()->setDefaultSectionSize(50);
 
     // Set column widths
 #if QT_VERSION < 0x050000
-    serviceUi->tableView->horizontalHeader()->setResizeMode(ServiceTableModel::Name, QHeaderView::ResizeToContents);
-    serviceUi->tableView->horizontalHeader()->setResizeMode(ServiceTableModel::Address, QHeaderView::Stretch);
-    serviceUi->tableView->horizontalHeader()->setResizeMode(ServiceTableModel::Type, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setResizeMode(ServiceTableModel::Name, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setResizeMode(ServiceTableModel::Address, QHeaderView::Stretch);
+    ui->tableView->horizontalHeader()->setResizeMode(ServiceTableModel::Type, QHeaderView::ResizeToContents);
 #else
-    serviceUi->tableView->horizontalHeader()->setSectionResizeMode(ServiceTableModel::Name, QHeaderView::ResizeToContents);
-    serviceUi->tableView->horizontalHeader()->setSectionResizeMode(ServiceTableModel::Address, QHeaderView::Stretch);
-    serviceUi->tableView->horizontalHeader()->setSectionResizeMode(ServiceTableModel::Type, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(ServiceTableModel::Name, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(ServiceTableModel::Address, QHeaderView::Stretch);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(ServiceTableModel::Type, QHeaderView::ResizeToContents);
 #endif
 
     // Select row for newly created address
@@ -104,7 +105,7 @@ void ServicePage::setWalletModel(WalletModel *walletModel) {
 
 void ServicePage::done(int retval)
 {
-    QTableView *table = serviceUi->tableView;
+    QTableView *table = ui->tableView;
     if(!table->selectionModel() || !table->model())
         return;
 
@@ -136,6 +137,35 @@ void ServicePage::onNewServiceAction() {
     dlg.exec();
 }
 
+void ServicePage::onDeleteServiceAction() {
+    LogPrintStr("onDeleteServiceAction");
+
+    if(!walletModel)
+        return;
+
+    /*EditServiceDialog dlg(EditServiceDialog::DeleteService, this);
+    connect(&dlg, SIGNAL(accepted()), this, SLOT(EditServiceDialog::accept()));
+    dlg.setModel(walletModel);
+    dlg.exec();*/
+
+    if(!ui->tableView->selectionModel())
+        return;
+
+    QModelIndexList selection = ui->tableView->selectionModel()->selectedRows();
+    QModelIndex idx = selection.at(0);
+
+    if(!selection.isEmpty())
+    {
+        QString name = idx.data(ServiceTableModel::Name).toString();
+        QString address = idx.data(ServiceTableModel::Address).toString();
+        QString type = idx.data(ServiceTableModel::Type).toString();
+
+        LogPrintStr("name: "+name.toStdString()+" address: "+address.toStdString()+" type: "+type.toStdString());
+        //TransactionDescDialog dlg(selection.at(0));
+        //dlg.exec();
+    }
+}
+
 void ServicePage::onViewAllServices()
 {
     serviceModel = new ServiceTableModel(true, pwalletMain, walletModel);
@@ -150,9 +180,9 @@ void ServicePage::onViewMyServices()
 
 void ServicePage::showServiceDetails()
 {
-    if(!serviceUi->tableView->selectionModel())
+    if(!ui->tableView->selectionModel())
         return;
-    QModelIndexList selection = serviceUi->tableView->selectionModel()->selectedRows();
+    QModelIndexList selection = ui->tableView->selectionModel()->selectedRows();
     if(!selection.isEmpty())
     {
         TransactionDescDialog dlg(selection.at(0));

@@ -56,7 +56,7 @@ void static BatchWriteServiceInfo(CLevelDBBatch &batch, const CScript &key, cons
     }
 }
 
-void static BatchWriteServiceAddressInfo(CLevelDBBatch &batch, const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string> &value) {
+void static BatchWriteServiceAddressInfo(CLevelDBBatch &batch, const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
     opcodetype opcode;
     CScript::const_iterator pc = key.begin();
 
@@ -94,11 +94,11 @@ bool CCoinsViewDB::SetServiceInfo(const CScript &key, const std::tuple<std::stri
     return db.WriteBatch(batch);
 }
 
-bool CCoinsViewDB::GetServiceAddressInfo(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string> &value) {
+bool CCoinsViewDB::GetServiceAddressInfo(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
     return db.Read(make_pair(DB_SERVICEADDRESSINFO, key), value);
 }
 
-bool CCoinsViewDB::SetServiceAddressInfo(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string> &value) {
+bool CCoinsViewDB::SetServiceAddressInfo(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
     CLevelDBBatch batch;
     BatchWriteServiceAddressInfo(batch, key, value);
     return db.WriteBatch(batch);
@@ -134,7 +134,7 @@ bool CCoinsViewDB::SetBestBlock(const uint256 &hashBlock) {
 bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
                               const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
                               const std::map<CScript, std::tuple<std::string, std::string, std::string>> &mapServiceInfo,
-                              const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string>> &mapServiceAddressInfo,
+                              const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>> &mapServiceAddressInfo,
                               const uint256 &hashBlock) {
     LogPrint("coindb", "Committing %u changed transactions and %u address balances to coin database...\n",(unsigned int)mapCoins.size(), (unsigned int)mapAddressInfo.size());
 
@@ -143,9 +143,9 @@ bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
         BatchWriteCoins(batch, it->first, it->second);
     for (std::map<CScript, std::pair<int64_t,int> >::const_iterator it = mapAddressInfo.begin(); it != mapAddressInfo.end(); it++)
         BatchWriteAddressInfo(batch, it->first, it->second);
-    for (std::map<CScript, std::tuple<std::string, std::string, std::string>>::const_iterator it = mapServiceInfo.begin(); it != mapServiceInfo.end(); it++)
+    for (std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = mapServiceInfo.begin(); it != mapServiceInfo.end(); it++)
         BatchWriteServiceInfo(batch, it->first, it->second);
-    for (std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string>>::const_iterator it = mapServiceAddressInfo.begin(); it != mapServiceAddressInfo.end(); it++)
+    for (std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = mapServiceAddressInfo.begin(); it != mapServiceAddressInfo.end(); it++)
         BatchWriteServiceAddressInfo(batch, it->first, it->second);
 
     if (hashBlock != uint256(0))
@@ -232,7 +232,9 @@ bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist) {
 }
 
 bool CCoinsViewDB::GetServiceAddressInfo(CServiceList &servicelist) {
+
     leveldb::Iterator *pcursor = db.NewIterator();
+
     std::vector<unsigned char> v;
     v.assign(21,'0');
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
@@ -252,7 +254,7 @@ bool CCoinsViewDB::GetServiceAddressInfo(CServiceList &servicelist) {
             {
                 leveldb::Slice slValue = pcursor->value();
                 CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
-                std::tuple<std::string, std::string, std::string, std::string, std::string> serviceaddressinfo;
+                std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> serviceaddressinfo;
                 ssValue >> serviceaddressinfo;
 
                 servicelist.infoaddress.insert(make_pair(key.second, serviceaddressinfo));

@@ -41,15 +41,15 @@ public:
     bool SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value);
     bool GetServiceInfo(const CScript &key, std::tuple<std::string, std::string, std::string> &value);
     bool SetServiceInfo(const CScript &key, const std::tuple<std::string, std::string, std::string> &value);
-    bool GetServiceAddressInfo(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string> &value);
-    bool SetServiceAddressInfo(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string> &value);
+    bool GetServiceAddressInfo(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool SetServiceAddressInfo(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
 
     bool HaveCoins(const uint256 &txid);
     uint256 GetBestBlock();
     bool SetBestBlock(const uint256 &hashBlock);
     bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript,std::pair<int64_t,int> > &mapAddressInfo,
                     const std::map<CScript, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
-                    const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> > &mapServiceAddressInfo,
+                    const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceAddressInfo,
                     const uint256 &hashBlock);
     bool GetStats(CCoinsStats &stats);
 
