@@ -258,7 +258,8 @@ public slots:
     /* New, updated or removed address book entry */
     void updateAddressBook(const QString &address, const QString &label, bool isMine, const QString &purpose, int status);
     void updateServicePage(const QString &serviceName, const QString &serviceAddress, const QString &serviceType, int status);
-    void updateTicketPage(const QString &name, const QString &location, const QString &datetime, const QString &price, const QString &address, int status);
+    void updateTicketPage(const QString &name, const QString &location, const QString &datetime, const QString &price,
+            const QString &address, const QString &service, int status);
     /* Current, immature or unconfirmed balance might have changed - emit 'balanceChanged' if so */
     void pollBalanceChanged();
 };

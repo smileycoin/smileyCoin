@@ -28,11 +28,12 @@ inline std::string ServiceType(const CServiceInfo &ai) {return get<2>(ai);}
 inline std::string ServiceName(const CServiceInfo &ai) {return get<1>(ai);}
 inline std::string ServiceAddress(const CServiceInfo &ai) {return get<0>(ai);}
 
-inline std::string ServiceInfoLocation(const CServiceAddressInfo &ai) {return get<0>(ai);}
-inline std::string ServiceInfoName(const CServiceAddressInfo &ai) {return get<1>(ai);}
-inline std::string ServiceInfoDateAndTime(const CServiceAddressInfo &ai) {return get<2>(ai);}
-inline std::string ServiceInfoValue(const CServiceAddressInfo &ai) {return get<3>(ai);}
-inline std::string ServiceInfoAddress(const CServiceAddressInfo &ai) {return get<4>(ai);}
+inline std::string ServiceInfoToAddress(const CServiceAddressInfo &ai) {return get<0>(ai);}
+inline std::string ServiceInfoLocation(const CServiceAddressInfo &ai) {return get<1>(ai);}
+inline std::string ServiceInfoName(const CServiceAddressInfo &ai) {return get<2>(ai);}
+inline std::string ServiceInfoDateAndTime(const CServiceAddressInfo &ai) {return get<3>(ai);}
+inline std::string ServiceInfoValue(const CServiceAddressInfo &ai) {return get<4>(ai);}
+inline std::string ServiceInfoAddress(const CServiceAddressInfo &ai) {return get<5>(ai);}
 
 bool CServiceList::SetForked(const bool &fFork)
 {
@@ -42,7 +43,6 @@ bool CServiceList::SetForked(const bool &fFork)
 
 bool CServiceList::UpdateServiceInfo(const std::map<CScript, std::tuple<std::string, std::string, std::string> > &map)
 {
-    LogPrintStr("UPDATESERVICEINFO");
     for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
         CScript script = it->first;
@@ -55,10 +55,9 @@ bool CServiceList::UpdateServiceInfo(const std::map<CScript, std::tuple<std::str
     return true;
 }
 
-bool CServiceList::UpdateServiceAddressInfo(const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> > &map)
+bool CServiceList::UpdateServiceAddressInfo(const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &map)
 {
-    LogPrintStr("UPDATESERVICEADDRESSINFO");
-    for(std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
+    for(std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
         CScript script = it->first;
         opcodetype opcode;
@@ -76,7 +75,6 @@ bool CServiceList::UpdateServiceAddressInfo(const std::map<CScript, std::tuple<s
 // TODO: We should try to get rid of this and write the height undo information to the disk instead.
 bool CServiceList::UpdateServiceAddressHeights()
 {
-    LogPrintStr("UPDATESERVICEADDRESSHEIGHTS()");
     if(!fForked)
         return true;
 
@@ -172,12 +170,10 @@ bool CServiceList::UpdateServiceAddressHeights()
         return false;
     return mforkedAddresses.empty();
 }
-
 // The heights need to be rolled back before new blocks are connected if any were disconnected.
 // TODO: We should try to get rid of this and write the height undo information to the disk instead.
 bool CServiceList::UpdateServiceAddressInfoHeights()
 {
-    LogPrintStr("UPDATESERVICEADDRESSINFOHEIGHTS()");
     if(!fForked)
         return true;
 
@@ -187,7 +183,7 @@ bool CServiceList::UpdateServiceAddressInfoHeights()
     }
 
     CBlock block;
-    std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> > serviceAddressInfo;
+    std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > serviceAddressInfo;
     mapServiceInfoScriptPubKeys mforkedAddressInfo;
 
     for(mapServiceInfoScriptPubKeys::const_iterator it = infoaddress.begin(); it!=infoaddress.end(); it++)
@@ -207,9 +203,7 @@ bool CServiceList::UpdateServiceAddressInfoHeights()
 
     while(pindexSeek->pprev && !mforkedAddressInfo.empty())
     {
-
         // return false;
-
         ReadBlockFromDisk(block,pindexSeek);
         block.BuildMerkleTree();
         BOOST_FOREACH(const CTransaction &tx, block.vtx)
@@ -220,7 +214,8 @@ bool CServiceList::UpdateServiceAddressInfoHeights()
                 mapServiceInfoScriptPubKeys::iterator it = mforkedAddressInfo.find(key);
                 if(it == mforkedAddressInfo.end())
                     continue;
-                serviceAddressInfo.insert(std::make_pair(key, std::make_tuple(ServiceInfoLocation(it), ServiceInfoName(it), ServiceInfoDateAndTime(it), ServiceInfoValue(it), ServiceInfoAddress(it))));
+
+                serviceAddressInfo.insert(std::make_pair(key, std::make_tuple(ServiceInfoToAddress(it), ServiceInfoLocation(it), ServiceInfoName(it), ServiceInfoDateAndTime(it), ServiceInfoValue(it), ServiceInfoAddress(it))));
                 mforkedAddressInfo.erase(it);
                 if(fDebug) {
                     CTxDestination dest;
@@ -244,7 +239,7 @@ bool CServiceList::UpdateServiceAddressInfoHeights()
                     mapServiceInfoScriptPubKeys::iterator it = mforkedAddressInfo.find(key);
                     if(it == mforkedAddressInfo.end())
                         continue;
-                    serviceAddressInfo.insert(std::make_pair(it->first, std::make_tuple(ServiceInfoLocation(it), ServiceInfoName(it), ServiceInfoDateAndTime(it), ServiceInfoValue(it), ServiceInfoAddress(it))));
+                    serviceAddressInfo.insert(std::make_pair(it->first, std::make_tuple(ServiceInfoToAddress(it), ServiceInfoLocation(it), ServiceInfoName(it), ServiceInfoDateAndTime(it), ServiceInfoValue(it), ServiceInfoAddress(it))));
                     mforkedAddressInfo.erase(it);
                     if(fDebug) {
                         CTxDestination dest;
@@ -264,7 +259,7 @@ bool CServiceList::UpdateServiceAddressInfoHeights()
     }
 
     bool ret;
-    typedef std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> > pairType;
+    typedef std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > pairType;
     BOOST_FOREACH(const pairType &pair, serviceAddressInfo) {
         ret = pcoinsTip->SetServiceAddressInfo(pair.first, pair.second);
         assert(ret);
@@ -292,10 +287,10 @@ bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<CScript, std::t
     return true;
 }
 
-bool CServiceList::GetServiceAddressInfo(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string>>> &info) const {
-    for(std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string> >::const_iterator it=infoaddress.begin(); it!=infoaddress.end(); it++)
+bool CServiceList::GetServiceAddressInfo(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> &info) const {
+    for(std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it=infoaddress.begin(); it!=infoaddress.end(); it++)
     {
-        info.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second), get<3>(it->second), get<4>(it->second))));
+        info.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second), get<3>(it->second), get<4>(it->second), get<5>(it->second))));
     }
     return true;
 }

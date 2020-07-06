@@ -70,7 +70,7 @@ public slots:
     void done(int retval);
 
 private:
-    Ui::ServicePage *serviceUi;
+    Ui::ServicePage *ui;
     ServiceTableModel *serviceModel;
     WalletModel *walletModel;
     QString returnValue;
@@ -82,6 +82,7 @@ private:
 
 private slots:
     void onNewServiceAction();
+    void onDeleteServiceAction();
     void onViewAllServices();
     void onViewMyServices();
     void showServiceDetails();

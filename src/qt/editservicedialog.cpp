@@ -46,6 +46,14 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
 
             break;
         }
+        case DeleteService:
+        {
+            ui->ticketForm->hide();
+            ui->serviceForm->hide();
+            setWindowTitle(tr("Delete service"));
+
+            break;
+        }
         case NewTicket:
         {
             ui->ticketDateTime->setDate(QDate::currentDate());
@@ -54,7 +62,7 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             setWindowTitle(tr("Create new ticket"));
 
             ServiceList.GetMyServiceAddresses(myServices);
-            for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
+            for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
             {
                 if(get<2>(it->second) == "TicketSales" || get<2>(it->second) == "Ticketsales") {
                     ui->ticketService->addItem(QString::fromStdString(get<0>(it->second)));
@@ -195,7 +203,11 @@ void EditServiceDialog::accept()
              }
              break;
          }
-
+         case DeleteService:
+         {
+             LogPrintStr(" deleteservice-editservicedialog-208 ");
+             break;
+         }
          case NewTicket:
          {
              CBitcoinAddress tAddress = CBitcoinAddress(ui->ticketAddress->text().toStdString());

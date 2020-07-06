@@ -398,7 +398,7 @@ public:
     * @note called with lock cs_wallet held.
     */
     boost::signals2::signal<void (CWallet *wallet, const std::string &name, const std::string &location, const std::string &datetime,
-                                  const std::string &price, const std::string &address, ChangeType status)> NotifyTicketPageChanged;
+                                  const std::string &price, const std::string &address, const std::string &service, ChangeType status)> NotifyTicketPageChanged;
 
     /** Wallet transaction added, removed or updated.
      * @note called with lock cs_wallet held.
