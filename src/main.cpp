@@ -1747,17 +1747,17 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 
 	bool fClean = true;
 
-	CBlockUndo blockUndo;
+    CBlockUndo blockUndo;
 	CDiskBlockPos pos = pindex->GetUndoPos();
 	if (pos.IsNull())
 		return error("DisconnectBlock() : no undo data available");
 	if (!blockUndo.ReadFromDisk(pos, pindex->pprev->GetBlockHash()))
 		return error("DisconnectBlock() : failure reading undo data");
 
-	if (blockUndo.vtxundo.size() + 1 != block.vtx.size())
+    if (blockUndo.vtxundo.size() + 1 != block.vtx.size())
 		return error("DisconnectBlock() : block and undo data inconsistent");
 
-	std::map<CScript, std::pair<int64_t, int> > addressInfo;
+    std::map<CScript, std::pair<int64_t, int> > addressInfo;
     std::map<CScript, std::tuple<std::string, std::string, std::string> > serviceInfo;
     std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > serviceAddressInfo;
 
@@ -1772,11 +1772,11 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 			const CScript &key = out.scriptPubKey;
 
 			if (ContainsOpReturn(tx)) {
+                // SERVICE
                 CTxDestination des;
                 ExtractDestination(key, des);
-                //if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc") {
-                if (CBitcoinAddress(des).ToString() ==
-                    "B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn") { // min addressa vid testun
+                if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc") {
+                //if (CBitcoinAddress(des).ToString() == "B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn") { // min addressa vid testun
                     for (unsigned int l = 0; l < tx.vout.size(); l++) {
                         const CTxOut &outService = tx.vout[l];
                         const CScript &keyService = outService.scriptPubKey;
@@ -1792,8 +1792,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                             // Check if op_return starts with "new service"
                             hexData = hexString.substr(4, hexString.size()); //tetta gefur mer gildið i op_return
                             if (hexData.substr(0, 22) == "6e65772073657276696365") { //ef data hefst a "new service"
-                                newService = hexData.substr(22,
-                                                            hexString.size()); //op_return gildid a eftir "new service"
+                                newService = hexData.substr(22, hexString.size()); //op_return gildid a eftir "new service"
                                 std::vector<std::string> strs = splitString(newService, "20");
                                 if (strs.size() == 3) {
                                     serviceName = strs.at(0);
@@ -1803,9 +1802,9 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                     CBitcoinAddress sAddress = CBitcoinAddress(hexToAscii(serviceAddress));
                                     if (sAddress.IsValid()) {
                                         std::tuple<std::string, std::string, std::string> value;
-                                        if (!view.GetServiceInfo(keyService, value))
+                                        if (!view.GetServiceInfo(keyService, value)) {
                                             return state.Abort(_("Failed to read service index"));
-                                        else {
+                                        } else {
                                             value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress),
                                                                     hexToAscii(serviceType));
                                             assert(view.SetServiceInfo(keyService, value));
@@ -1814,16 +1813,27 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                             pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName),
                                                                                   hexToAscii(serviceAddress),
                                                                                   hexToAscii(serviceType), CT_NEW);
+
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                } else {
+                } else { //kommentad ut medan min addressa vid testun
+                    // TICKET SALES
                     std::string toAddress = CBitcoinAddress(des).ToString();
-                    LogPrintStr(toAddress);
-                    if (CBitcoinAddress(toAddress).IsValid()) {
+                    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
+                    ServiceList.GetServiceAddresses(retset);
+                    std::list<std::string> serviceAddressList;
+
+                    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
+                    {
+                        serviceAddressList.push_back(get<1>(it->second));
+                        LogPrintStr(" RETSET get<0>: " + get<0>(it->second) + " get<1>: " + get<1>(it->second) + " get<2>: " + get<2>(it->second));
+                    }
+
+                    if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) { // vantar && addressan er a service listanum
                         for (unsigned int l = 0; l < tx.vout.size(); l++) {
                             const CTxOut &outService = tx.vout[l];
                             const CScript &keyService = outService.scriptPubKey;
@@ -1871,13 +1881,11 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                     }
                                 }
                             }
-                            //}
-                            //}
                         }
                     }
                 }
             }
-			if (key.IsPayToPublicKeyHash() || key.IsPayToScriptHash())
+            if (key.IsPayToPublicKeyHash() || key.IsPayToScriptHash())
 			{
 				std::pair<int64_t, int> value;
 				if(!view.GetAddressInfo(key,value))
@@ -2126,10 +2134,11 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 			const CScript &key = out.scriptPubKey;
 
 			if (ContainsOpReturn(tx)) {
+			    // SERVICE
                 CTxDestination des;
                 ExtractDestination(key, des);
-                //if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc") {
-                if (CBitcoinAddress(des).ToString() == "B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn") { // min addressa vid testun
+                if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc") {
+                //if (CBitcoinAddress(des).ToString() == "B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn") { // min addressa vid testun
                     for (unsigned int l = 0; l < tx.vout.size(); l++) {
                         const CTxOut &outService = tx.vout[l];
                         const CScript &keyService = outService.scriptPubKey;
@@ -2141,6 +2150,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                         std::string serviceAddress;
                         std::string serviceType;
 
+                        // Get the op_return hex value
                         if (hexString.substr(0, 2) == "6a") {
                             // Get the op_return value
                             hexData = hexString.substr(4, hexString.size());
@@ -2163,8 +2173,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         assert(view.SetServiceInfo(keyService, value));
                                         serviceInfo[keyService] = value;
 
-                                        /*pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName), sAddress.Get(),
-                                                                              hexToAscii(serviceType), CT_NEW);*/
+                                        //pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName), sAddress.Get(),
+                                        //                                      hexToAscii(serviceType), CT_NEW);
                                         pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName),
                                                                               hexToAscii(serviceAddress),
                                                                               hexToAscii(serviceType), CT_NEW);
@@ -2173,9 +2183,20 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                             }
                         }
                     }
-                } else {
+                } else {  //kommentad ut medan min addressa vid testun
+                    // TICKET SALES
                     std::string toAddress = CBitcoinAddress(des).ToString();
-                    if (CBitcoinAddress(toAddress).IsValid()) {
+                    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
+                    ServiceList.GetServiceAddresses(retset);
+                    std::list<std::string> serviceAddressList;
+
+                    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
+                    {
+                        serviceAddressList.push_back(get<1>(it->second));
+                        LogPrintStr(" RETSET2 get<0>: " + get<0>(it->second) + " get<1>: " + get<1>(it->second) + " get<2>: " + get<2>(it->second));
+                    }
+
+                    if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) { // vantar && addressan er a service listanum
                         for (unsigned int l = 0; l < tx.vout.size(); l++) {
                             const CTxOut &outService = tx.vout[l];
                             const CScript &keyService = outService.scriptPubKey;
@@ -3446,19 +3467,19 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth)
 	LogPrintf("Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
 	CCoinsViewCache coins(*pcoinsTip, true);
 	CBlockIndex* pindexState = chainActive.Tip();
-	CBlockIndex* pindexFailure = NULL;
-	int nGoodTransactions = 0;
-	CValidationState state;
+    CBlockIndex* pindexFailure = NULL;
+    int nGoodTransactions = 0;
+    CValidationState state;
 	for (CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev)
 	{
-		boost::this_thread::interruption_point();
-		if (pindex->nHeight < chainActive.Height()-nCheckDepth)
+        boost::this_thread::interruption_point();
+        if (pindex->nHeight < chainActive.Height()-nCheckDepth)
 			break;
-		CBlock block;
+        CBlock block;
 		// check level 0: read from disk
 		if (!ReadBlockFromDisk(block, pindex))
 			return error("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
-		// check level 1: verify block validity
+        // check level 1: verify block validity
 		if (nCheckLevel >= 1 && !CheckBlock(block, state))
 			return error("VerifyDB() : *** found bad block at %d, hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
 		// check level 2: verify undo validity
@@ -3470,20 +3491,20 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth)
 					return error("VerifyDB() : *** found bad undo data at %d, hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
 			}
 		}
-		// check level 3: check for inconsistencies during memory-only disconnect of tip blocks
+        // check level 3: check for inconsistencies during memory-only disconnect of tip blocks
 		if (nCheckLevel >= 3 && pindex == pindexState && (coins.GetCacheSize() + pcoinsTip->GetCacheSize()) <= 2*nCoinCacheSize + 32000) {
-			bool fClean = true;
-			if (!DisconnectBlock(block, state, pindex, coins, &fClean))
+            bool fClean = true;
+            if (!DisconnectBlock(block, state, pindex, coins, &fClean))
 				return error("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
-			pindexState = pindex->pprev;
-			if (!fClean) {
+            pindexState = pindex->pprev;
+            if (!fClean) {
 				nGoodTransactions = 0;
 				pindexFailure = pindex;
-			} else
+            } else
 				nGoodTransactions += block.vtx.size();
-		}
+        }
 	}
-	if (pindexFailure)
+    if (pindexFailure)
 		return error("VerifyDB() : *** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n", chainActive.Height() - pindexFailure->nHeight + 1, nGoodTransactions);
 
 	// check level 4: try reconnecting blocks
@@ -3500,7 +3521,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth)
 		}
 	}
 
-	LogPrintf("No coin database inconsistencies in last %i blocks (%i transactions)\n", chainActive.Height() - pindexState->nHeight, nGoodTransactions);
+    LogPrintf("No coin database inconsistencies in last %i blocks (%i transactions)\n", chainActive.Height() - pindexState->nHeight, nGoodTransactions);
 
 	return true;
 }
