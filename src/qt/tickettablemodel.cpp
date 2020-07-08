@@ -105,6 +105,8 @@ public:
                 }
                 parent->beginInsertRows(QModelIndex(), lowerIndex, lowerIndex);
 
+                LogPrintStr("----CT_NEW SERVICELIST----");
+
                 // Birta service address nafn i toflu
                 QString serviceName;
                 std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> services;

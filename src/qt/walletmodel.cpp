@@ -466,10 +466,12 @@ static void NotifyServicePageChanged(WalletModel *walletmodel, CWallet *wallet, 
                                     const std::string &address, const std::string &type,
                                     ChangeType status)
 {
+    LogPrintStr("NOTIFYSERVICEPAGECHANGED1");
     QString strName = QString::fromStdString(name);
     //QString strAddress = QString::fromStdString(CBitcoinAddress(address).ToString());
     QString strAddress = QString::fromStdString(address);
     QString strType = QString::fromStdString(type);
+    LogPrintStr("NOTIFYSERVICEPAGECHANGED2");
 
     QMetaObject::invokeMethod(walletmodel, "updateServicePage", Qt::QueuedConnection,
                               Q_ARG(QString, strName),
