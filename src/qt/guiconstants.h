@@ -44,5 +44,6 @@ static const int MAX_PAYMENT_REQUEST_SIZE = 50000; // bytes
 #define QAPP_ORG_NAME "Smileycoin"
 #define QAPP_ORG_DOMAIN "smileycoin.org"
 #define QAPP_APP_NAME_DEFAULT "Smileycoin-Qt"
+#define QAPP_APP_NAME_TESTNET "Smileycoin-Qt-testnet"
 
 #endif // GUICONSTANTS_H

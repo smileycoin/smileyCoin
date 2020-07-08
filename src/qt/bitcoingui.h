@@ -39,7 +39,7 @@ class BitcoinGUI : public QMainWindow
 public:
     static const QString DEFAULT_WALLET;
 
-    explicit BitcoinGUI(QWidget *parent = 0);
+    explicit BitcoinGUI(bool fIsTestnet = false, QWidget *parent = 0);
     ~BitcoinGUI();
 
     /** Set the client model.
@@ -107,13 +107,13 @@ private:
     int spinnerFrame;
 
     /** Create the main UI actions. */
-    void createActions();
+    void createActions(bool fIsTestnet);
     /** Create the menu bar and sub-menus. */
     void createMenuBar();
     /** Create the toolbars */
     void createToolBars();
     /** Create system tray icon and notification */
-    void createTrayIcon();
+    void createTrayIcon(bool fIsTestnet);
     /** Create system tray menu (or setup the dock menu) */
     void createTrayIconMenu();
 

@@ -15,7 +15,7 @@
 #include <QApplication>
 #include <QPainter>
 
-SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f) :
+SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f, bool isTestNet) :
     QSplashScreen(pixmap, f)
 {
     setAutoFillBackground(true);
@@ -30,16 +30,22 @@ SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f) :
     float fontFactor            = 1.0;
 
     // define text to place
-    QString titleText       = QString(QApplication::applicationName());
+    QString titleText       = QString(QApplication::applicationName()).replace(QString("-testnet"), QString(""), Qt::CaseSensitive);
     QString versionText     = QString("Version %1 ").arg(QString::fromStdString(FormatFullVersion()));
     QString copyrightText1   = QChar(0xA9)+QString(" 2009-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Bitcoin developers"));
     QString copyrightText2   = QChar(0xA9)+QString(" 2011-%1 ").arg(COPYRIGHT_YEAR) + QString(tr("The Auroracoin developers"));
+    QString testnetAddText  = QString(tr("[testnet]"));
 
     QString font            = "Arial";
 
     // load the bitmap for writing some text over it
     QPixmap newPixmap;
-    newPixmap     = QPixmap(":/images/splash");
+    if(isTestNet) {
+        newPixmap     = QPixmap(":/images/splash_testnet");
+    }
+    else {
+        newPixmap     = QPixmap(":/images/splash");
+    }
 
     QPainter pixPaint(&newPixmap);
     pixPaint.setPen(QColor(100,100,100));
@@ -70,6 +76,16 @@ SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f) :
     pixPaint.setFont(QFont(font, 9*fontFactor));
     pixPaint.drawText(paddingLeftCol2,paddingTopCol2+line2,copyrightText1);
     pixPaint.drawText(paddingLeftCol2,paddingTopCol2+line3,copyrightText2);
+
+    // draw testnet string if testnet is on
+    if(isTestNet) {
+        QFont boldFont = QFont(font, 3*fontFactor);
+        boldFont.setWeight(QFont::Bold);
+        pixPaint.setFont(boldFont);
+        fm = pixPaint.fontMetrics();
+        int testnetAddTextWidth  = fm.width(testnetAddText);
+        pixPaint.drawText(newPixmap.width()-testnetAddTextWidth-10,15,testnetAddText);
+    }
 
     pixPaint.end();
 
