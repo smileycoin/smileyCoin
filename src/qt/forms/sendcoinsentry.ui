@@ -172,10 +172,10 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
+    <item row="3" column="1">
      <widget class="BitcoinAmountField" name="payAmount"/>
     </item>
-    <item row="3" column="0">
+    <item row="4" column="0">
      <widget class="QLabel" name="messageLabel">
       <property name="text">
        <string>Message:</string>
@@ -185,7 +185,7 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="1">
+    <item row="4" column="1">
      <widget class="QLabel" name="messageTextLabel">
       <property name="toolTip">
        <string>A message that was attached to the smileycoin: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Smileycoin network.</string>
@@ -681,6 +681,32 @@
      </widget>
     </item>
     <item row="2" column="0">
+     <widget class="QLabel" name="dataLabel_is">
+      <property name="text">
+       <string>Data:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="buddy">
+       <cstring>addAsData_is</cstring>
+      </property>
+     </widget>
+    </item>
+   <item row="2" column="1">
+   <layout class="QHBoxLayout" name="dataLayout_is">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QLineEdit" name="addAsData_is"/>
+    </item>
+    <item>
+     <widget class="QComboBox" name="addAsData2_is"/>
+    </item>
+   </layout>
+   </item>
+    <item row="3" column="0">
      <widget class="QLabel" name="amountLabel_is">
       <property name="text">
        <string>A&amp;mount:</string>
@@ -693,7 +719,7 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
+    <item row="3" column="1">
      <widget class="BitcoinAmountField" name="payAmount_is">
       <property name="acceptDrops">
        <bool>false</bool>
@@ -1217,6 +1243,32 @@
      </widget>
     </item>
     <item row="2" column="0">
+     <widget class="QLabel" name="dataLabel_s">
+      <property name="text">
+       <string>Data:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="buddy">
+       <cstring>addAsData_s</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <layout class="QHBoxLayout" name="dataLayout_s">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLineEdit" name="addAsData_s"/>
+      </item>
+      <item>
+       <widget class="QComboBox" name="addAsData2_s"/>
+      </item>
+     </layout>
+    </item>
+    <item row="3" column="0">
      <widget class="QLabel" name="amountLabel_s">
       <property name="text">
        <string>A&amp;mount:</string>
@@ -1229,7 +1281,7 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
+    <item row="3" column="1">
      <widget class="BitcoinAmountField" name="payAmount_s">
       <property name="acceptDrops">
        <bool>false</bool>
@@ -1257,6 +1309,9 @@
   <tabstop>pasteButton</tabstop>
   <tabstop>deleteButton</tabstop>
   <tabstop>addAsLabel</tabstop>
+  <tabstop>addAsData</tabstop>
+  <tabstop>addAsData_is</tabstop>
+  <tabstop>addAsData_s</tabstop>
   <tabstop>payAmount</tabstop>
   <tabstop>payAmount_is</tabstop>
   <tabstop>deleteButton_is</tabstop>

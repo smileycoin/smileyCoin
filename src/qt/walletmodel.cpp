@@ -15,6 +15,7 @@
 #include "db.h"
 #include "keystore.h"
 #include "main.h"
+#include "rpcserver.h"
 #include "sync.h"
 #include "ui_interface.h"
 #include "wallet.h"
@@ -188,6 +189,8 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
     qint64 total = 0;
     QList<SendCoinsRecipient> recipients = transaction.getRecipients();
     std::vector<std::pair<CScript, int64_t> > vecSend;
+    int64_t DEFAULT_AMOUNT = 0;
+    std::string txData = "";
 
     if(recipients.empty())
     {
@@ -234,6 +237,11 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
 
             CScript scriptPubKey;
             scriptPubKey.SetDestination(CBitcoinAddress(rcp.address.toStdString()).Get());
+
+            if (rcp.data.length() > 0) {
+                txData = rcp.data.toStdString();
+            }
+
             vecSend.push_back(std::pair<CScript, int64_t>(scriptPubKey, rcp.amount));
 
             total += rcp.amount;
@@ -266,6 +274,17 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
 
         CWalletTx *newTx = transaction.getTransaction();
         CReserveKey *keyChange = transaction.getPossibleKeyChange();
+
+        if(txData.length() > 0) {
+            vector<string> str;
+            int64_t amount = 0;
+
+            str.push_back(txData);
+            vector<unsigned char> data = ParseHexV(str[0], "Data");
+
+            vecSend.push_back(std::pair<CScript, int64_t>(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
+        }
+
         bool fCreated = wallet->CreateTransaction(vecSend, *newTx, *keyChange, nFeeRequired, strFailReason, coinControl);
         transaction.setTransactionFee(nFeeRequired);
 
@@ -304,6 +323,9 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
             }
             else if (!rcp.message.isEmpty()) // Message from normal bitcoin:URI (bitcoin:123...?message=example)
                 newTx->vOrderForm.push_back(make_pair("Message", rcp.message.toStdString()));
+
+            if (!rcp.data.isEmpty())
+                newTx->vOrderForm.push_back(make_pair("Data", rcp.data.toStdString()));
         }
 
         CReserveKey *keyChange = transaction.getPossibleKeyChange();
