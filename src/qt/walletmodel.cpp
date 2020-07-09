@@ -171,10 +171,10 @@ void WalletModel::updateServicePage(const QString &serviceName, const QString &s
 }
 
 void WalletModel::updateTicketPage(const QString &name, const QString &location, const QString &datetime,
-                                   const QString &price, const QString &address, const QString &tservice, int status)
+                                   const QString &price, const QString &address, const QString &service, int status)
 {
     if(ticketTableModel)
-        ticketTableModel->updateTicketEntry(name, location, datetime, price, address, tservice, status);
+        ticketTableModel->updateTicketEntry(name, location, datetime, price, address, service, status);
 }
 
 bool WalletModel::validateAddress(const QString &address)
