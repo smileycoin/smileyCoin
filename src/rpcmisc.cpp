@@ -155,35 +155,31 @@ Value getserviceaddressinfo(const Array& params, bool fHelp)
     if(!address.IsValid())
         throw runtime_error("Not a valid Smileycoin address");
 
-
-    /*std::vector<std::string> addresslist = getserviceaddresses.listAddress;
-
-    bool found = (std::find(addresslist.begin(), addresslist.end(), CBitcoinAddress(address).ToString()) != addresslist.end());
-    if(!found)
-        throw runtime_error("Not a service address");
-    */
+    std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string> > > services;
+    ServiceList.GetServiceAddresses(services);
+    bool isService = false;
+    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
+        if (address.ToString() == get<1>(it->second)) {
+            isService = true;
+        }
+    }
+    if (!isService)
+        throw runtime_error("Not a valid service address");
 
     Object obj;
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> info;
-
+    std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > info;
     ServiceList.GetServiceAddressInfo(info);
 
-    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
-    {
+    for(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > >::const_iterator it = info.begin(); it!=info.end(); it++) {
         CTxDestination des;
         ExtractDestination(it->first, des);
-        //std::string ServiceAddress = get<4>(it->second);
-        //if (ServiceAddress == address.ToString()) {
-        obj.push_back(Pair("Location: ", get<0>(it->second)));
-        obj.push_back(Pair("Name: ", get<1>(it->second)));
-        obj.push_back(Pair("Date and Time: ", get<2>(it->second)));
-        obj.push_back(Pair("Value: ", get<3>(it->second)));
-        obj.push_back(Pair("Address: ", get<4>(it->second)));
-        //}
+        //obj.push_back(Pair("ToAddress: ", get<0>(it->second)));
+        obj.push_back(Pair("Name: ", get<2>(it->second)));
+        obj.push_back(Pair("Location: ", get<1>(it->second)));
+        obj.push_back(Pair("Date and Time: ", get<3>(it->second)));
+        obj.push_back(Pair("Price: ", get<4>(it->second)));
+        obj.push_back(Pair("Address: ", get<5>(it->second)));
     }
-    // Athuga ef það er service addressa
-    // if(!address.IsService())
-    //  throw runtime_error("Not a service address");
 
     return obj;
 }

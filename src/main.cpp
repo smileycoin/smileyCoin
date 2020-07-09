@@ -1826,15 +1826,25 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                     std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
                     ServiceList.GetServiceAddresses(retset);
                     std::list<std::string> serviceAddressList;
+                    bool isService = false;
 
                     for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
                     {
-                        serviceAddressList.push_back(get<1>(it->second));
-                        LogPrintStr(" RETSET get<0>: " + get<0>(it->second) + " get<1>: " + get<1>(it->second) + " get<2>: " + get<2>(it->second));
+                        if (toAddress == get<1>(it->second)) {
+                            isService = true;
+                        }
+                        //serviceAddressList.push_back(get<1>(it->second));
                     }
 
-                    if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) { // vantar && addressan er a service listanum
-                        for (unsigned int l = 0; l < tx.vout.size(); l++) {
+                    if (isService) {
+                        LogPrintStr("toAddress1: " + toAddress + " isService: true");
+                    } else {
+                        LogPrintStr("toAddress1: " + toAddress + " isService: false");
+                    }
+
+                    //if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) {
+                    if (CBitcoinAddress(toAddress).IsValid() && isService) { // vantar && addressan er a service listanum
+                        for(unsigned int l = 0; l < tx.vout.size(); l++) {
                             const CTxOut &outService = tx.vout[l];
                             const CScript &keyService = outService.scriptPubKey;
 
@@ -2189,14 +2199,24 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                     std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
                     ServiceList.GetServiceAddresses(retset);
                     std::list<std::string> serviceAddressList;
+                    bool isService = false;
 
                     for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
                     {
-                        serviceAddressList.push_back(get<1>(it->second));
-                        LogPrintStr(" RETSET2 get<0>: " + get<0>(it->second) + " get<1>: " + get<1>(it->second) + " get<2>: " + get<2>(it->second));
+                        if (toAddress == get<1>(it->second)) {
+                            isService = true;
+                        }
+                        //serviceAddressList.push_back(get<1>(it->second));
                     }
 
-                    if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) { // vantar && addressan er a service listanum
+                    if (isService) {
+                        LogPrintStr("toAddress2: " + toAddress + " isService: true");
+                    } else {
+                        LogPrintStr("toAddress2: " + toAddress + " isService: false");
+                    }
+
+                    //if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) {
+                    if (CBitcoinAddress(toAddress).IsValid() && isService) { // vantar && addressan er a service listanum
                         for (unsigned int l = 0; l < tx.vout.size(); l++) {
                             const CTxOut &outService = tx.vout[l];
                             const CScript &keyService = outService.scriptPubKey;

@@ -119,8 +119,10 @@ void EditServiceDialog::accept()
                  }
 
                  SendCoinsRecipient issuer;
-                 // Send new service request transaction to B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc
-                 issuer.address = QString::fromStdString("B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn");
+                 // Send new service request transaction to official service address
+                 //issuer.address = QString::fromStdString("B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn");
+                 issuer.address = QString::fromStdString("B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc");
+
                  // Start with n = 10 (0.001) to get rid of spam
                  issuer.amount = 1000000000;
 
