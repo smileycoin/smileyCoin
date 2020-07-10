@@ -111,7 +111,7 @@ void EditServiceDialog::accept()
                  // Merge into one string if service type name consists of more than one word
                  QString serviceType = "";
                  if (typeStr.size() > 1) {
-                     for (int i = 0; i < typeStr.size(); i++) {
+                     for (std::string::size_type i = 0; i < typeStr.size(); i++) {
                          serviceType += QString::fromStdString(typeStr.at(i));
                      }
                  } else {
@@ -232,7 +232,7 @@ void EditServiceDialog::accept()
                  // Merge into one string if ticket name or ticket location consists of more than one word
                  QString ticketName = "";
                  if (nameStr.size() > 1) {
-                     for (int i = 0; i < nameStr.size(); i++) {
+                     for (std::string::size_type i = 0; i < nameStr.size(); i++) {
                          ticketName += QString::fromStdString(nameStr.at(i));
                      }
                  } else {
@@ -241,7 +241,7 @@ void EditServiceDialog::accept()
 
                  QString ticketLoc = "";
                  if (locStr.size() > 1) {
-                     for (int i = 0; i < locStr.size(); i++) {
+                     for (std::string::size_type i = 0; i < locStr.size(); i++) {
                          ticketLoc += QString::fromStdString(locStr.at(i));
                      }
                  } else {
