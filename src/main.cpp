@@ -1825,7 +1825,6 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                     std::string toAddress = CBitcoinAddress(des).ToString();
                     std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
                     ServiceList.GetServiceAddresses(retset);
-                    std::list<std::string> serviceAddressList;
                     bool isService = false;
 
                     for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
@@ -1833,13 +1832,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                         if (toAddress == get<1>(it->second)) {
                             isService = true;
                         }
-                        //serviceAddressList.push_back(get<1>(it->second));
                     }
 
                     if (isService) {
                         LogPrintStr("toAddress1: " + toAddress + " isService: true");
-                    } else {
-                        LogPrintStr("toAddress1: " + toAddress + " isService: false");
                     }
 
                     //if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) {
@@ -2198,7 +2194,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                     std::string toAddress = CBitcoinAddress(des).ToString();
                     std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
                     ServiceList.GetServiceAddresses(retset);
-                    std::list<std::string> serviceAddressList;
                     bool isService = false;
 
                     for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
@@ -2206,13 +2201,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                         if (toAddress == get<1>(it->second)) {
                             isService = true;
                         }
-                        //serviceAddressList.push_back(get<1>(it->second));
                     }
 
                     if (isService) {
                         LogPrintStr("toAddress2: " + toAddress + " isService: true");
-                    } else {
-                        LogPrintStr("toAddress2: " + toAddress + " isService: false");
                     }
 
                     //if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) {
