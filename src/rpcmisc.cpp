@@ -138,7 +138,8 @@ Value getserviceaddresses(const Array& params, bool fHelp)
 
     for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
     {
-        obj.push_back(Pair(get<1>(it->second), get<0>(it->second)));
+        //obj.push_back(Pair(get<1>(it->second), get<0>(it->second)));
+        obj.push_back(Pair(get<0>(it->second), get<1>(it->second), get<2>(it->second)));
     }
     return obj;
 }
