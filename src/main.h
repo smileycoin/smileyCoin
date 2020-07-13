@@ -50,6 +50,8 @@ static const unsigned int DEFAULT_BLOCK_MIN_SIZE = 0;
 static const unsigned int DEFAULT_BLOCK_PRIORITY_SIZE = 50000;
 /** The maximum size for transactions we're willing to relay/mine */
 static const unsigned int MAX_STANDARD_TX_SIZE = 100000;
+/** Maximum number of signature check operations in an IsStandard() P2SH script */
+static const unsigned int MAX_P2SH_SIGOPS = 15;
 /** The maximum number of orphan blocks kept in memory */
 static const unsigned int MAX_ORPHAN_BLOCKS = 750;
 /** The maximum size of a blk?????.dat file (since 0.8) */

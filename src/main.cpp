@@ -586,8 +586,14 @@ bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 }
 
 //
-// Check transaction inputs, and make sure any
-// pay-to-script-hash transactions are evaluating IsStandard scripts
+// Check transaction inputs to mitigate two
+// potential denial-of-service attacks:
+//
+// 1. scriptSigs with extra data stuffed into them,
+//    not consumed by scriptPubKey (or P2SH script)
+// 2. P2SH scripts with a crazy number of expensive
+//    CHECKSIG/CHECKMULTISIG operations
+//
 bool AreInputsStandard(const CTransaction& tx, CCoinsViewCache& mapInputs)
 {
 	if (tx.IsCoinBase())
@@ -610,8 +616,9 @@ bool AreInputsStandard(const CTransaction& tx, CCoinsViewCache& mapInputs)
 		// Transactions with extra stuff in their scriptSigs are
 		// non-standard. Note that this EvalScript() call will
 		// be quick, because if there are any operations
-		// beside "push data" in the scriptSig the
-		// IsStandard() call returns false
+		// beside "push data" in the scriptSig
+		// IsStandard() will have already returned false
+    // and this method isn't called.
 		vector<vector<unsigned char> > stack;
 		if (!EvalScript(stack, tx.vin[i].scriptSig, tx, i, false, 0))
 			return false;
@@ -623,16 +630,20 @@ bool AreInputsStandard(const CTransaction& tx, CCoinsViewCache& mapInputs)
 			CScript subscript(stack.back().begin(), stack.back().end());
 			vector<vector<unsigned char> > vSolutions2;
 			txnouttype whichType2;
-			if (!Solver(subscript, whichType2, vSolutions2))
-				return false;
-			if (whichType2 == TX_SCRIPTHASH)
-				return false;
-
-			int tmpExpected;
-			tmpExpected = ScriptSigArgsExpected(whichType2, vSolutions2);
-			if (tmpExpected < 0)
-				return false;
-			nArgsExpected += tmpExpected;
+      if (Solver(subscript, whichType2, vSolutions2))
+      {
+          int tmpExpected = ScriptSigArgsExpected(whichType2, vSolutions2);
+          if (tmpExpected < 0)
+              return false;
+          nArgsExpected += tmpExpected;
+      }
+      else
+      {
+          // Any other Script with less than 15 sigops OK:
+          unsigned int sigops = subscript.GetSigOpCount(true);
+          // ... extra data left on the stack after execution is OK, too:
+          return (sigops <= MAX_P2SH_SIGOPS);
+      }
 		}
 
 		if (stack.size() != (unsigned int)nArgsExpected)
