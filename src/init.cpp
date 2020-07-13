@@ -20,6 +20,7 @@
 #include "ui_interface.h"
 #include "util.h"
 #include "richlistdb.h"
+#include "jeeq.h"
 
 #ifdef ENABLE_WALLET
 #include "db.h"

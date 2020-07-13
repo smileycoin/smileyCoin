@@ -44,6 +44,7 @@ BITCOIN_CORE_H = \
   richlistdb.h \
   hash.h \
   init.h \
+  jeeq.h \
   key.h \
   keystore.h \
   leveldbwrapper.h \
@@ -145,6 +146,7 @@ libbitcoin_common_a_SOURCES = \
   chainparams.cpp \
   core.cpp \
   hash.cpp \
+  jeeq.cpp \
   key.cpp \
   netbase.cpp \
   protocol.cpp \
