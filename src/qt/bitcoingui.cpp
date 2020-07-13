@@ -58,7 +58,7 @@
 
 const QString BitcoinGUI::DEFAULT_WALLET = "~Default";
 
-BitcoinGUI::BitcoinGUI(QWidget *parent) :
+BitcoinGUI::BitcoinGUI(bool fIsTestnet, QWidget *parent) :
     QMainWindow(parent),
     clientModel(0),
     walletFrame(0),
@@ -116,12 +116,25 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
         windowTitle += tr("Node");
     }
 
+    if (!fIsTestnet)
+    {
 #ifndef Q_OS_MAC
         QApplication::setWindowIcon(QIcon(":icons/bitcoin"));
         setWindowIcon(QIcon(":icons/bitcoin"));
 #else
         MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin"));
 #endif
+    }
+    else
+    {
+        windowTitle += " " + tr("[testnet]");
+#ifndef Q_OS_MAC
+        QApplication::setWindowIcon(QIcon(":icons/bitcoin_testnet"));
+        setWindowIcon(QIcon(":icons/bitcoin_testnet"));
+#else
+        MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin_testnet"));
+#endif
+    }
     setWindowTitle(windowTitle);
 
 #if defined(Q_OS_MAC) && QT_VERSION < 0x050000
@@ -151,7 +164,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 
     // Create actions for the toolbar, menu bar and tray/dock icon
     // Needs walletFrame to be initialized
-    createActions();
+    createActions(fIsTestnet);
 
     // Create application menu bar
     createMenuBar();
@@ -160,7 +173,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
     createToolBars();
 
     // Create system tray icon and notification
-    createTrayIcon();
+    createTrayIcon(fIsTestnet);
 
     // Create status bar
     statusBar();
@@ -234,7 +247,7 @@ BitcoinGUI::~BitcoinGUI()
 #endif
 }
 
-void BitcoinGUI::createActions()
+void BitcoinGUI::createActions(bool fIsTestnet)
 {
     QActionGroup *tabGroup = new QActionGroup(this);
 
@@ -292,8 +305,11 @@ void BitcoinGUI::createActions()
     quitAction->setStatusTip(tr("Quit application"));
     quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     quitAction->setMenuRole(QAction::QuitRole);
-    aboutAction = new QAction(QIcon(":/icons/bitcoin"), tr("&About Smileycoin Core"), this);
-    aboutAction->setStatusTip(tr("Show information about Smileycoin"));
+    if (!fIsTestnet)
+        aboutAction = new QAction(QIcon(":/icons/bitcoin"), tr("&About Smileycoin Core"), this);
+    else
+        aboutAction = new QAction(QIcon(":/icons/bitcoin_testnet"), tr("&About Smileycoin Core"), this);
+    aboutAction->setStatusTip(tr("Show information about Smileyoin"));
     aboutAction->setMenuRole(QAction::AboutRole);
 #if QT_VERSION < 0x050000
     aboutQtAction = new QAction(QIcon(":/trolltech/qmessagebox/images/qtlogo-64.png"), tr("About &Qt"), this);
@@ -305,7 +321,10 @@ void BitcoinGUI::createActions()
     optionsAction = new QAction(QIcon(":/icons/options"), tr("&Options..."), this);
     optionsAction->setStatusTip(tr("Modify configuration options for Smileycoin"));
     optionsAction->setMenuRole(QAction::PreferencesRole);
-    toggleHideAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Show / Hide"), this);
+    if (!fIsTestnet)
+        toggleHideAction = new QAction(QIcon(":/icons/bitcoin"), tr("&Show / Hide"), this);
+    else
+        toggleHideAction = new QAction(QIcon(":/icons/bitcoin_testnet"), tr("&Show / Hide"), this);
     toggleHideAction->setStatusTip(tr("Show or hide the main Window"));
 
     encryptWalletAction = new QAction(QIcon(":/icons/lock_closed"), tr("&Encrypt Wallet..."), this);
@@ -495,13 +514,21 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     openAction->setEnabled(enabled);
 }
 
-void BitcoinGUI::createTrayIcon()
+void BitcoinGUI::createTrayIcon(bool fIsTestnet)
 {
 #ifndef Q_OS_MAC
     trayIcon = new QSystemTrayIcon(this);
 
-    trayIcon->setToolTip(tr("Smileycoin client"));
-    trayIcon->setIcon(QIcon(":/icons/toolbar"));
+    if (!fIsTestnet)
+    {
+        trayIcon->setToolTip(tr("Smileycoin client"));
+        trayIcon->setIcon(QIcon(":/icons/toolbar"));
+    }
+    else
+    {
+        trayIcon->setToolTip(tr("Smileycoin client") + " " + tr("[testnet]"));
+        trayIcon->setIcon(QIcon(":/icons/toolbar_testnet"));
+    }
 
     trayIcon->show();
 #endif

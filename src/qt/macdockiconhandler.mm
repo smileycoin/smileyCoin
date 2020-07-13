@@ -107,7 +107,7 @@ void MacDockIconHandler::setIcon(const QIcon &icon)
         }
 
         if(!image) {
-            // if image could not be created, load std. app icon
+            // if testnet image could not be created, load std. app icon
             image = [[NSImage imageNamed:@"NSApplicationIcon"] retain];
         }
     }

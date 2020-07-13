@@ -832,7 +832,11 @@ public:
 
     int GetAlgoWorkFactor() const
     {
-        if (nHeight < nRichForkHeight)
+        if (!TestNet() && (nHeight < nRichForkHeight))
+        {
+            return 1;
+        }
+        if (TestNet() && (nHeight < 100))
         {
             return 1;
         }
