@@ -5,7 +5,7 @@ https://tutor-web.info/smileycoin
 
 Copyright (c) 2014-2016 Auroracoin Developers
 
-Copyright (c) 2017-2017 Smileycoin Developers
+Copyright (c) 2017-2020 Smileycoin Developers
 
 
 What is Smileycoin?
@@ -18,7 +18,7 @@ Smileycoin is based on the Auroracoin source, so using SHA256, scrypt, skein, gr
  - 10000 coins per block
 
 For more information, as well as an immediately useable, binary version of
-the Smileycoin client sofware, see http://www.tutor-web.info/smileycoin
+the Smileycoin client sofware, see http://smileyco.in
 
 License
 -------
@@ -41,7 +41,7 @@ match the project's coding conventions (see `doc/coding.txt`) or are
 controversial.
 
 The `master` branch is regularly built and tested, but is not guaranteed to be
-completely stable. [Tags](https://github.com/bitcoin/bitcoin/tags) are created
+completely stable. [Tags](https://github.com/smileycoin/smileycoin/tags) are created
 regularly to indicate new official, stable release versions of Smileycoin.
 
 Community
