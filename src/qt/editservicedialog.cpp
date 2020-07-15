@@ -38,11 +38,12 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             ui->ticketForm->hide();
             ui->serviceForm->show();
             setWindowTitle(tr("Create new service"));
-            ui->serviceType->addItem("Ticket Sales"); // == ui->serviceType->setItemData(0, "Ticket Sales", Qt::DisplayRole);
-            ui->serviceType->addItem("Universal Basic Income (UBI)");
+            ui->serviceType->addItem("Ticket Sales");
+            ui->serviceType->addItem("UBI");
             ui->serviceType->addItem("Book Chapter");
             ui->serviceType->addItem("Traceability");
             ui->serviceType->addItem("Nonprofit Organization");
+            ui->serviceType->addItem("DEX");
 
             break;
         }

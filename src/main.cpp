@@ -1745,7 +1745,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 	if (pfClean)
 		*pfClean = false;
 
-	bool fClean = true;
+    bool fClean = true;
 
     CBlockUndo blockUndo;
 	CDiskBlockPos pos = pindex->GetUndoPos();
@@ -1776,7 +1776,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                 CTxDestination des;
                 ExtractDestination(key, des);
                 if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc") {
-                //if (CBitcoinAddress(des).ToString() == "B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn") { // min addressa vid testun
+                    //if (CBitcoinAddress(des).ToString() == "B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn") { // min addressa vid testun
                     for (unsigned int l = 0; l < tx.vout.size(); l++) {
                         const CTxOut &outService = tx.vout[l];
                         const CScript &keyService = outService.scriptPubKey;
@@ -1810,12 +1810,12 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                             assert(view.SetServiceInfo(keyService, value));
                                             serviceInfo[keyService] = value;
 
-                                            pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName),
+                                            /*pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName),
                                                                                   hexToAscii(serviceAddress),
-                                                                                  hexToAscii(serviceType), CT_NEW);
-
+                                                                                  hexToAscii(serviceType), CT_NEW);*/
                                         }
                                     }
+
                                 }
                             }
                         }
@@ -1832,10 +1832,6 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                         if (toAddress == get<1>(it->second)) {
                             isService = true;
                         }
-                    }
-
-                    if (isService) {
-                        LogPrintStr("toAddress1: " + toAddress + " isService: true");
                     }
 
                     //if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) {
@@ -1874,14 +1870,14 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                                 assert(view.SetServiceAddressInfo(keyService, value));
                                                 serviceAddressInfo[keyService] = value;
 
-                                                pwalletMain->NotifyTicketPageChanged(pwalletMain,
+                                                /*pwalletMain->NotifyTicketPageChanged(pwalletMain,
                                                                                      hexToAscii(ticketName),
                                                                                      hexToAscii(ticketLocation),
                                                                                      hexToAscii(ticketDateTime),
                                                                                      hexToAscii(ticketPrice),
                                                                                      hexToAscii(ticketAddress),
                                                                                      toAddress,
-                                                                                     CT_NEW);
+                                                                                     CT_NEW);*/
                                             }
                                         }
                                     }
@@ -1956,7 +1952,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 				const CScript &key = prevout.scriptPubKey;
 
 				if (key.IsPayToPublicKeyHash() || key.IsPayToScriptHash()) 
-				{					
+				{
 					std::pair<int64_t, int> value;
 					
 					int64_t nBalance =(view.GetAddressInfo(key,value)) ? value.first + prevout.nValue : prevout.nValue;
@@ -2179,8 +2175,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         assert(view.SetServiceInfo(keyService, value));
                                         serviceInfo[keyService] = value;
 
-                                        //pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName), sAddress.Get(),
-                                        //                                      hexToAscii(serviceType), CT_NEW);
                                         pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName),
                                                                               hexToAscii(serviceAddress),
                                                                               hexToAscii(serviceType), CT_NEW);
@@ -2201,10 +2195,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                         if (toAddress == get<1>(it->second)) {
                             isService = true;
                         }
-                    }
-
-                    if (isService) {
-                        LogPrintStr("toAddress2: " + toAddress + " isService: true");
                     }
 
                     //if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) {
@@ -3507,13 +3497,13 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth)
 		if (nCheckLevel >= 3 && pindex == pindexState && (coins.GetCacheSize() + pcoinsTip->GetCacheSize()) <= 2*nCoinCacheSize + 32000) {
             bool fClean = true;
             if (!DisconnectBlock(block, state, pindex, coins, &fClean))
-				return error("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+                return error("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
             pindexState = pindex->pprev;
             if (!fClean) {
-				nGoodTransactions = 0;
+                nGoodTransactions = 0;
 				pindexFailure = pindex;
             } else
-				nGoodTransactions += block.vtx.size();
+                nGoodTransactions += block.vtx.size();
         }
 	}
     if (pindexFailure)
