@@ -130,96 +130,22 @@ Value getserviceaddresses(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error("getserviceaddresses\n"
-                           "Returns all verified addresses, ordered by ???????.\n");
-
-    // Vil gera array af service addressum fyrir hverja typu
-    // - Array af typum og fyrir hverja typu array af services
-    // Object -> TypeArray -> TypeObject -> ServiceArray -> ServiceObject
-
+                           "Returns all services addresses, ordered by the service type.\n");
 
     // Sækja öll services
     std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
     ServiceList.GetServiceAddresses(retset);
 
-    std::set<std::string> types;
-    //Array serviceArr;
-    //Object typeObj;
-    Array typeArr;
-    Mapped_obj serviceObj2; //typedef std::map< std::string, Value > Mapped_obj;
+    Mapped_obj typeMap;
     Object obj;
 
-
-
-    // Ítra gegnum öll service og inserta tegundir í set
     for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
     {
-        types.insert(get<2>(it->second)); // strengja-set af service tegundum (engin duplicates)
-
+        Object service;
+        service.push_back(Pair(get<0>(it->second), get<1>(it->second)));
+        typeMap.insert(std::make_pair(get<2>(it->second), service));
     }
-
-    for (auto& type : types)
-    {
-        Object typeObj;
-        Array serviceArr;
-
-
-        for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
-        {
-            //Array serviceArr;
-            Object serviceObj;
-            if (type == get<2>(it->second)) {
-                LogPrintStr("type == get<2>(it->second): " + get<2>(it->second));
-                LogPrintStr("get<0>: " + get<0>(it->second) + " get<1>: " + get<1>(it->second));
-
-
-                serviceObj.push_back(Pair(get<0>(it->second), get<1>(it->second)));
-                serviceArr.push_back(serviceObj);
-
-                typeObj.push_back(Pair(type, serviceArr));
-                typeArr.push_back(typeObj);
-            }
-        }
-    }
-
-    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
-    {
-        Object serviceObj;
-        serviceObj.push_back(Pair(get<0>(it->second), get<1>(it->second)));
-
-        serviceObj2.insert(std::make_pair(get<2>(it->second), serviceObj));
-
-        // vantar að lata öll serviceObj með sama type bætast við sama serviceArr
-        Object typeObj;
-        Array serviceArr;
-        //if json_spirit::find_value(typeObj, get<2>(it->second));
-        /*if (types.find(get<2>(it->second)) != types.end()) {
-            serviceArr.push_back(serviceObj);
-
-            //þarf forlykkjan að enda herna?
-            typeObj.push_back(Pair(get<2>(it->second), serviceArr));
-            typeArr.push_back(typeObj);
-        }*/
-
-
-        ////////////////////FYRIR NEDAN VIRKAR
-        /*for(auto& type : types) {
-            if (type == get<2>(it->second)) {
-                serviceArr.push_back(serviceObj);
-                typeObj.push_back(Pair(type, serviceArr));
-                typeArr.push_back(typeObj);
-            }
-        }*/
-
-        /*for(auto& type : typeArr) {
-            LogPrintStr(type.get_str());
-        }*/
-
-        //serviceArr.push_back(serviceObj);
-        //typeObj.push_back(Pair(get<2>(it->second), serviceArr));
-    }
-
-    //return typeArr;
-    map_to_obj(serviceObj2, obj);
+    map_to_obj(typeMap, obj);
 
     return obj;
 }
