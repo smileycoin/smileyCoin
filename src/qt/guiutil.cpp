@@ -204,6 +204,29 @@ QString formatBitcoinURI(const SendCoinsRecipient &info)
     return ret;
 }
 
+std::string hexToAscii(std::string dataStr)
+{
+    std::string asciiData;
+    for (int i = 0; i < dataStr.length(); i += 2)
+    {
+        string byte = dataStr.substr(i, 2);
+        // Write a dot(.) if the hex code stands for a control command
+        if (byte == "00" || byte == "01" || byte == "02" || byte == "03" || byte == "04" ||
+            byte == "05" || byte == "06" || byte == "07" || byte == "08" || byte == "09" ||
+            byte == "0a" || byte == "0b" || byte == "0c" || byte == "0d" || byte == "0e" ||
+            byte == "0f" || byte == "10" || byte == "11" || byte == "12" || byte == "13" ||
+            byte == "14" || byte == "15" || byte == "16" || byte == "17" || byte == "18" ||
+            byte == "19" || byte == "1a" || byte == "1b" || byte == "1c" || byte == "1d" ||
+            byte == "1e" || byte == "1f" || byte == "20" || byte == "7f")
+        {
+            byte = "2e";
+        }
+        char chr = (char) (int) strtol(byte.c_str(), NULL, 16);
+        asciiData.push_back(chr);
+    }
+    return asciiData;
+}
+
 bool isDust(const QString& address, qint64 amount)
 {
     CTxDestination dest = CBitcoinAddress(address.toStdString()).Get();

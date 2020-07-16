@@ -6,6 +6,7 @@
 
 #include "base58.h"
 #include "wallet.h"
+#include "guiutil.h"
 
 #include <stdint.h>
 
@@ -47,9 +48,20 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             if(wallet->IsMine(txout))
             {
                 TransactionRecord sub(hash, nTime);
+
                 CTxDestination address;
                 sub.idx = parts.size(); // sequence number
                 sub.credit = txout.nValue;
+
+                for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++) {
+                    const CTxOut &txout2 = wtx.vout[nOut];
+                    // Check if data exists in transaction
+                    std::string hexString = HexStr(txout2.scriptPubKey);
+                    if (hexString.substr(0, 2) == "6a") {
+                        sub.data += hexString.substr(4, hexString.size());
+                    }
+                }
+
                 if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*wallet, address))
                 {
                     // Received by Bitcoin Address
@@ -88,7 +100,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             int64_t nChange = wtx.GetChange();
 
             parts.append(TransactionRecord(hash, nTime, TransactionRecord::SendToSelf, "",
-                            -(nDebit - nChange), nCredit - nChange));
+                                           -(nDebit - nChange), nCredit - nChange, ""));
         }
         else if (fAllFromMe)
         {
@@ -102,6 +114,12 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                 const CTxOut& txout = wtx.vout[nOut];
                 TransactionRecord sub(hash, nTime);
                 sub.idx = parts.size();
+
+                // Check if data exists in transaction
+                std::string hexString = HexStr(txout.scriptPubKey);
+                if (hexString.substr(0, 2) == "6a") {
+                    sub.data += hexString.substr(4, hexString.size());
+                }
 
                 if(wallet->IsMine(txout))
                 {
@@ -141,7 +159,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             //
             // Mixed debit transaction, can't break down payees
             //
-            parts.append(TransactionRecord(hash, nTime, TransactionRecord::Other, "", nNet, 0));
+            parts.append(TransactionRecord(hash, nTime, TransactionRecord::Other, "", nNet, 0, ""));
         }
     }
 
@@ -161,10 +179,10 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
 
     // Sort order, unrecorded transactions sort to the top
     status.sortKey = strprintf("%010d-%01d-%010u-%03d",
-        (pindex ? pindex->nHeight : std::numeric_limits<int>::max()),
-        (wtx.IsCoinBase() ? 1 : 0),
-        wtx.nTimeReceived,
-        idx);
+            (pindex ? pindex->nHeight : std::numeric_limits<int>::max()),
+            (wtx.IsCoinBase() ? 1 : 0),
+            wtx.nTimeReceived,
+            idx);
     status.countsForBalance = wtx.IsTrusted() && !(wtx.GetBlocksToMaturity(chainActive.Height() - wtx.GetDepthInMainChain()) > 0);
     status.depth = wtx.GetDepthInMainChain();
     status.cur_num_blocks = chainActive.Height();
@@ -248,4 +266,3 @@ QString TransactionRecord::formatSubTxId(const uint256 &hash, int vout)
 {
     return QString::fromStdString(hash.ToString() + strprintf("-%03d", vout));
 }
-

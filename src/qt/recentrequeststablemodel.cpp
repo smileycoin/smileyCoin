@@ -21,7 +21,7 @@ RecentRequestsTableModel::RecentRequestsTableModel(CWallet *wallet, WalletModel 
         addNewRequest(request);
 
     /* These columns must match the indices in the ColumnIndex enumeration */
-    columns << tr("Date") << tr("Label") << tr("Message") << tr("Amount");
+    columns << tr("Date") << tr("Label") << tr("Message") << tr("Data") << tr("Amount");
 }
 
 RecentRequestsTableModel::~RecentRequestsTableModel()
@@ -73,6 +73,15 @@ QVariant RecentRequestsTableModel::data(const QModelIndex &index, int role) cons
             else
             {
                 return rec->recipient.message;
+            }
+        case Data:
+            if (rec->recipient.data.isEmpty() && role == Qt::DisplayRole)
+            {
+                return tr("(no data)");
+            }
+            else
+            {
+                return rec->recipient.data;
             }
         case Amount:
             if (rec->recipient.amount == 0 && role == Qt::DisplayRole)
@@ -200,6 +209,8 @@ bool RecentRequestEntryLessThan::operator()(RecentRequestEntry &left, RecentRequ
         return pLeft->recipient.label < pRight->recipient.label;
     case RecentRequestsTableModel::Message:
         return pLeft->recipient.message < pRight->recipient.message;
+    case RecentRequestsTableModel::Data:
+        return pLeft->recipient.data < pRight->recipient.data;
     case RecentRequestsTableModel::Amount:
         return pLeft->recipient.amount < pRight->recipient.amount;
     default:

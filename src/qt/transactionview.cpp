@@ -75,9 +75,9 @@ TransactionView::TransactionView(QWidget *parent) :
 
     typeWidget->addItem(tr("All"), TransactionFilterProxy::ALL_TYPES);
     typeWidget->addItem(tr("Received with"), TransactionFilterProxy::TYPE(TransactionRecord::RecvWithAddress) |
-                                        TransactionFilterProxy::TYPE(TransactionRecord::RecvFromOther));
+                                             TransactionFilterProxy::TYPE(TransactionRecord::RecvFromOther));
     typeWidget->addItem(tr("Sent to"), TransactionFilterProxy::TYPE(TransactionRecord::SendToAddress) |
-                                  TransactionFilterProxy::TYPE(TransactionRecord::SendToOther));
+                                       TransactionFilterProxy::TYPE(TransactionRecord::SendToOther));
     typeWidget->addItem(tr("To yourself"), TransactionFilterProxy::TYPE(TransactionRecord::SendToSelf));
     typeWidget->addItem(tr("Mined"), TransactionFilterProxy::TYPE(TransactionRecord::Generated));
     typeWidget->addItem(tr("Other"), TransactionFilterProxy::TYPE(TransactionRecord::Other));
@@ -90,14 +90,20 @@ TransactionView::TransactionView(QWidget *parent) :
 #endif
     hlayout->addWidget(addressWidget);
 
+    dataWidget = new QLineEdit(this);
+#if QT_VERSION >= 0x040700
+    dataWidget->setPlaceholderText(tr("Enter data to search"));
+#endif
+    hlayout->addWidget(dataWidget);
+
     amountWidget = new QLineEdit(this);
 #if QT_VERSION >= 0x040700
     amountWidget->setPlaceholderText(tr("Min amount"));
 #endif
 #ifdef Q_OS_MAC
-    amountWidget->setFixedWidth(97);
+    amountWidget->setFixedWidth(121);
 #else
-    amountWidget->setFixedWidth(100);
+    amountWidget->setFixedWidth(120);
 #endif
     amountWidget->setValidator(new QDoubleValidator(0, 1e20, 8, this));
     hlayout->addWidget(amountWidget);
@@ -129,17 +135,21 @@ TransactionView::TransactionView(QWidget *parent) :
     QAction *copyAddressAction = new QAction(tr("Copy address"), this);
     QAction *copyLabelAction = new QAction(tr("Copy label"), this);
     QAction *copyAmountAction = new QAction(tr("Copy amount"), this);
+    QAction *copyDataAction = new QAction(tr("Copy data"), this);
     QAction *copyTxIDAction = new QAction(tr("Copy transaction ID"), this);
     QAction *editLabelAction = new QAction(tr("Edit label"), this);
     QAction *showDetailsAction = new QAction(tr("Show transaction details"), this);
+    QAction *displayDataAction = new QAction(tr("Show data in ASCII/HEX"), this);
 
     contextMenu = new QMenu();
     contextMenu->addAction(copyAddressAction);
     contextMenu->addAction(copyLabelAction);
     contextMenu->addAction(copyAmountAction);
+    contextMenu->addAction(copyDataAction);
     contextMenu->addAction(copyTxIDAction);
     contextMenu->addAction(editLabelAction);
     contextMenu->addAction(showDetailsAction);
+    contextMenu->addAction(displayDataAction);
 
     mapperThirdPartyTxUrls = new QSignalMapper(this);
 
@@ -149,6 +159,7 @@ TransactionView::TransactionView(QWidget *parent) :
     connect(dateWidget, SIGNAL(activated(int)), this, SLOT(chooseDate(int)));
     connect(typeWidget, SIGNAL(activated(int)), this, SLOT(chooseType(int)));
     connect(addressWidget, SIGNAL(textChanged(QString)), this, SLOT(changedPrefix(QString)));
+    connect(dataWidget, SIGNAL(textChanged(QString)), this, SLOT(changedData(QString)));
     connect(amountWidget, SIGNAL(textChanged(QString)), this, SLOT(changedAmount(QString)));
 
     connect(view, SIGNAL(doubleClicked(QModelIndex)), this, SIGNAL(doubleClicked(QModelIndex)));
@@ -157,9 +168,11 @@ TransactionView::TransactionView(QWidget *parent) :
     connect(copyAddressAction, SIGNAL(triggered()), this, SLOT(copyAddress()));
     connect(copyLabelAction, SIGNAL(triggered()), this, SLOT(copyLabel()));
     connect(copyAmountAction, SIGNAL(triggered()), this, SLOT(copyAmount()));
+    connect(copyDataAction, SIGNAL(triggered()), this, SLOT(copyData()));
     connect(copyTxIDAction, SIGNAL(triggered()), this, SLOT(copyTxID()));
     connect(editLabelAction, SIGNAL(triggered()), this, SLOT(editLabel()));
     connect(showDetailsAction, SIGNAL(triggered()), this, SLOT(showDetails()));
+    connect(displayDataAction, SIGNAL(triggered()), this, SLOT(displayData()));
 }
 
 void TransactionView::setModel(WalletModel *model)
@@ -187,6 +200,7 @@ void TransactionView::setModel(WalletModel *model)
         transactionView->setColumnWidth(TransactionTableModel::Status, STATUS_COLUMN_WIDTH);
         transactionView->setColumnWidth(TransactionTableModel::Date, DATE_COLUMN_WIDTH);
         transactionView->setColumnWidth(TransactionTableModel::Type, TYPE_COLUMN_WIDTH);
+        transactionView->setColumnWidth(TransactionTableModel::Data, DATA_COLUMN_WIDTH);
         transactionView->setColumnWidth(TransactionTableModel::Amount, AMOUNT_MINIMUM_COLUMN_WIDTH);
 
         columnResizingFixer = new GUIUtil::TableViewLastColumnResizingFixer(transactionView, AMOUNT_MINIMUM_COLUMN_WIDTH, MINIMUM_COLUMN_WIDTH);
@@ -265,7 +279,7 @@ void TransactionView::chooseType(int idx)
     if(!transactionProxyModel)
         return;
     transactionProxyModel->setTypeFilter(
-        typeWidget->itemData(idx).toInt());
+            typeWidget->itemData(idx).toInt());
 }
 
 void TransactionView::changedPrefix(const QString &prefix)
@@ -273,6 +287,23 @@ void TransactionView::changedPrefix(const QString &prefix)
     if(!transactionProxyModel)
         return;
     transactionProxyModel->setAddressPrefix(prefix);
+}
+
+void TransactionView::changedData(const QString &dataPrefix)
+{
+    if(!transactionProxyModel)
+        return;
+
+    TransactionTableModel *transactionTableModel = model->getTransactionTableModel();
+    if (transactionTableModel->getAsciiData())
+    {
+        // Convert to hex to search ascii values in table
+        transactionProxyModel->setDataPrefix(dataPrefix.toLatin1().toHex());
+    }
+    else
+    {
+        transactionProxyModel->setDataPrefix(dataPrefix);
+    }
 }
 
 void TransactionView::changedAmount(const QString &amount)
@@ -294,8 +325,8 @@ void TransactionView::exportClicked()
 {
     // CSV is currently the only supported format
     QString filename = GUIUtil::getSaveFileName(this,
-        tr("Export Transaction History"), QString(),
-        tr("Comma separated file (*.csv)"), NULL);
+            tr("Export Transaction History"), QString(),
+            tr("Comma separated file (*.csv)"), NULL);
 
     if (filename.isNull())
         return;
@@ -309,6 +340,7 @@ void TransactionView::exportClicked()
     writer.addColumn(tr("Type"), TransactionTableModel::Type, Qt::EditRole);
     writer.addColumn(tr("Label"), 0, TransactionTableModel::LabelRole);
     writer.addColumn(tr("Address"), 0, TransactionTableModel::AddressRole);
+    writer.addColumn(tr("Data"), 0, TransactionTableModel::DataRole);
     writer.addColumn(tr("Amount"), 0, TransactionTableModel::FormattedAmountRole);
     writer.addColumn(tr("ID"), 0, TransactionTableModel::TxIDRole);
 
@@ -318,7 +350,7 @@ void TransactionView::exportClicked()
     }
     else {
         emit message(tr("Exporting Successful"), tr("The transaction history was successfully saved to %1.").arg(filename),
-            CClientUIInterface::MSG_INFORMATION);
+             CClientUIInterface::MSG_INFORMATION);
     }
 }
 
@@ -334,6 +366,11 @@ void TransactionView::contextualMenu(const QPoint &point)
 void TransactionView::copyAddress()
 {
     GUIUtil::copyEntryData(transactionView, 0, TransactionTableModel::AddressRole);
+}
+
+void TransactionView::copyData()
+{
+    GUIUtil::copyEntryData(transactionView, 0, TransactionTableModel::DataRole);
 }
 
 void TransactionView::copyLabel()
@@ -415,7 +452,24 @@ void TransactionView::openThirdPartyTxUrl(QString url)
         return;
     QModelIndexList selection = transactionView->selectionModel()->selectedRows(0);
     if(!selection.isEmpty())
-         QDesktopServices::openUrl(QUrl::fromUserInput(url.replace("%s", selection.at(0).data(TransactionTableModel::TxHashRole).toString())));
+        QDesktopServices::openUrl(QUrl::fromUserInput(url.replace("%s", selection.at(0).data(TransactionTableModel::TxHashRole).toString())));
+}
+
+void TransactionView::displayData()
+{
+    if(!transactionView->selectionModel())
+        return;
+
+    TransactionTableModel *transactionTableModel = model->getTransactionTableModel();
+    if (transactionTableModel->getAsciiData())
+    {
+        transactionTableModel->setAsciiData(false);
+    }
+    else
+    {
+        transactionTableModel->setAsciiData(true);
+    }
+
 }
 
 QWidget *TransactionView::createDateRangeWidget()
@@ -479,4 +533,5 @@ void TransactionView::resizeEvent(QResizeEvent* event)
 {
     QWidget::resizeEvent(event);
     columnResizingFixer->stretchColumnWidth(TransactionTableModel::ToAddress);
+    columnResizingFixer->stretchColumnWidth(TransactionTableModel::Data);
 }
