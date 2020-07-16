@@ -11,7 +11,6 @@
 #include "ui_interface.h"
 #include "uint256.h"
 #include "version.h"
-#include "jeeq.h"
 
 #include <stdarg.h>
 
@@ -129,8 +128,6 @@ public:
         RAND_screen();
 #endif
 
-        Jeeq::Init();
-
         // Seed random number generator with performance counter
         RandAddSeed();
     }
@@ -141,8 +138,6 @@ public:
         for (int i = 0; i < CRYPTO_num_locks(); i++)
             delete ppmutexOpenSSL[i];
         OPENSSL_free(ppmutexOpenSSL);
-
-        Jeeq::Cleanup();
         RAND_cleanup();
     }
 }

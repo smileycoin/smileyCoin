@@ -18,6 +18,8 @@
 //
 // BitcoinMiner
 //
+//
+static CCriticalSection cs_jeeq;
 
 int static FormatHashBlocks(void* pbuffer, unsigned int len)
 {
@@ -384,10 +386,13 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     secret.MakeNewKey(true);
     CPubKey pubkey = secret.GetPubKey();
 
-    puts("entering...");
-    auto test = Jeeq::EncryptMessage(pubkey, {4, 4, 2, 4});
-    auto result = Jeeq::DecryptMessage(secret, test);
-    printf("%d, %d, %d, %d\n", result[0], result[1], result[2], result[3]);
+    {
+        //LOCK(cs_jeeq);
+        puts("entering...");
+        auto test = Jeeq::EncryptMessage(pubkey, {4, 4, 2, 4});
+        auto result = Jeeq::DecryptMessage(secret, test);
+        printf("%d, %d, %d, %d\n", result[0], result[1], result[2], result[3]);
+    }
       
     // Fill in header
     pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
