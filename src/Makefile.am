@@ -138,6 +138,7 @@ libbitcoin_wallet_a_SOURCES = \
   rpcwallet.cpp \
   wallet.cpp \
   walletdb.cpp \
+  jeeq.cpp \
   $(BITCOIN_CORE_H)
 
 libbitcoin_common_a_SOURCES = \
@@ -146,7 +147,6 @@ libbitcoin_common_a_SOURCES = \
   chainparams.cpp \
   core.cpp \
   hash.cpp \
-  jeeq.cpp \
   key.cpp \
   netbase.cpp \
   protocol.cpp \

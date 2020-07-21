@@ -11,6 +11,7 @@
 #include "util.h"
 #include "wallet.h"
 #include "walletdb.h"
+#include "jeeq.h"
 
 #include <stdint.h>
 
@@ -453,6 +454,107 @@ Value signmessage(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sign failed");
 
     return EncodeBase64(&vchSig[0], vchSig.size());
+}
+
+Value encryptmessage(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 2)
+        throw runtime_error(
+            "encryptmessage \"smileycoinaddress\" \"message\"\n"
+            "\nEncrypt a message with the public key of an address"
+            + HelpRequiringPassphrase() + "\n"
+            "\nArguments:\n"
+            "1. \"smileycoinaddress\"  (string, required) The smileycoin address to use for the public key.\n"
+            "2. \"message\"            (string, required) The message to encrypt.\n"
+            "\nResult:\n"
+            "\"signature\"             (string) The encrypted message encoded in base 64\n"
+            "\nExamples:\n"
+            "\nUnlock the wallet for 30 seconds\n"
+            + HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
+            "\nEncrypt the message\n"
+            + HelpExampleCli("encryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"my message\"") +
+            "\nDecrypt the message\n"
+            + HelpExampleCli("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"?\"") +
+            "\nAs json rpc\n"
+            + HelpExampleRpc("encryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", \"my message\"")
+        );
+
+    EnsureWalletIsUnlocked();
+
+    string strAddress = params[0].get_str();
+    string strMessage = params[1].get_str();
+
+    CBitcoinAddress addr(strAddress);
+    if (!addr.IsValid())
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
+
+    CKeyID keyID;
+    if (!addr.GetKeyID(keyID))
+        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
+
+    CKey key;
+    if (!pwalletMain->GetKey(keyID, key))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
+
+    CHashWriter ss(SER_GETHASH, 0);
+    ss << strMessageMagic;
+    ss << strMessage;
+
+    vector<unsigned char> vchEnc;
+    CPubKey pubkey = key.GetPubKey();
+    vchEnc = Jeeq::EncryptMessage(pubkey, strMessage);
+//        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Encryption failed");
+
+    return EncodeBase64(&vchEnc[0], vchEnc.size());
+}
+
+Value decryptmessage(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 2)
+        throw runtime_error(
+            "decryptmessage \"smileycoinaddress\" \"message\"\n"
+            "\ndecrypt a message with the public key of an address"
+            + HelpRequiringPassphrase() + "\n"
+            "\nArguments:\n"
+            "1. \"smileycoinaddress\"  (string, required) The smileycoin address to use for the public key.\n"
+            "2. \"message\"            (string, required) The message to decrypt.\n"
+            "\nResult:\n"
+            "\"signature\"             (string) The decrypted message encoded in base 64\n"
+            "\nExamples:\n"
+            "\nUnlock the wallet for 30 seconds\n"
+            + HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
+            "\ndecrypt the message\n"
+            + HelpExampleCli("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"my message\"") +
+            "\nDecrypt the message\n"
+            + HelpExampleCli("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"?\"") +
+            "\nAs json rpc\n"
+            + HelpExampleRpc("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", \"my message\"")
+        );
+
+    EnsureWalletIsUnlocked();
+
+    string strAddress = params[0].get_str();
+    string strEnc = params[1].get_str();
+    vector<unsigned char> enc =  DecodeBase64(&strEnc[0]);
+
+    CBitcoinAddress addr(strAddress);
+    if (!addr.IsValid())
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
+
+    CKeyID keyID;
+    if (!addr.GetKeyID(keyID))
+        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
+
+    CKey key;
+    if (!pwalletMain->GetKey(keyID, key))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
+
+    vector<unsigned char> vchDec;
+    vchDec = Jeeq::DecryptMessage(key, enc);
+
+    string str(vchDec.begin(), vchDec.end());
+
+    return str;
 }
 
 Value getreceivedbyaddress(const Array& params, bool fHelp)

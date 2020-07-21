@@ -307,6 +307,8 @@ static const CRPCCommand vRPCCommands[] =
     { "setaccount",             &setaccount,             true,      false,      true },
     { "settxfee",               &settxfee,               false,     false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },
+    { "encryptmessage",         &encryptmessage,         false,     false,      true },
+    { "decryptmessage",         &decryptmessage,         false,     false,      true },
     { "walletlock",             &walletlock,             true,      false,      true },
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
     { "walletpassphrase",       &walletpassphrase,       true,      false,      true },

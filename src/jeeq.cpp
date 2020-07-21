@@ -304,7 +304,8 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
 {
     BN_CTX *ctx = BN_CTX_new();
     /* our secp256k1 curve and bitcoin generator
-     * these must be thread local as openssl wants it that way
+     * these must be thread local as openssl does not support shared
+     * use of its data structures
      */
     EC_GROUP *group = init_curve(ctx);
 
@@ -313,7 +314,6 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
     EC_POINT *pk = EC_POINT_new(group);
 
     /* get so many blocks of 32B blocks that msg will fit
-       could be done with shifting but who cares
      */
     int chunk_count = (PRIVHEADER_LEN + msg_len)/CHUNK_SIZE + 1;
 
@@ -349,7 +349,7 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
     EC_GROUP_get_order(group, rand_range, ctx);
     BN_sub_word(rand_range, 1);
 
-    uint8_t *enc = (uint8_t*)malloc(chunk_count * 2*COMPR_PUBKEY_LEN);
+    uint8_t *enc = (uint8_t*)malloc(PUBHEADER_LEN + chunk_count * 2*COMPR_PUBKEY_LEN);
     write_public_header(enc, pubkey, is_compressed);
     int enc_loc = PUBHEADER_LEN;
     int m_loc = 0;
@@ -367,6 +367,7 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
         if (!y_from_x(group, My, &xoffset, Mx, true, ctx))
             goto err;
 
+        /* adding our xoffset that we get from y_from_x() */
         BN_add_word(Mx, xoffset);
 
         EC_POINT_set_affine_coordinates_GFp(group, M, Mx, My, ctx);
@@ -380,6 +381,8 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
         EC_POINT_point2oct(group, U, POINT_CONVERSION_COMPRESSED, 
                 &enc[enc_loc+COMPR_PUBKEY_LEN], COMPR_PUBKEY_LEN, ctx);
 
+        /* encoding our offset within the odd/even byte (02/03), the first bit represets
+         * evenness and other 7 represent the offset */
         enc[enc_loc] = enc[enc_loc] - 2 + (xoffset << 1);
 
         enc_loc += 2*COMPR_PUBKEY_LEN;
@@ -443,7 +446,7 @@ static uint8_t *decrypt_message(size_t *dec_len, const uint8_t *privkey, const b
 
     int chunk_count = (enc_len - PUBHEADER_LEN) / (2*COMPR_PUBKEY_LEN);
 
-    uint8_t *r = (uint8_t*)OPENSSL_malloc(chunk_count * CHUNK_SIZE);
+    uint8_t *r = (uint8_t*)OPENSSL_malloc(PRIVHEADER_LEN + chunk_count * CHUNK_SIZE);
 
     uint8_t *Tser = (uint8_t*)OPENSSL_malloc(COMPR_PUBKEY_LEN);
     uint8_t *User = (uint8_t*)OPENSSL_malloc(COMPR_PUBKEY_LEN);
@@ -462,6 +465,8 @@ static uint8_t *decrypt_message(size_t *dec_len, const uint8_t *privkey, const b
     {
         memcpy(Tser, &enc[enc_loc], COMPR_PUBKEY_LEN);
         memcpy(User, &enc[enc_loc+COMPR_PUBKEY_LEN], COMPR_PUBKEY_LEN);
+        
+        /* decode the offset and evenness from the first byte */
         xoffset = Tser[0] >> 1;
         Tser[0] = 2 + (Tser[0]&1);
 
@@ -474,6 +479,7 @@ static uint8_t *decrypt_message(size_t *dec_len, const uint8_t *privkey, const b
         
         EC_POINT_get_affine_coordinates_GFp(group, M, Mx, NULL, ctx);
 
+        /* substract our offset so that we get the original Mx */
         BN_sub_word(Mx, xoffset);
 
         BN_bn2binpad(Mx, &r[r_loc], CHUNK_SIZE);
@@ -520,13 +526,38 @@ err:
     EC_GROUP_free(group);
     BN_CTX_free(ctx);
 
-
     return ret;
 }
+
+/* wrappers for the core C functions, we'll allow that the message to
+ * be encrypted may either be a string (for the encrypting OP_RETURN data)
+ * or raw bytes (for raw private keys or something) 
+ * */
 
 using namespace std;
 
 namespace Jeeq {
+
+/* these two functions are identical, except for the function decleration,
+ * is there a better way to do this? We just need .data() and .size() and 
+ * that the elements are char
+ */
+vector<uint8_t> EncryptMessage(const CPubKey pubkey, const string msg)
+{
+    // check pubkey
+    if (!pubkey.IsValid()) 
+        throw runtime_error("Jeeq::EncryptMessage(): called with an invalid public key");
+    //  ensure that msg is not empty
+    if (msg.size() == 0) throw runtime_error("Jeeq::EncryptMessage(): no message to encrypt");
+
+    size_t enc_len = 0;
+    uint8_t *benc = encrypt_message(&enc_len, pubkey.begin(), pubkey.IsCompressed(), (uint8_t*)msg.data(), msg.size());
+    if (benc == NULL || enc_len == 0) 
+        throw runtime_error("Jeeq::EncryptMessage(): failed to encrypt message");
+
+    vector<uint8_t> enc(benc, benc+enc_len);
+    return enc;
+}
 
 vector<uint8_t> EncryptMessage(const CPubKey pubkey, const vector<uint8_t> msg)
 {
@@ -538,7 +569,7 @@ vector<uint8_t> EncryptMessage(const CPubKey pubkey, const vector<uint8_t> msg)
 
     size_t enc_len = 0;
     uint8_t *benc = encrypt_message(&enc_len, pubkey.begin(), pubkey.IsCompressed(), msg.data(), msg.size());
-    if (benc == NULL) 
+    if (benc == NULL || enc_len == 0) 
         throw runtime_error("Jeeq::EncryptMessage(): failed to encrypt message");
 
     vector<uint8_t> enc(benc, benc+enc_len);
