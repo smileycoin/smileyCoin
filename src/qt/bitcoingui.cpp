@@ -277,8 +277,15 @@ void BitcoinGUI::createActions()
     serviceAction->setStatusTip(tr("Create or confirm new services"));
     serviceAction->setToolTip(serviceAction->statusTip());
     serviceAction->setCheckable(true);
-    serviceAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
+    serviceAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_6));
     tabGroup->addAction(serviceAction);
+
+    traceabilityAction = new QAction(QIcon(":/icons/overview"), tr("&Traceability"), this);
+    traceabilityAction->setStatusTip(tr("Create new traceability service or track products"));
+    traceabilityAction->setToolTip(traceabilityAction->statusTip());
+    traceabilityAction->setCheckable(true);
+    traceabilityAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_7));
+    tabGroup->addAction(traceabilityAction);
 
     // These showNormalIfMinimized are needed because Send Coins and Receive Coins
     // can be triggered from the tray menu, and need to show the GUI to be useful.
@@ -296,6 +303,8 @@ void BitcoinGUI::createActions()
     //connect(usedSendingAddressesAction, SIGNAL(triggered()), walletFrame, SLOT(usedSendingAddresses()))
     connect(serviceAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(serviceAction, SIGNAL(triggered()), this, SLOT(gotoServicePage()));
+    connect(traceabilityAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(traceabilityAction, SIGNAL(triggered()), this, SLOT(gotoTraceabilityPage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setStatusTip(tr("Quit application"));
@@ -431,6 +440,7 @@ void BitcoinGUI::createToolBars()
         toolbar->addAction(historyAction);
         toolbar->addAction(addressBookAction);
         toolbar->addAction(serviceAction);
+        toolbar->addAction(traceabilityAction);
 
     }
 }
@@ -496,6 +506,7 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     receiveCoinsAction->setEnabled(enabled);
     historyAction->setEnabled(enabled);
     serviceAction->setEnabled(enabled);
+    traceabilityAction->setEnabled(enabled);
     encryptWalletAction->setEnabled(enabled);
     backupWalletAction->setEnabled(enabled);
     changePassphraseAction->setEnabled(enabled);
@@ -551,6 +562,7 @@ void BitcoinGUI::createTrayIconMenu()
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(optionsAction);
     trayIconMenu->addAction(openRPCConsoleAction);
+    trayIconMenu->addAction(traceabilityAction);
 #ifndef Q_OS_MAC // This is built-in on Mac
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
@@ -633,6 +645,12 @@ void BitcoinGUI::gotoServicePage()
 {
     serviceAction->setChecked(true);
     if (walletFrame) walletFrame->gotoServicePage();
+}
+
+void BitcoinGUI::gotoTraceabilityPage()
+{
+    traceabilityAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoTraceabilityPage();
 }
 
 void BitcoinGUI::gotoSignMessageTab(QString addr)

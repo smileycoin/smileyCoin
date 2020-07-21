@@ -54,6 +54,8 @@ public slots:
     void gotoHistoryPage();
     /** Switch to servic (services) page */
     void gotoServicePage();
+    /** Switch to traceability page */
+    void gotoTraceabilityPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */

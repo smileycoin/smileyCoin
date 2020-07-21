@@ -6,6 +6,7 @@
 
 #include "addressbookpage.h"
 #include "servicepage.h"
+#include "traceabilitypage.h"
 #include "askpassphrasedialog.h"
 #include "bitcoingui.h"
 #include "clientmodel.h"
@@ -87,12 +88,15 @@ WalletView::WalletView(QWidget *parent):
 
     servicePage->setWindowFlags(Qt::Widget);
 
+    traceabilityPage->setWindowFlags(Qt::Widget); //= new TraceabilityPage();
+
     addWidget(overviewPage);
     addWidget(transactionsPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
     addWidget(addressBookPage);
     addWidget(servicePage);
+    addWidget(traceabilityPage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
@@ -107,6 +111,8 @@ WalletView::WalletView(QWidget *parent):
     connect(sendCoinsPage, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
     // Pass through messages from transactionView
     connect(transactionView, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
+    //Pass through messages from traceabilityPage
+    connect(traceabilityPage, SIGNAL(messae(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
 }
 
 WalletView::~WalletView()
@@ -200,6 +206,12 @@ void WalletView::gotoServicePage()
 {
     servicePage->setModel(walletModel);
     setCurrentWidget(servicePage);
+}
+
+void WalletView::gotoTraceabilityPage(QString addr)
+{
+    traceabilityPage->setModel(walletModel);
+    setCurrentWidget(traceabilityPage);
 }
 
 void WalletView::gotoReceiveCoinsPage()

@@ -33,6 +33,7 @@ QT_FORMS_UI = \
   forms/sendcoinsdialog.ui \
   forms/sendcoinsentry.ui \
   forms/signverifymessagedialog.ui \
+  forms/traceabilitypage.ui \
   forms/transactiondescdialog.ui
 
 QT_MOC_CPP = \
@@ -68,6 +69,7 @@ QT_MOC_CPP = \
   moc_sendcoinsdialog.cpp \
   moc_sendcoinsentry.cpp \
   moc_servicepage.cpp \
+  moc_traceabilitypage.cpp \
   moc_signverifymessagedialog.cpp \
   moc_splashscreen.cpp \
   moc_trafficgraphwidget.cpp \
@@ -89,6 +91,7 @@ QT_MOC = \
   bitcoin.moc \
   intro.moc \
   overviewpage.moc \
+  traceabilitypage.moc \
   rpcconsole.moc
 
 QT_QRC_CPP = qrc_bitcoin.cpp
@@ -133,6 +136,7 @@ BITCOIN_QT_H = \
   sendcoinsdialog.h \
   sendcoinsentry.h \
   servicepage.h \
+  traceabilitypage.h \
   signverifymessagedialog.h \
   splashscreen.h \
   trafficgraphwidget.h \
@@ -232,6 +236,7 @@ BITCOIN_QT_CPP += \
   sendcoinsdialog.cpp \
   sendcoinsentry.cpp \
   servicepage.cpp \
+  traceabilitypage.cpp \
   signverifymessagedialog.cpp \
   transactiondesc.cpp \
   transactiondescdialog.cpp \
