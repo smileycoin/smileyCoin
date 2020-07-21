@@ -46,10 +46,11 @@ static EC_GROUP *init_curve(BN_CTX *ctx)
     EC_GROUP *group = EC_GROUP_new_by_curve_name(NID_secp256k1);
 
     EC_POINT *generator = EC_POINT_new(group);
+
     BIGNUM *Gx = BN_new();
     BIGNUM *Gy = BN_new();
-    BIGNUM *cofactor = BN_new();
-    BIGNUM *order = BN_new();
+    BIGNUM *cofactor =  BN_new();
+    BIGNUM *order =     BN_new();
 
     BN_hex2bn(&Gx, GX_HEX);
     BN_hex2bn(&Gy, GY_HEX);
@@ -62,8 +63,10 @@ static EC_GROUP *init_curve(BN_CTX *ctx)
 
     BN_free(Gx);
     BN_free(Gy);
-    BN_free(order);
     BN_free(cofactor);
+    BN_free(order);
+
+    EC_POINT_free(generator);
     
     return group;
 }
@@ -214,19 +217,22 @@ static int y_from_x(EC_GROUP *group, BIGNUM *y, size_t *offset, const BIGNUM *x,
     }
     
     int ret = 0;
+    BN_CTX_start(ctx);
 
-    BIGNUM *p = BN_new();
-    BIGNUM *a = BN_new();
-    BIGNUM *b = BN_new();
+    BIGNUM *p = BN_CTX_get();
+    BIGNUM *a = BN_CTX_get(ctx);
+    BIGNUM *b = BN_CTX_get(ctx);
 
     EC_GROUP_get_curve_GFp(group, p, a, b, ctx);
 
-    BIGNUM *Mx = BN_dup(x);
-    BIGNUM *My = BN_new();
-    BIGNUM *My2 = BN_new();
-    BIGNUM *aMx2 = BN_new();
+    BIGNUM *Mx = BN_CTX_get(x);
+    BN_copy(Mx, x);
+    BIGNUM *My = BN_CTX_get(ctx);
+    BIGNUM *My2 = BN_CTX_get(ctx);
+    BIGNUM *aMx2 = BN_CTX_get(ctx);
 
-    BIGNUM *half = BN_dup(p);
+    BIGNUM *half = BN_CTX_get(ctx);
+    BN_copy(half, p);
     BN_add_word(half, 1); 
     BN_div_word(half, 4);
 
@@ -281,14 +287,7 @@ static int y_from_x(EC_GROUP *group, BIGNUM *y, size_t *offset, const BIGNUM *x,
         }
     }
 
-    BN_free(p);
-    BN_free(a);
-    BN_free(b);
-    BN_free(Mx);
-    BN_free(My);
-    BN_free(My2);
-    BN_free(aMx2);
-    BN_free(half);
+    BN_CTX_end(ctx);
     EC_POINT_free(M);
 
     return ret;
