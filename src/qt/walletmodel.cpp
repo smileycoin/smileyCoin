@@ -489,7 +489,6 @@ static void NotifyServicePageChanged(WalletModel *walletmodel, CWallet *wallet, 
                                     ChangeType status)
 {
     QString strName = QString::fromStdString(name);
-    //QString strAddress = QString::fromStdString(CBitcoinAddress(address).ToString());
     QString strAddress = QString::fromStdString(address);
     QString strType = QString::fromStdString(type);
 

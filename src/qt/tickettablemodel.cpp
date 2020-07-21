@@ -57,11 +57,9 @@ public:
 
     void refreshTicketTable()
     {
-        LogPrintStr("refreshTicketTable");
         cachedTicketTable.clear();
         {
-            LogPrintStr("cachedtickettable");
-            //LOCK(wallet->cs_wallet);
+            LOCK(wallet->cs_wallet);
             std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> retset;
             ServiceList.GetServiceAddressInfo(retset);
             for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator
@@ -73,22 +71,20 @@ public:
                                                             QString::fromStdString(get<4>(it->second)),
                                                             QString::fromStdString(get<5>(it->second)),
                                                             QString::fromStdString(get<0>(it->second))));
-
             }
         }
         // qLowerBound() and qUpperBound() require our cachedAddressTable list to be sorted in asc order
         // Even though the map is already sorted this re-sorting step is needed because the originating map
         // is sorted by binary address, not by base58() address.
-        qSort(cachedTicketTable.begin(), cachedTicketTable.end(), TicketTableEntryLessThan());
+        //qSort(cachedTicketTable.begin(), cachedTicketTable.end(), TicketTableEntryLessThan());
     }
 
     void updateTicketEntry(const QString &name, const QString &location, const QString &datetime, const QString &price, const QString &address, const QString &service, int status)
     {
-        LogPrintStr(" updateeeeEntry2-tickettablemodel ");
         // Find address / label in model
-        QList<TicketTableEntry>::iterator lower = qLowerBound(
+        QList<TicketTableEntry>::iterator lower = std::lower_bound(
                 cachedTicketTable.begin(), cachedTicketTable.end(), address, TicketTableEntryLessThan());
-        QList<TicketTableEntry>::iterator upper = qUpperBound(
+        QList<TicketTableEntry>::iterator upper = std::upper_bound(
                 cachedTicketTable.begin(), cachedTicketTable.end(), address, TicketTableEntryLessThan());
         int lowerIndex = (lower - cachedTicketTable.begin());
         int upperIndex = (upper - cachedTicketTable.begin());
@@ -101,6 +97,7 @@ public:
             {
                 if(inModel)
                 {
+                    error("TicketTablePriv::updateEntry : Warning: Got CT_NEW, but entry is already in model");
                     break;
                 }
                 parent->beginInsertRows(QModelIndex(), lowerIndex, lowerIndex);
@@ -124,6 +121,7 @@ public:
             {
                 if(!inModel)
                 {
+                    error("TicketTablePriv::updateEntry : Warning: Got CT_UPDATED, but entry is not in model");
                     break;
                 }
                 lower->name = name;
@@ -139,6 +137,7 @@ public:
             {
                 if(!inModel)
                 {
+                    error("TicketTablePriv::updateEntry : Warning: Got CT_DELETED, but entry is not in model");
                     break;
                 }
                 parent->beginRemoveRows(QModelIndex(), lowerIndex, upperIndex-1);

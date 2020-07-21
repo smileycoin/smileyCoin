@@ -10,6 +10,7 @@
 #include "core.h"
 #include "uint256.h"
 #include "base58.h"
+#include "rpcserver.h"
 
 #include <stdint.h>
 
@@ -46,6 +47,33 @@ void static BatchWriteAddressInfo(CLevelDBBatch &batch, const CScript &key, cons
 }
 
 void static BatchWriteServiceInfo(CLevelDBBatch &batch, const CScript &key, const std::tuple<std::string, std::string, std::string> &value) {
+
+    LogPrintStr(" keyTXDB: " + key.ToString());
+
+    std::string hexStr = HexStr(key);
+    std::string hexData = hexStr.substr(4, hexStr.size());
+
+    // If op_return begins with "del service"
+    if (hexData.substr(0, 22) == "64656c2073657276696365") {
+        LogPrintStr("BYRJAR A DELETE SERVICE TXDB");
+
+        CScript serviceScript;
+        std::string txData = "new service " + get<0>(value) + " " + get<1>(value) + " " + get<2>(value); //original service script
+        std::string hexData = HexStr(txData);
+        vector<string> str;
+        str.push_back(hexData);
+
+        LogPrintStr(" str[0]: " + str[0]);
+        vector<unsigned char> data = ParseHex(str[0]);
+        serviceScript << OP_RETURN << data;
+
+        // Erase the service given in value
+        batch.Erase(make_pair(DB_SERVICEINFO, serviceScript));
+
+    } else if (hexData.substr(0, 22) == "6e65772073657276696365") { // If op_return begins with new service
+        batch.Write(make_pair(DB_SERVICEINFO, key), value);
+    }
+
     opcodetype opcode;
     CScript::const_iterator pc = key.begin();
 
@@ -217,8 +245,11 @@ bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist) {
                 CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
                 std::tuple<std::string, std::string, std::string> serviceinfo;
                 ssValue >> serviceinfo;
-                servicelist.maddresses.insert(make_pair(key.second, serviceinfo));
+                std::string hexStr = HexStr(key.second);
+                //if (hexStr.substr(0, 22) == "6e65772073657276696365")
+                    servicelist.maddresses.insert(make_pair(key.second, serviceinfo));
                 pcursor->Next();
+
             } else {
                 break;
             }

@@ -342,7 +342,6 @@ void EditServiceDialog::accept()
                          QDialog::accept();
                          CoinControlDialog::coinControl->UnSelectAll();
                      } else {
-                         LogPrintStr("---bannad---");
                          QDialog::reject();
                      }
                  }

@@ -79,6 +79,7 @@ private:
     QVBoxLayout *verticalLayout;
     QLineEdit *addressWidget;
     QComboBox *typeWidget;
+    void processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg = QString());
 
 private slots:
     void onNewServiceAction();
