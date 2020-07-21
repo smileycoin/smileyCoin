@@ -6,6 +6,7 @@
 #include "txdb.h"
 
 #include "richlistdb.h"
+#include "servicelistdb.h"
 #include "core.h"
 #include "uint256.h"
 #include "base58.h"
