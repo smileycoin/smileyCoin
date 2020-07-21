@@ -132,99 +132,21 @@ Value getserviceaddresses(const Array& params, bool fHelp)
         throw runtime_error("getserviceaddresses\n"
                             "Returns all verified addresses, ordered by the type of services they provide.\n"
         );
-    Object tick;
-    Object dex;
-    Object npo;
-    Object book;
-    Array arrt;
-    Array arrd;
-    Array arrn;
-    Array arrb;
-    Object objt;
-    Object objd;
-    Object objn;
-    Object objb;
-    Object obj2;
-    Array arr;
-    int a = 0;
-    int b = 0;
-    int c = 0;
-    int d = 0;
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
-    ServiceList.GetServiceAddresses(retset);
-    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
-    {
-        if (get<2>(it->second) == "TicketSales") {
-            tick.push_back(Pair(get<0>(it->second), get<1>(it->second)));
-            a++;
-        } else if (get<2>(it->second) == "DEX") {
-            dex.push_back(Pair(get<0>(it->second), get<1>(it->second)));
-            b++;
-        } else if (get<2>(it->second) == "NonprofitOrganization") {
-            npo.push_back(Pair(get<0>(it->second), get<1>(it->second)));
-            c++;
-        } else if (get<2>(it->second) == "BookChapter") {
-            book.push_back(Pair(get<0>(it->second), get<1>(it->second)));
-            d++;
-        }
-    }
-    if (a > 0) {
-        arrt.push_back(tick);
-    }
-    if (b > 0) {
-        arrd.push_back(dex);
-    }
-    if (c > 0) {
-        arrn.push_back(npo);
-    }
-    if (d > 0) {
-        arrb.push_back(book);
-    }
-    if (a > 0) {
-        objt.push_back(Pair("Ticket Sales: ", arrt));
-    }
-    if (b > 0) {
-        objd.push_back(Pair("DEX: ", arrd));
-    }
-    if (c > 0) {
-        objn.push_back(Pair("NPO: ", arrn));
-    }
-    if (d > 0) {
-        objb.push_back(Pair("Book Chapters: ", arrb));
-    }
-    if (a > 0) {
-        arr.push_back(objt);
-    }
-    if (b > 0) {
-        arr.push_back(objd);
-    }
-    if (c > 0) {
-        arr.push_back(objn);
-    }
-    if (d > 0) {
-        arr.push_back(objb);
-    }
-    obj2.push_back(Pair("List of services", arr));
-    //return obj2;
-
 
     Object root;
-    Array tservices;
-    Array bservices;
-    Array nservices;
-    Array dservices;
-
+    Array tservices; /* TicketSales */
+    Array bservices; /* BookChapter */
+    Array nservices; /* NPO */
+    Array dservices; /* DEX */
     Object name_address;
 
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset2;
-    ServiceList.GetServiceAddresses(retset2);
-    // Fara i gegnum öll services
-    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset2.begin(); it!=retset2.end(); it++ )
+    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
+    ServiceList.GetServiceAddresses(retset);
+
+    // Loop through all existing services
+    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
     {
-        //Object name_address;
-
         name_address.clear();
-
         // Ef service type er ticketsales
         if (get<2>(it->second) == "TicketSales") {
             name_address.push_back(Pair("name", get<0>(it->second)));
@@ -234,7 +156,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
             name_address.push_back(Pair("name", get<0>(it->second)));
             name_address.push_back(Pair("address", get<1>(it->second)));
             bservices.push_back(name_address);
-        } else if (get<2>(it->second) == "NonprofitOrganization") {
+        } else if (get<2>(it->second) == "NPO") {
             name_address.push_back(Pair("name", get<0>(it->second)));
             name_address.push_back(Pair("address", get<1>(it->second)));
             nservices.push_back(name_address);
@@ -247,11 +169,10 @@ Value getserviceaddresses(const Array& params, bool fHelp)
 
     root.push_back(Pair("Ticket Sales", tservices));
     root.push_back(Pair("Book Chapter", bservices));
-    root.push_back(Pair("Ticket Sales", nservices));
-    root.push_back(Pair("Book Chapter", dservices));
+    root.push_back(Pair("NPO", nservices));
+    root.push_back(Pair("DEX", dservices));
 
     return root;
-
 }
 
 Value getserviceaddressinfo(const Array& params, bool fHelp)
