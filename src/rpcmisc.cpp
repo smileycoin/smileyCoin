@@ -130,24 +130,82 @@ Value getserviceaddresses(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error("getserviceaddresses\n"
-                           "Returns all services addresses, ordered by the service type.\n");
-
-    // Sækja öll services
+                            "Returns all verified addresses, ordered by the type of services they provide.\n"
+        );
+    Object tick;
+    Object dex;
+    Object npo;
+    Object book;
+    Array arrt;
+    Array arrd;
+    Array arrn;
+    Array arrb;
+    Object objt;
+    Object objd;
+    Object objn;
+    Object objb;
+    Object obj2;
+    Array arr;
+    int a = 0;
+    int b = 0;
+    int c = 0;
+    int d = 0;
     std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
     ServiceList.GetServiceAddresses(retset);
-
-    Mapped_obj typeMap;
-    Object obj;
-
     for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
     {
-        Object service;
-        service.push_back(Pair(get<0>(it->second), get<1>(it->second)));
-        typeMap.insert(std::make_pair(get<2>(it->second), service));
+        if (get<2>(it->second) == "TicketSales") {
+            tick.push_back(Pair(get<0>(it->second), get<1>(it->second)));
+            a++;
+        } else if (get<2>(it->second) == "DEX") {
+            dex.push_back(Pair(get<0>(it->second), get<1>(it->second)));
+            b++;
+        } else if (get<2>(it->second) == "NonprofitOrganization") {
+            npo.push_back(Pair(get<0>(it->second), get<1>(it->second)));
+            c++;
+        } else if (get<2>(it->second) == "BookChapter") {
+            book.push_back(Pair(get<0>(it->second), get<1>(it->second)));
+            d++;
+        }
     }
-    map_to_obj(typeMap, obj);
-
-    return obj;
+    if (a > 0) {
+        arrt.push_back(tick));
+    }
+    if (b > 0) {
+        arrd.push_back(dex);
+    }
+    if (c > 0) {
+        arrn.push_back(npo);
+    }
+    if (d > 0) {
+        arrb.push_back(book);
+    }
+    if (a > 0) {
+        objt.push_back(Pair("Ticket Sales: ", arrt));
+    }
+    if (b > 0) {
+        objd.push_back(Pair("DEX: ", arrd));
+    }
+    if (c > 0) {
+        objn.push_back(Pair("NPO: ", arrn));
+    }
+    if (d > 0) {
+        objb.push_back(Pair("Book Chapters: ", arrb));
+    }
+    if (a > 0) {
+        arr.push_back(objt);
+    }
+    if (b > 0) {
+        arr.push_back(objd);
+    }
+    if (c > 0) {
+        arr.push_back(objn);
+    }
+    if (d > 0) {
+        arr.push_back(objb);
+    }
+    obj2.push_back(Pair("List of services", arr));
+    return obj2;
 }
 
 Value getserviceaddressinfo(const Array& params, bool fHelp)
@@ -201,19 +259,6 @@ Value getserviceaddressinfo(const Array& params, bool fHelp)
     //  throw runtime_error("Not a service address");
 
     return obj2;
-
-    /*for(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > >::const_iterator it = info.begin(); it!=info.end(); it++) {
-        CTxDestination des;
-        ExtractDestination(it->first, des);
-        //obj.push_back(Pair("ToAddress: ", get<0>(it->second)));
-        obj.push_back(Pair("Name: ", get<2>(it->second)));
-        obj.push_back(Pair("Location: ", get<1>(it->second)));
-        obj.push_back(Pair("Date and Time: ", get<3>(it->second)));
-        obj.push_back(Pair("Price: ", get<4>(it->second)));
-        obj.push_back(Pair("Address: ", get<5>(it->second)));
-    }
-
-    return obj;*/
 }
 
 Value getaddressinfo(const Array& params, bool fHelp)
