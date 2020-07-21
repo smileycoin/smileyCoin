@@ -43,12 +43,42 @@ bool CServiceList::SetForked(const bool &fFork)
 
 bool CServiceList::UpdateServiceInfo(const std::map<CScript, std::tuple<std::string, std::string, std::string> > &map)
 {
+    //Prenta ut allar services i database
+    /*for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::iterator it = maddresses.begin(); it != maddresses.end(); it++)
+    {
+        LogPrintStr(" maddresses it->first: " + it->first.ToString() + " : " + HexStr(it->first));
+        LogPrintStr(" maddresses it->second: " + get<0>(it->second) + " : " + get<1>(it->second) + " : " + get<2>(it->second));
+    }*/
+
     for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
-        CScript script = it->first;
-        opcodetype opcode;
-        CScript::const_iterator pc = script.begin();
-        if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
+        LogPrintStr(" it->first: " + it->first.ToString());
+
+        std::string hexStr = HexStr(it->first);
+        std::string hexData = hexStr.substr(4, hexStr.size());
+
+        if (hexData.substr(0, 22) == "64656c2073657276696365") { // if op_return begins with delete service
+            LogPrintStr("BYRJAR A DELETE SERVICE");
+
+            CScript serviceScript;
+            std::string txData = "new service " + get<0>(it->second) + " " + get<1>(it->second) + " " + get<2>(it->second); //original service script
+            std::string hexData = HexStr(txData);
+            vector<string> str;
+            str.push_back(hexData);
+
+            LogPrintStr(" str[0]: " + str[0]);
+            vector<unsigned char> data = ParseHex(str[0]);
+            serviceScript << OP_RETURN << data; // bætir þetta við 6a41 a undan?
+
+            mapServiceScriptPubKeys::iterator itService = maddresses.find(serviceScript);
+            LogPrintStr("serviceScript: " + serviceScript.ToString() + " : " + HexStr(serviceScript));
+
+            if (itService != maddresses.end()) { // ef addressan er nu thegar a listanum
+                LogPrintStr(" addressan er nu thegar a service listanum ");
+                maddresses.erase(itService);
+            }
+        } else if (hexData.substr(0, 22) == "6e65772073657276696365") { // if op_return begins with new service
+            LogPrintStr(" byrjar a new service servicelistdb ");
             maddresses.insert(*it);
         }
     }
@@ -89,11 +119,38 @@ bool CServiceList::UpdateServiceAddressHeights()
 
     for(mapServiceScriptPubKeys::const_iterator it = maddresses.begin(); it!=maddresses.end(); it++)
     {
-        CScript script = it->first;
+        /*CScript script = it->first;
         opcodetype opcode;
         CScript::const_iterator pc = script.begin();
 
         if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
+            maddresses.insert(*it);
+        }*/
+
+        std::string hexStr = HexStr(it->first);
+        std::string hexData = hexStr.substr(4, hexStr.size());
+
+        if (hexData.substr(0, 22) == "64656c2073657276696365") { // if op_return begins with del service
+            LogPrintStr("BYRJAR A DELETE SERVICEservicelistdb: " + hexData);
+
+            CScript serviceScript;
+            std::string txData = "new service " + get<0>(it->second) + " " + get<1>(it->second) + " " + get<2>(it->second); //original service script
+            vector<string> str;
+            str.push_back(txData);
+            vector<unsigned char> data = ParseHexV(str[0], "Data");
+
+            serviceScript << OP_RETURN << data;
+
+            mapServiceScriptPubKeys::iterator itService = maddresses.find(serviceScript);
+            if (itService != maddresses.end()) { // ef addressan er nu thegar a listanum
+                LogPrintStr(" addressan er nu thegar a service listanum ");
+                maddresses.erase(itService);
+            } else {
+                LogPrintStr(" addressan er ekki a service listanum ");
+            }
+        } //else if (hexStr.substr(0, 22) == "6e65772073657276696365") { // if op_return begins with new service
+        else {
+            LogPrintStr(" byrjar ekki a del service servicelistdb: " + hexData);
             maddresses.insert(*it);
         }
     }
@@ -115,7 +172,6 @@ bool CServiceList::UpdateServiceAddressHeights()
                 mapServiceScriptPubKeys::iterator it = mforkedAddresses.find(key);
                 if(it == mforkedAddresses.end())
                     continue;
-                LogPrintStr("SERVICELISTDB UPDATESERVICEADDRESSHEIGHTS");
                 serviceInfo.insert(std::make_pair(key, std::make_tuple(ServiceAddress(it), ServiceName(it), ServiceType(it))));
                 mforkedAddresses.erase(it);
                 if(fDebug) {
@@ -273,15 +329,28 @@ bool CServiceList::UpdateServiceAddressInfoHeights()
 bool CServiceList::GetServiceAddresses(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string>>> &retset) const {
     for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it=maddresses.begin(); it!=maddresses.end(); it++)
     {
-        retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
+        std::string hexScript = HexStr(it->first);
+        std::string hexData = hexScript.substr(4, hexScript.size());
+        std::string asciiData = hexToAscii(hexData);
+
+        if(hexData.substr(0, 22) == "6e65772073657276696365") // if op_return begins with new service
+        {
+            retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
+        }
     }
     return true;
 }
 
 bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string>>> &retset) const {
     for (std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = maddresses.begin();it != maddresses.end(); it++) {
+        std::string hexScript = HexStr(it->first);
+        std::string hexData = hexScript.substr(4, hexScript.size());
+        std::string asciiData = hexToAscii(hexData);
         if (IsMine(*pwalletMain, CBitcoinAddress(get<1>(it->second)).Get())) {
-            retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
+            if(hexData.substr(0, 22) == "6e65772073657276696365") // if op_return begins with new service
+            {
+                retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
+            }
         }
     }
     return true;

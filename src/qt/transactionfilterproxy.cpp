@@ -10,6 +10,7 @@
 #include <cstdlib>
 
 #include <QDateTime>
+#include <util.h>
 
 // Earliest date that can be represented (far in the past)
 const QDateTime TransactionFilterProxy::MIN_DATE = QDateTime::fromTime_t(0);
@@ -21,6 +22,7 @@ TransactionFilterProxy::TransactionFilterProxy(QObject *parent) :
     dateFrom(MIN_DATE),
     dateTo(MAX_DATE),
     addrPrefix(),
+    dataPrefix(),
     typeFilter(ALL_TYPES),
     minAmount(0),
     limitRows(-1),
@@ -35,6 +37,7 @@ bool TransactionFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &
     int type = index.data(TransactionTableModel::TypeRole).toInt();
     QDateTime datetime = index.data(TransactionTableModel::DateRole).toDateTime();
     QString address = index.data(TransactionTableModel::AddressRole).toString();
+    QString data = index.data(TransactionTableModel::DataRole).toString();
     QString label = index.data(TransactionTableModel::LabelRole).toString();
     qint64 amount = llabs(index.data(TransactionTableModel::AmountRole).toLongLong());
     int status = index.data(TransactionTableModel::StatusRole).toInt();
@@ -46,6 +49,8 @@ bool TransactionFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &
     if(datetime < dateFrom || datetime > dateTo)
         return false;
     if (!address.contains(addrPrefix, Qt::CaseInsensitive) && !label.contains(addrPrefix, Qt::CaseInsensitive))
+        return false;
+    if (!data.contains(dataPrefix, Qt::CaseInsensitive))
         return false;
     if(amount < minAmount)
         return false;
@@ -63,6 +68,12 @@ void TransactionFilterProxy::setDateRange(const QDateTime &from, const QDateTime
 void TransactionFilterProxy::setAddressPrefix(const QString &addrPrefix)
 {
     this->addrPrefix = addrPrefix;
+    invalidateFilter();
+}
+
+void TransactionFilterProxy::setDataPrefix(const QString &dataPrefix)
+{
+    this->dataPrefix = dataPrefix;
     invalidateFilter();
 }
 

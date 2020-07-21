@@ -12,12 +12,13 @@
 #include "util.h"
 #include "richlistdb.h"
 #include "servicelistdb.h"
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCDFAInspection"
 #ifdef ENABLE_WALLET
 #include "wallet.h"
 #include "walletdb.h"
 #endif
 
-#include <boost/tuple/tuple.hpp>
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
@@ -128,19 +129,49 @@ Value getserviceaddresses(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error("getserviceaddresses\n"
-                           "Returns all verified addresses, ordered by ???????.\n"
-                            );
+                            "Returns all verified addresses, ordered by the type of services they provide.\n"
+        );
 
-    Object obj;
+    Object root;
+    Array tservices; /* TicketSales */
+    Array bservices; /* BookChapter */
+    Array nservices; /* NPO */
+    Array dservices; /* DEX */
+    Object name_address;
+
     std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
-
     ServiceList.GetServiceAddresses(retset);
 
+    // Loop through all existing services
     for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
     {
-        obj.push_back(Pair(get<1>(it->second), get<0>(it->second)));
+        name_address.clear();
+        // Ef service type er ticketsales
+        if (get<2>(it->second) == "TicketSales") {
+            name_address.push_back(Pair("name", get<0>(it->second)));
+            name_address.push_back(Pair("address", get<1>(it->second)));
+            tservices.push_back(name_address);
+        } else if (get<2>(it->second) == "BookChapter") {
+            name_address.push_back(Pair("name", get<0>(it->second)));
+            name_address.push_back(Pair("address", get<1>(it->second)));
+            bservices.push_back(name_address);
+        } else if (get<2>(it->second) == "NPO") {
+            name_address.push_back(Pair("name", get<0>(it->second)));
+            name_address.push_back(Pair("address", get<1>(it->second)));
+            nservices.push_back(name_address);
+        } else if (get<2>(it->second) == "DEX") {
+            name_address.push_back(Pair("name", get<0>(it->second)));
+            name_address.push_back(Pair("address", get<1>(it->second)));
+            dservices.push_back(name_address);
+        }
     }
-    return obj;
+
+    root.push_back(Pair("Ticket Sales", tservices));
+    root.push_back(Pair("Book Chapter", bservices));
+    root.push_back(Pair("NPO", nservices));
+    root.push_back(Pair("DEX", dservices));
+
+    return root;
 }
 
 Value getserviceaddressinfo(const Array& params, bool fHelp)
@@ -166,22 +197,34 @@ Value getserviceaddressinfo(const Array& params, bool fHelp)
     if (!isService)
         throw runtime_error("Not a valid service address");
 
-    Object obj;
+    Object obj2;
+    Array arr;
     std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > info;
     ServiceList.GetServiceAddressInfo(info);
 
-    for(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > >::const_iterator it = info.begin(); it!=info.end(); it++) {
-        CTxDestination des;
-        ExtractDestination(it->first, des);
-        //obj.push_back(Pair("ToAddress: ", get<0>(it->second)));
-        obj.push_back(Pair("Name: ", get<2>(it->second)));
-        obj.push_back(Pair("Location: ", get<1>(it->second)));
-        obj.push_back(Pair("Date and Time: ", get<3>(it->second)));
-        obj.push_back(Pair("Price: ", get<4>(it->second)));
-        obj.push_back(Pair("Address: ", get<5>(it->second)));
+    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    {
+        std::string ServiceAddress = get<0>(it->second);
+        if (ServiceAddress == address.ToString()) {
+            //obj.push_back(Pair("Sent to: ", get<0>(it->second)));
+            // obj = NULL eða initialize-a objectið
+            Object obj;
+            obj.push_back(Pair("Name: ", get<2>(it->second)));
+            obj.push_back(Pair("Location: ", get<1>(it->second)));
+            obj.push_back(Pair("Date and Time: ", get<3>(it->second)));
+            obj.push_back(Pair("Value: ", get<4>(it->second)));
+            obj.push_back(Pair("Address: ", get<5>(it->second)));
+            arr.push_back(obj);
+            //i++;
+        }
     }
 
-    return obj;
+    obj2.push_back(Pair("Tickets: " , arr));
+    // Athuga ef það er service addressa
+    // if(!address.IsService())
+    //  throw runtime_error("Not a service address");
+
+    return obj2;
 }
 
 Value getaddressinfo(const Array& params, bool fHelp)
@@ -442,3 +485,5 @@ Value verifymessage(const Array& params, bool fHelp)
 
     return (pubkey.GetID() == keyID);
 }
+
+#pragma clang diagnostic pop

@@ -121,7 +121,7 @@ signals:
     /** Encryption status of wallet changed */
     void encryptionStatusChanged(int status);
     /** Notify that a new transaction appeared */
-    void incomingTransaction(const QString& date, int unit, qint64 amount, const QString& type, const QString& address);
+    void incomingTransaction(const QString& date, int unit, qint64 amount, const QString& type, const QString& address, const QString& data);
 };
 
 #endif // WALLETVIEW_H

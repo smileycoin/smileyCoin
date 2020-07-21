@@ -38,11 +38,12 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             ui->ticketForm->hide();
             ui->serviceForm->show();
             setWindowTitle(tr("Create new service"));
-            ui->serviceType->addItem("Ticket Sales"); // == ui->serviceType->setItemData(0, "Ticket Sales", Qt::DisplayRole);
-            ui->serviceType->addItem("Universal Basic Income (UBI)");
+            ui->serviceType->addItem("Ticket Sales");
+            ui->serviceType->addItem("UBI");
             ui->serviceType->addItem("Book Chapter");
             ui->serviceType->addItem("Traceability");
-            ui->serviceType->addItem("Nonprofit Organization");
+            ui->serviceType->addItem("NPO");
+            ui->serviceType->addItem("DEX");
 
             break;
         }
@@ -111,7 +112,7 @@ void EditServiceDialog::accept()
                  // Merge into one string if service type name consists of more than one word
                  QString serviceType = "";
                  if (typeStr.size() > 1) {
-                     for (int i = 0; i < typeStr.size(); i++) {
+                     for (std::string::size_type i = 0; i < typeStr.size(); i++) {
                          serviceType += QString::fromStdString(typeStr.at(i));
                      }
                  } else {
@@ -232,7 +233,7 @@ void EditServiceDialog::accept()
                  // Merge into one string if ticket name or ticket location consists of more than one word
                  QString ticketName = "";
                  if (nameStr.size() > 1) {
-                     for (int i = 0; i < nameStr.size(); i++) {
+                     for (std::string::size_type i = 0; i < nameStr.size(); i++) {
                          ticketName += QString::fromStdString(nameStr.at(i));
                      }
                  } else {
@@ -241,7 +242,7 @@ void EditServiceDialog::accept()
 
                  QString ticketLoc = "";
                  if (locStr.size() > 1) {
-                     for (int i = 0; i < locStr.size(); i++) {
+                     for (std::string::size_type i = 0; i < locStr.size(); i++) {
                          ticketLoc += QString::fromStdString(locStr.at(i));
                      }
                  } else {
@@ -341,7 +342,6 @@ void EditServiceDialog::accept()
                          QDialog::accept();
                          CoinControlDialog::coinControl->UnSelectAll();
                      } else {
-                         LogPrintStr("---bannad---");
                          QDialog::reject();
                      }
                  }

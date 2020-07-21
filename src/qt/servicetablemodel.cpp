@@ -54,12 +54,33 @@ public:
 
     void refreshServiceTable()
     {
-        LogPrintStr("refreshServiceTable");
         cachedServiceTable.clear();
         {
-            LogPrintStr("cachedservicetable");
-            //LOCK(wallet->cs_wallet);
+            LOCK(wallet->cs_wallet);
             std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
+
+            /*
+            std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> myServices;
+            std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> allServices;
+            ServiceList.GetServiceAddresses(allServices);
+            for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator
+                    it = allServices.begin(); it!=allServices.end(); it++ )
+            {
+                cachedServiceTable.append(ServiceTableEntry(QString::fromStdString(get<0>(it->second)),
+                        QString::fromStdString(get<1>(it->second)),
+                        QString::fromStdString(get<2>(it->second))));
+            }
+
+            ServiceList.GetMyServiceAddresses(myServices);
+            for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator
+                    it = myServices.begin(); it!=myServices.end(); it++ )
+            {
+                cachedServiceTable.append(ServiceTableEntry(QString::fromStdString(get<0>(it->second)),
+                        QString::fromStdString(get<1>(it->second)),
+                        QString::fromStdString(get<2>(it->second))));
+            }*/
+
+
             if (viewAll) {
                 ServiceList.GetServiceAddresses(retset);
                 for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator
@@ -83,16 +104,15 @@ public:
         // qLowerBound() and qUpperBound() require our cachedAddressTable list to be sorted in asc order
         // Even though the map is already sorted this re-sorting step is needed because the originating map
         // is sorted by binary address, not by base58() address.
-        qSort(cachedServiceTable.begin(), cachedServiceTable.end(), ServiceTableEntryLessThan());
+        //qSort(cachedServiceTable.begin(), cachedServiceTable.end(), ServiceTableEntryLessThan());
     }
 
     void updateEntry(const QString &name, const QString &address, const QString &type, int status)
     {
-        LogPrintStr("updateeeeEntry2");
-        // Find address / label in model
-        QList<ServiceTableEntry>::iterator lower = qLowerBound(
+        // Find name in model
+        QList<ServiceTableEntry>::iterator lower = std::lower_bound(
                 cachedServiceTable.begin(), cachedServiceTable.end(), address, ServiceTableEntryLessThan());
-        QList<ServiceTableEntry>::iterator upper = qUpperBound(
+        QList<ServiceTableEntry>::iterator upper = std::upper_bound(
                 cachedServiceTable.begin(), cachedServiceTable.end(), address, ServiceTableEntryLessThan());
         int lowerIndex = (lower - cachedServiceTable.begin());
         int upperIndex = (upper - cachedServiceTable.begin());
@@ -104,6 +124,7 @@ public:
             case CT_NEW:
                 if(inModel)
                 {
+                    error("ServiceTablePriv::updateEntry : Warning: Got CT_NEW, but entry is already in model");
                     break;
                 }
                 parent->beginInsertRows(QModelIndex(), lowerIndex, lowerIndex);
@@ -113,6 +134,7 @@ public:
             case CT_UPDATED:
                 if(!inModel)
                 {
+                    error("ServiceTablePriv::updateEntry : Warning: Got CT_UPDATED, but entry is not in model");
                     break;
                 }
                 lower->name = name;
@@ -123,6 +145,7 @@ public:
             case CT_DELETED:
                 if(!inModel)
                 {
+                    error("ServiceTablePriv::updateEntry : Warning: Got CT_DELETED, but entry is not in model");
                     break;
                 }
                 parent->beginRemoveRows(QModelIndex(), lowerIndex, upperIndex-1);
@@ -252,14 +275,12 @@ QModelIndex ServiceTableModel::index(int row, int column, const QModelIndex &par
 void ServiceTableModel::updateEntry(const QString &name,
                                     const QString &address, const QString &type, int status)
 {
-    LogPrintStr("updateEntryyy");
     // Update service page model from Bitcoin core
     priv->updateEntry(name, address, type, status);
 }
 
 QString ServiceTableModel::addRow(const QString &name, const QString &address, const QString &type)
 {
-    LogPrintStr("addRowwww");
     std::string strName = name.toStdString();
     std::string strAddress = address.toStdString();
     std::string strType = type.toStdString();

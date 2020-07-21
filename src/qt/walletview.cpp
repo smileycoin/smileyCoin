@@ -21,6 +21,8 @@
 #include "walletmodel.h"
 #include "init.h"
 #include "servicelistdb.h"
+#include "servicetablemodel.h"
+#include "tickettablemodel.h"
 
 #include "ui_interface.h"
 
@@ -65,10 +67,11 @@ WalletView::WalletView(QWidget *parent):
     //addressBookPage->setModel(walletModel->getAddressTableModel());
 
     servicePage = new ServicePage(this);
-    //servicePage->setModel(walletModel->getServiceTableModel());
+    //servicePage->setServiceModel(walletModel->getServiceTableModel());
     servicePage->setWindowFlags(Qt::Widget);
 
     ticketPage = new TicketPage(this);
+    //ticketPage->setTicketModel(walletModel->getTicketTableModel());
     ticketPage->setWindowFlags(Qt::Widget);
 
     addWidget(overviewPage);
@@ -166,8 +169,9 @@ void WalletView::processNewTransaction(const QModelIndex& parent, int start, int
     qint64 amount = ttm->index(start, TransactionTableModel::Amount, parent).data(Qt::EditRole).toULongLong();
     QString type = ttm->index(start, TransactionTableModel::Type, parent).data().toString();
     QString address = ttm->index(start, TransactionTableModel::ToAddress, parent).data().toString();
+    QString data = ttm->index(start, TransactionTableModel::Data, parent).data().toString();
 
-    emit incomingTransaction(date, walletModel->getOptionsModel()->getDisplayUnit(), amount, type, address);
+    emit incomingTransaction(date, walletModel->getOptionsModel()->getDisplayUnit(), amount, type, address, data);
 }
 
 void WalletView::gotoOverviewPage()
@@ -183,13 +187,19 @@ void WalletView::gotoHistoryPage()
 void WalletView::gotoServicePage()
 {
     servicePage->setWalletModel(walletModel);
-    servicePage->setServiceModel(walletModel->getServiceTableModel());
+
+    ServiceTableModel *serviceModel = new ServiceTableModel(true, pwalletMain, walletModel);
+    servicePage->setServiceModel(serviceModel);
+
     setCurrentWidget(servicePage);
 }
 
 void WalletView::gotoTicketPage() {
     ticketPage->setWalletModel(walletModel);
-    ticketPage->setTicketModel(walletModel->getTicketTableModel());
+
+    TicketTableModel *ticketModel = new TicketTableModel(pwalletMain, walletModel);
+    ticketPage->setTicketModel(ticketModel);
+
     setCurrentWidget(ticketPage);
 }
 

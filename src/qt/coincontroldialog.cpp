@@ -40,6 +40,7 @@ CoinControlDialog::CoinControlDialog(QWidget *parent) :
     // context menu actions
     QAction *copyAddressAction = new QAction(tr("Copy address"), this);
     QAction *copyLabelAction = new QAction(tr("Copy label"), this);
+    QAction *copyDataAction = new QAction(tr("Copy data"), this);
     QAction *copyAmountAction = new QAction(tr("Copy amount"), this);
              copyTransactionHashAction = new QAction(tr("Copy transaction ID"), this);  // we need to enable/disable this
              lockAction = new QAction(tr("Lock unspent"), this);                        // we need to enable/disable this
@@ -50,6 +51,7 @@ CoinControlDialog::CoinControlDialog(QWidget *parent) :
     contextMenu->addAction(copyAddressAction);
     contextMenu->addAction(copyLabelAction);
     contextMenu->addAction(copyAmountAction);
+    contextMenu->addAction(copyDataAction);
     contextMenu->addAction(copyTransactionHashAction);
     contextMenu->addSeparator();
     contextMenu->addAction(lockAction);
@@ -60,6 +62,7 @@ CoinControlDialog::CoinControlDialog(QWidget *parent) :
     connect(copyAddressAction, SIGNAL(triggered()), this, SLOT(copyAddress()));
     connect(copyLabelAction, SIGNAL(triggered()), this, SLOT(copyLabel()));
     connect(copyAmountAction, SIGNAL(triggered()), this, SLOT(copyAmount()));
+    connect(copyDataAction, SIGNAL(triggered()), this, SLOT(copyData()));
     connect(copyTransactionHashAction, SIGNAL(triggered()), this, SLOT(copyTransactionHash()));
     connect(lockAction, SIGNAL(triggered()), this, SLOT(lockCoin()));
     connect(unlockAction, SIGNAL(triggered()), this, SLOT(unlockCoin()));
@@ -67,6 +70,7 @@ CoinControlDialog::CoinControlDialog(QWidget *parent) :
     // clipboard actions
     QAction *clipboardQuantityAction = new QAction(tr("Copy quantity"), this);
     QAction *clipboardAmountAction = new QAction(tr("Copy amount"), this);
+    QAction *clipboardDataAction = new QAction(tr("Copy data"), this);
     QAction *clipboardFeeAction = new QAction(tr("Copy fee"), this);
     QAction *clipboardAfterFeeAction = new QAction(tr("Copy after fee"), this);
     QAction *clipboardBytesAction = new QAction(tr("Copy bytes"), this);
@@ -76,6 +80,7 @@ CoinControlDialog::CoinControlDialog(QWidget *parent) :
 
     connect(clipboardQuantityAction, SIGNAL(triggered()), this, SLOT(clipboardQuantity()));
     connect(clipboardAmountAction, SIGNAL(triggered()), this, SLOT(clipboardAmount()));
+    connect(clipboardDataAction, SIGNAL(triggered()), this, SLOT(clipboardData()));
     connect(clipboardFeeAction, SIGNAL(triggered()), this, SLOT(clipboardFee()));
     connect(clipboardAfterFeeAction, SIGNAL(triggered()), this, SLOT(clipboardAfterFee()));
     connect(clipboardBytesAction, SIGNAL(triggered()), this, SLOT(clipboardBytes()));
