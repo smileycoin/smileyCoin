@@ -5,6 +5,8 @@
 #ifndef TRANSACTIONVIEW_H
 #define TRANSACTIONVIEW_H
 
+#include "walletmodel.h"
+
 #include "guiutil.h"
 
 #include <QWidget>
@@ -51,6 +53,7 @@ public:
         STATUS_COLUMN_WIDTH = 23,
         DATE_COLUMN_WIDTH = 120,
         TYPE_COLUMN_WIDTH = 120,
+        DATA_COLUMN_WIDTH = 120,
         AMOUNT_MINIMUM_COLUMN_WIDTH = 120,
         MINIMUM_COLUMN_WIDTH = 23
     };
@@ -63,6 +66,7 @@ private:
     QComboBox *dateWidget;
     QComboBox *typeWidget;
     QLineEdit *addressWidget;
+    QLineEdit *dataWidget;
     QLineEdit *amountWidget;
 
     QMenu *contextMenu;
@@ -86,11 +90,13 @@ private slots:
     void editLabel();
     void copyLabel();
     void copyAmount();
+    void copyData();
     void copyTxID();
     void openThirdPartyTxUrl(QString url);
+    void displayData();
 
-signals:
-    void doubleClicked(const QModelIndex&);
+    signals:
+        void doubleClicked(const QModelIndex&);
 
     /**  Fired when a message should be reported to the user */
     void message(const QString &title, const QString &message, unsigned int style);
@@ -99,6 +105,7 @@ public slots:
     void chooseDate(int idx);
     void chooseType(int idx);
     void changedPrefix(const QString &prefix);
+    void changedData(const QString &data);
     void changedAmount(const QString &amount);
     void exportClicked();
     void focusTransaction(const QModelIndex&);

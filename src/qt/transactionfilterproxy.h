@@ -27,6 +27,7 @@ public:
 
     void setDateRange(const QDateTime &from, const QDateTime &to);
     void setAddressPrefix(const QString &addrPrefix);
+    void setDataPrefix(const QString &dataPrefix);
     /**
       @note Type filter takes a bit field created with TYPE() or ALL_TYPES
      */
@@ -48,6 +49,7 @@ private:
     QDateTime dateFrom;
     QDateTime dateTo;
     QString addrPrefix;
+    QString dataPrefix;
     quint32 typeFilter;
     qint64 minAmount;
     int limitRows;
