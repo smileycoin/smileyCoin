@@ -112,7 +112,7 @@ WalletView::WalletView(QWidget *parent):
     // Pass through messages from transactionView
     connect(transactionView, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
     //Pass through messages from traceabilityPage
-    connect(traceabilityPage, SIGNAL(messae(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
+    //connect(traceabilityPage, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
 }
 
 WalletView::~WalletView()
