@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <endian.h>
+#include <boost/endian/conversion.hpp>
 
 #include <openssl/ec.h>
 #include <openssl/bn.h>
@@ -35,6 +35,8 @@
 #define GY_HEX                  "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"
 #define GORDER_HEX              "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"
 #define GCOFACTOR_HEX           "01"
+
+using namespace boost::endian;
 
 /* functions that return strings return NULL on error.
    functions that return size_t return 0 on error.
@@ -82,9 +84,7 @@ static int write_private_header(uint8_t *m, const uint8_t *nmsg, const uint32_t 
     m[0] = VERSION;
     m[1] = 0x00;
     m[2] = 0x06;
-    /* msg_length in big endian */
-    *(uint32_t*)&m[3] = htobe32(msg_length);
-    /* no need to convert to big endian */
+    *(uint32_t*)&m[3] = native_to_big(msg_length);
     m[7] = hash[0];
     m[8] = hash[1];
 
@@ -123,13 +123,13 @@ static int read_private_header(const uint8_t *dec, size_t *message_length)
     if (dec[1] != 0x00) return 0;
     if (dec[2] != 0x06) return 0;
 
-    uint32_t msg_len = be32toh(*(uint32_t*)&dec[3]);
-    uint16_t msg_hash = be16toh(*(uint16_t*)&dec[7]);
+    uint32_t msg_len = big_to_native(*(uint32_t*)&dec[3]);
+    uint16_t msg_hash = big_to_native(*(uint16_t*)&dec[7]);
 
     uint8_t mg[SHA256_DIGEST_LENGTH];
     SHA256(&dec[PRIVHEADER_LEN], msg_len, mg);
 
-    if (msg_hash != be16toh(*(uint16_t*)mg)) return 0;
+    if (msg_hash != big_to_native(*(uint16_t*)mg)) return 0;
     *message_length = msg_len;
 
     return 1;
@@ -149,7 +149,7 @@ static int read_public_header(EC_GROUP *group, const uint8_t *enc, const BIGNUM*
     if (enc[3] != 0x00) return 0;
     if (enc[4] != 0x02) return 0;
 
-    uint16_t pubkey_checksum = be16toh(*(uint16_t*)&enc[5]);
+    uint16_t pubkey_checksum = big_to_native(*(uint16_t*)&enc[5]);
 
     /* derive both pubkeys from privkey and check that either matches the key
        hashed in the public header
@@ -164,7 +164,7 @@ static int read_public_header(EC_GROUP *group, const uint8_t *enc, const BIGNUM*
 
         uint8_t comppub_hash[SHA256_DIGEST_LENGTH];
         SHA256(pubkey_compressed, COMPR_PUBKEY_LEN, comppub_hash);
-        uint16_t comppub_checksum = be16toh(*((uint16_t*)comppub_hash));
+        uint16_t comppub_checksum = big_to_native(*((uint16_t*)comppub_hash));
         OPENSSL_free(pubkey_compressed);
 
         if (comppub_checksum != pubkey_checksum)
@@ -181,7 +181,7 @@ static int read_public_header(EC_GROUP *group, const uint8_t *enc, const BIGNUM*
 
         uint8_t uncomppub_hash[SHA256_DIGEST_LENGTH];
         SHA256(pubkey_uncompressed, UNCOMPR_PUBKEY_LEN, uncomppub_hash);
-        uint16_t uncomppub_checksum = be16toh(*((uint16_t*)uncomppub_hash));
+        uint16_t uncomppub_checksum = big_to_native(*((uint16_t*)uncomppub_hash));
         OPENSSL_free(pubkey_uncompressed);
 
         if (uncomppub_checksum != pubkey_checksum)
@@ -219,13 +219,13 @@ static int y_from_x(EC_GROUP *group, BIGNUM *y, size_t *offset, const BIGNUM *x,
     int ret = 0;
     BN_CTX_start(ctx);
 
-    BIGNUM *p = BN_CTX_get();
+    BIGNUM *p = BN_CTX_get(ctx);
     BIGNUM *a = BN_CTX_get(ctx);
     BIGNUM *b = BN_CTX_get(ctx);
 
     EC_GROUP_get_curve_GFp(group, p, a, b, ctx);
 
-    BIGNUM *Mx = BN_CTX_get(x);
+    BIGNUM *Mx = BN_CTX_get(ctx);
     BN_copy(Mx, x);
     BIGNUM *My = BN_CTX_get(ctx);
     BIGNUM *My2 = BN_CTX_get(ctx);
