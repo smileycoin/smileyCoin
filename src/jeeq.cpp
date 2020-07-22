@@ -6,7 +6,6 @@
    https://en.wikipedia.org/wiki/ElGamal_encryption
  */
 #include <string.h>
-#include <stdio.h>
 #include <stdbool.h>
 #include <boost/endian/conversion.hpp>
 
@@ -22,6 +21,7 @@
 #include <stdexcept>
 
 #include "key.h"
+#include "util.h"
 #include "jeeq.h"
 
 #define PRIVHEADER_LEN          9
@@ -278,13 +278,9 @@ static int y_from_x(EC_GROUP *group, BIGNUM *y, size_t *offset, const BIGNUM *x,
 
     if (ERR_peek_error())
     {
-        puts("y_from_x() errors");
         unsigned long e = 0;
-        while (e = ERR_get_error())
-        {
-            char *error = ERR_error_string(e, NULL);
-            puts(error);
-        }
+        while ((e = ERR_get_error()))
+            LogPrintf("y_from_x %s: %s", ERR_func_error_string(e), ERR_reason_error_string(e));
     }
 
     BN_CTX_end(ctx);
@@ -395,13 +391,9 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
 err:
     if (ERR_peek_error())
     {
-        puts("encrypt_message() errors");
         unsigned long e = 0;
-        while (e = ERR_get_error())
-        {
-            char *error = ERR_error_string(e, NULL);
-            puts(error);
-        }
+        while ((e = ERR_get_error()))
+            LogPrintf("encrypt_message %s: %s", ERR_func_error_string(e), ERR_reason_error_string(e));
     }
 
     OPENSSL_clear_free(m, chunk_count * CHUNK_SIZE);
@@ -501,13 +493,9 @@ static uint8_t *decrypt_message(size_t *dec_len, const uint8_t *privkey, const b
 err:
     if (ERR_peek_error())
     {
-        puts("encrypt_message() errors");
         unsigned long e = 0;
-        while (e = ERR_get_error())
-        {
-            char *error = ERR_error_string(e, NULL);
-            puts(error);
-        }
+        while ((e = ERR_get_error()))
+            LogPrintf("decrypt_message %s: %s", ERR_func_error_string(e), ERR_reason_error_string(e));
     }
 
     OPENSSL_free(Tser);
