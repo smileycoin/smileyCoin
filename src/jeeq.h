@@ -1,10 +1,14 @@
-namespace Jeeq 
+#ifndef BITCOIN_JEEQ_H
+#define BITCOIN_JEEQ_H
+
+class CBitcoinAddress;
+
+namespace Jeeq
 {
-int Init();
-int Cleanup();
-std::vector<uint8_t> EncryptMessage(CPubKey pubkey, std::string msg);
-std::vector<uint8_t> EncryptMessage(CPubKey pubkey, std::string msg);
-std::vector<uint8_t> DecryptMessage(CKey privkey, std::vector<uint8_t> enc);
+std::vector<uint8_t> EncryptMessage(const CPubKey pubkey, const std::string msg);
+std::string DecryptMessage(const CKey privkey, const std::vector<uint8_t> enc);
+CPubKey SearchForPubKey(CBitcoinAddress addr);
 }
 
+#endif
 

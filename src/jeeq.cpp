@@ -9,6 +9,9 @@
 #include <stdbool.h>
 #include <boost/endian/conversion.hpp>
 
+#include <vector>
+#include <stdexcept>
+
 #include <openssl/ec.h>
 #include <openssl/bn.h>
 #include <openssl/obj_mac.h>
@@ -16,9 +19,6 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 #include <openssl/err.h>
-
-#include <vector>
-#include <stdexcept>
 
 #include "key.h"
 #include "util.h"
@@ -38,11 +38,9 @@
 
 using namespace boost::endian;
 
-/* functions that return strings return NULL on error.
-   functions that return size_t return 0 on error.
-   other functions return 0 on error, 1 on success 
+/* return:  secp256k1 curve with the bitcoin generator, order and cofactor
+ * in:      ctx, bignum context
  */
-
 static EC_GROUP *init_curve(BN_CTX *ctx)
 {
     EC_GROUP *group = EC_GROUP_new_by_curve_name(NID_secp256k1);
@@ -51,8 +49,8 @@ static EC_GROUP *init_curve(BN_CTX *ctx)
 
     BIGNUM *Gx = BN_new();
     BIGNUM *Gy = BN_new();
-    BIGNUM *cofactor =  BN_new();
-    BIGNUM *order =     BN_new();
+    BIGNUM *order = BN_new();
+    BIGNUM *cofactor = BN_new();
 
     BN_hex2bn(&Gx, GX_HEX);
     BN_hex2bn(&Gy, GY_HEX);
@@ -69,12 +67,14 @@ static EC_GROUP *init_curve(BN_CTX *ctx)
     BN_free(order);
 
     EC_POINT_free(generator);
-    
+
     return group;
 }
 
-/* write the private header: [version,1][length of len+checksum,2][len,4][checksum,2]
-   to m.
+/* return: 1
+ * out: m, pointer to message that will be prefaced with the private header
+ * in:  nmsg, pointer to the message
+ *      msg_length, length of the message
  */
 static int write_private_header(uint8_t *m, const uint8_t *nmsg, const uint32_t msg_length)
 {
@@ -88,17 +88,18 @@ static int write_private_header(uint8_t *m, const uint8_t *nmsg, const uint32_t 
     m[7] = hash[0];
     m[8] = hash[1];
 
-    /* any error in here would result in a segfault anyways */
     return 1;
 }
 
-/* write the public header 6A6A[version,1][length of checksum,2][checksum,2]
-   to enc.
+/* return: 1
+ * out:     enc, the encrypted string to preface the public header with
+ * in:      pub, pointer to raw pubkey,
+ *          is_compressed, whether the pubkey is compressed NEEDED
  */
-static int write_public_header(uint8_t *enc, const uint8_t *pub, const bool is_compressed)
+static int write_public_header(uint8_t *enc, const uint8_t *pub)
 {
     uint8_t hash[SHA256_DIGEST_LENGTH];
-    size_t pubkey_length = is_compressed ? COMPR_PUBKEY_LEN : UNCOMPR_PUBKEY_LEN;
+    size_t pubkey_length = (pub[0] == 0x04) ? UNCOMPR_PUBKEY_LEN : COMPR_PUBKEY_LEN;
 
     SHA256(pub, pubkey_length, hash);
 
@@ -113,109 +114,76 @@ static int write_public_header(uint8_t *enc, const uint8_t *pub, const bool is_c
     return 1;
 }
 
-/* take in the raw decoded string and read the header to ensure we decoded
-   it correctly.
-   return the message's length
+/* return:  1 on success, 0 otherwise
+ * out:     message_length, read message length
+ * in:      dec, decrypted string
  */
-static int read_private_header(const uint8_t *dec, size_t *message_length)
+static int read_private_header(size_t *message_length, const uint8_t *dec)
 {
     if (dec[0] != VERSION) return 0;
     if (dec[1] != 0x00) return 0;
     if (dec[2] != 0x06) return 0;
 
     uint32_t msg_len = big_to_native(*(uint32_t*)&dec[3]);
-    uint16_t msg_hash = big_to_native(*(uint16_t*)&dec[7]);
 
-    uint8_t mg[SHA256_DIGEST_LENGTH];
-    SHA256(&dec[PRIVHEADER_LEN], msg_len, mg);
+    /* com_mh stands for computed message hash */
+    uint8_t com_mh[SHA256_DIGEST_LENGTH];
+    SHA256(&dec[PRIVHEADER_LEN], msg_len, com_mh);
 
-    if (msg_hash != big_to_native(*(uint16_t*)mg)) return 0;
+    /* check that our computed hash matches the one in the header */
+    if (dec[7] != com_mh[0] || dec[8] != com_mh[1]) return 0;
     *message_length = msg_len;
 
     return 1;
 }
 
-/* take in the encoded byte vector and our privkey and check wether
-   our derived pubkey matches the pubkey given in the header
-   return 1 on success
+/* return: 1 on success, 0 otherwise
+ * in:  group, bitcoin curve
+ *      enc, encryted string
+ *      bn_privkey, our privkey as a bignum
+ *      is_compressed??,  RETHINK
+ *      ctx, bignum context
  */
-static int read_public_header(EC_GROUP *group, const uint8_t *enc, const BIGNUM* bn_privkey, 
-        const bool is_compressed, BN_CTX *ctx)
+static int read_public_header(const EC_GROUP *group, const uint8_t *enc,
+        const uint8_t* our_pubkey, BN_CTX *ctx)
 {
-    /* could be replaced with memcmp */
-    if (enc[0] != 0x6a) return 0;
-    if (enc[1] != 0x6a) return 0;
-    if (enc[2] != VERSION) return 0;
-    if (enc[3] != 0x00) return 0;
-    if (enc[4] != 0x02) return 0;
+    if (enc[0] != 0x6a)     return 0;
+    if (enc[1] != 0x6a)     return 0;
+    if (enc[2] != VERSION)  return 0;
+    if (enc[3] != 0x00)     return 0;
+    if (enc[4] != 0x02)     return 0;
 
-    uint16_t pubkey_checksum = big_to_native(*(uint16_t*)&enc[5]);
+    /* computed public key hash = com_pkh */
+    uint8_t com_pkh[SHA256_DIGEST_LENGTH];
+    SHA256(our_pubkey, (our_pubkey[0]==0x04 ? UNCOMPR_PUBKEY_LEN : COMPR_PUBKEY_LEN), com_pkh);
 
-    /* derive both pubkeys from privkey and check that either matches the key
-       hashed in the public header
-     */
-    EC_POINT *pubkey_point = EC_POINT_new(group);
-    EC_POINT_mul(group, pubkey_point, bn_privkey, NULL, NULL, ctx);
-    
-    if (is_compressed)
-    {
-        uint8_t *pubkey_compressed = (uint8_t*)OPENSSL_malloc(COMPR_PUBKEY_LEN);
-        EC_POINT_point2oct(group, pubkey_point, POINT_CONVERSION_COMPRESSED, pubkey_compressed, COMPR_PUBKEY_LEN, ctx);
+    if (enc[5] != com_pkh[0] || enc[6] != com_pkh[1])
+        return 0;
 
-        uint8_t comppub_hash[SHA256_DIGEST_LENGTH];
-        SHA256(pubkey_compressed, COMPR_PUBKEY_LEN, comppub_hash);
-        uint16_t comppub_checksum = big_to_native(*((uint16_t*)comppub_hash));
-        OPENSSL_free(pubkey_compressed);
-
-        if (comppub_checksum != pubkey_checksum)
-        {
-            EC_POINT_free(pubkey_point);
-            return 0;
-        }
-    } 
-    else
-    {
-        uint8_t *pubkey_uncompressed = (uint8_t*)OPENSSL_malloc(UNCOMPR_PUBKEY_LEN);
-        EC_POINT_point2oct(group, pubkey_point, POINT_CONVERSION_UNCOMPRESSED,
-                pubkey_uncompressed, UNCOMPR_PUBKEY_LEN, ctx);
-
-        uint8_t uncomppub_hash[SHA256_DIGEST_LENGTH];
-        SHA256(pubkey_uncompressed, UNCOMPR_PUBKEY_LEN, uncomppub_hash);
-        uint16_t uncomppub_checksum = big_to_native(*((uint16_t*)uncomppub_hash));
-        OPENSSL_free(pubkey_uncompressed);
-
-        if (uncomppub_checksum != pubkey_checksum)
-        {
-            EC_POINT_free(pubkey_point);
-            return 0;
-        }
-    }
-
-    EC_POINT_free(pubkey_point);
     return 1;
 }
 
-/* arguments: a pointer to an allocated bignum, reference to int, pointer
-   to x and finally whether we want to get the odd or even y value for that x.
-     since not every x has a corresponding y on the curve (don't know the math)
-   we try first whether the x works by itself, if not we increment to it until
-   we find a y that works. this offset is put in the first byte of the point,
-   the first bit tells us whether the pubkey was compressed or uncompressed
-   and the rest carries the offset to x needed to find a y.
+/* return: 1 on success, 0 otherwise
+ * out: y, the y value corresponding to x+offset, if it is found
+ *      offset, the offset needed to the x value to give a y
+ * in:  group, bitcoin curve
+ *      x,   our x
+ *      odd, whether we want the y value to be odd or even,
+ *      ctx, bignum context
  */
-static int y_from_x(EC_GROUP *group, BIGNUM *y, size_t *offset, const BIGNUM *x, const bool odd, BN_CTX *ctx)
+static int y_from_x(const EC_GROUP *group, BIGNUM *y, size_t *offset, const BIGNUM *x, const bool odd, BN_CTX *ctx)
 {
     EC_POINT *M = EC_POINT_new(group);
 
     /* try to find y the easy way */
-    if (EC_POINT_set_compressed_coordinates_GFp(group, M, x, odd, ctx) == 1) 
+    if (EC_POINT_set_compressed_coordinates_GFp(group, M, x, odd, ctx) == 1)
     {
         EC_POINT_get_affine_coordinates_GFp(group, M, NULL, y, ctx);
         *offset = 0;
         EC_POINT_free(M);
         return 1;
     }
-    
+
     int ret = 0;
     BN_CTX_start(ctx);
 
@@ -233,7 +201,7 @@ static int y_from_x(EC_GROUP *group, BIGNUM *y, size_t *offset, const BIGNUM *x,
 
     BIGNUM *half = BN_CTX_get(ctx);
     BN_copy(half, p);
-    BN_add_word(half, 1); 
+    BN_add_word(half, 1);
     BN_div_word(half, 4);
 
     /* xoffset can be in the range 1-127 since we have 7 bits free,
@@ -241,7 +209,7 @@ static int y_from_x(EC_GROUP *group, BIGNUM *y, size_t *offset, const BIGNUM *x,
     */
     for (int i = 1; i < 128; i++)
     {
-        BN_add_word(Mx, 1);   
+        BN_add_word(Mx, 1);
 
         /* My2 = (Mx^2 * Mx mod p) */
         BN_sqr(My2, Mx, ctx);
@@ -258,14 +226,14 @@ static int y_from_x(EC_GROUP *group, BIGNUM *y, size_t *offset, const BIGNUM *x,
         BN_mod_exp(My, My2, half, p, ctx);
 
         /* this function will return 1 on success (point on curve), else 0 */
-        if (EC_POINT_set_affine_coordinates_GFp(group, M, Mx, My, ctx))
+        if (EC_POINT_set_affine_coordinates_GFp(group, M, Mx, My, ctx) == 1)
         {
             if (odd == BN_is_bit_set(My, 0))
             {
                 BN_copy(y, My);
                 *offset = i;
-            } 
-            else 
+            }
+            else
             {
                 BN_sub(y, p, My);
                 *offset = i;
@@ -276,6 +244,9 @@ static int y_from_x(EC_GROUP *group, BIGNUM *y, size_t *offset, const BIGNUM *x,
         }
     }
 
+    /* some errors here are expected since set_affine_coordinates logs an error
+     * when we try to set an invalid x,y combination when trying offsets
+     */
     if (ERR_peek_error())
     {
         unsigned long e = 0;
@@ -289,13 +260,14 @@ static int y_from_x(EC_GROUP *group, BIGNUM *y, size_t *offset, const BIGNUM *x,
     return ret;
 }
 
-/* arguments: a pointer to write the encoded string, a pointer to the raw pubkey,
-   pointer to the message that's to be encoded and the message length. enc needs to 
-   point to PUBHEADER_LEN + 66*(msg_len/32) of available memory.
-   returns how many bytes written, 0 on error
+/* return:  a malloc pointer to the encrypted string,
+ * out:     enc_len, size of the encrypted string in bytes
+ * in:      pubkey, pointer to raw pubkey
+ *          msg, pointer to the message to be encrypted
+ *          msg_len, length of the message to be encrypted
  */
-static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey, 
-        const bool is_compressed, const uint8_t *msg, const size_t msg_len)
+static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
+        const uint8_t *msg, const size_t msg_len)
 {
     BN_CTX *ctx = BN_CTX_new();
     /* our secp256k1 curve and bitcoin generator
@@ -308,8 +280,7 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
 
     EC_POINT *pk = EC_POINT_new(group);
 
-    /* get so many blocks of 32B blocks that msg will fit
-     */
+    // get so many blocks of 32B blocks that msg will fit
     int chunk_count = (PRIVHEADER_LEN + msg_len)/CHUNK_SIZE + 1;
 
     uint8_t *m = (uint8_t*)OPENSSL_zalloc(chunk_count * CHUNK_SIZE);
@@ -320,11 +291,12 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
     BIGNUM *bn_pubkey = BN_new();
     BN_bin2bn(&pubkey[1], 32, bn_pubkey);
 
-    if (is_compressed)
+    // pubkey is compressed
+    if (pubkey[0] == 0x02 || pubkey[0] == 0x03)
     {
         EC_POINT_set_compressed_coordinates_GFp(group, pk, bn_pubkey, pubkey[0]==0x03, ctx);
     }
-    else 
+    else
     {
         BIGNUM *bn_pubkey_extra = BN_new();
 
@@ -345,7 +317,7 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
     BN_sub_word(rand_range, 1);
 
     uint8_t *enc = (uint8_t*)malloc(PUBHEADER_LEN + chunk_count * 2*COMPR_PUBKEY_LEN);
-    write_public_header(enc, pubkey, is_compressed);
+    write_public_header(enc, pubkey);
     int enc_loc = PUBHEADER_LEN;
     int m_loc = 0;
     size_t xoffset = 0;
@@ -353,7 +325,7 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
     for (int i = 0; i < chunk_count; i++)
     {
         /* since rand must be in [1,...,q-1] */
-        BN_rand_range(rand, rand_range); 
+        BN_rand_range(rand, rand_range);
         BN_add_word(rand, 1);
 
         if (!BN_bin2bn(&m[m_loc], CHUNK_SIZE, Mx))
@@ -367,13 +339,14 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
 
         EC_POINT_set_affine_coordinates_GFp(group, M, Mx, My, ctx);
 
+        /* see wiki */
         EC_POINT_mul(group, T, rand, NULL, NULL, ctx);
         EC_POINT_mul(group, U, NULL, pk, rand, ctx);
         EC_POINT_add(group, U, U, M, ctx);
 
-        EC_POINT_point2oct(group, T, POINT_CONVERSION_COMPRESSED, 
+        EC_POINT_point2oct(group, T, POINT_CONVERSION_COMPRESSED,
                 &enc[enc_loc], COMPR_PUBKEY_LEN, ctx);
-        EC_POINT_point2oct(group, U, POINT_CONVERSION_COMPRESSED, 
+        EC_POINT_point2oct(group, U, POINT_CONVERSION_COMPRESSED,
                 &enc[enc_loc+COMPR_PUBKEY_LEN], COMPR_PUBKEY_LEN, ctx);
 
         /* encoding our offset within the odd/even byte (02/03), the first bit represets
@@ -413,27 +386,22 @@ err:
     return ret;
 }
 
-/* arguments: a pointer to write the decrypted message, should point to at least the
-   length of the encoded string divided by 66 (2*compressed point length) of free 
-   memory. a pointer to the raw private key, a pointer to the encoded string and 
-   finally its length.
-   returns how many bytes written, 0 on error
+/* return:  malloc pointer to the decrypted message
+ * out:     dec_len, length of the decrypted message
+ * in:      privkey, pointer to raw private key
+ *          pubkey, pointer to the raw public key matching privkey
+ *          enc, pointer to the encrypted message
+ *          enc_len, length of the encrypted message
  */
-static uint8_t *decrypt_message(size_t *dec_len, const uint8_t *privkey, const bool is_compressed, 
+static uint8_t *decrypt_message(size_t *dec_len, const uint8_t *privkey, const uint8_t *pubkey,
                                 const uint8_t *enc, const size_t enc_len)
 {
     BN_CTX *ctx = BN_CTX_new();
     EC_GROUP *group = init_curve(ctx);
 
-    BIGNUM *bn_privkey = BN_new();
-    BN_bin2bn(privkey, PRIVKEY_LEN, bn_privkey);
-
-    /* check that the public header is valid and matches our privkey */
-    if (!read_public_header(group, enc, bn_privkey, is_compressed, ctx))
-    {
-        BN_free(bn_privkey);
+    /* check that the public header is valid and matches our priv/pubkey pair */
+    if (!read_public_header(group, enc, pubkey, ctx))
         return NULL;
-    }
 
     int chunk_count = (enc_len - PUBHEADER_LEN) / (2*COMPR_PUBKEY_LEN);
 
@@ -450,13 +418,16 @@ static uint8_t *decrypt_message(size_t *dec_len, const uint8_t *privkey, const b
 
     BIGNUM *Mx = BN_new();
 
+    BIGNUM *bn_privkey = BN_new();
+    BN_bin2bn(privkey, PRIVKEY_LEN, bn_privkey);
+
     int enc_loc = PUBHEADER_LEN;
     int r_loc = 0;
     for (int i = 0; i < chunk_count; i++)
     {
         memcpy(Tser, &enc[enc_loc], COMPR_PUBKEY_LEN);
         memcpy(User, &enc[enc_loc+COMPR_PUBKEY_LEN], COMPR_PUBKEY_LEN);
-        
+
         /* decode the offset and evenness from the first byte */
         xoffset = Tser[0] >> 1;
         Tser[0] = 2 + (Tser[0]&1);
@@ -467,7 +438,7 @@ static uint8_t *decrypt_message(size_t *dec_len, const uint8_t *privkey, const b
         EC_POINT_mul(group, V, NULL, T, bn_privkey, ctx);
         EC_POINT_invert(group, V, ctx);
         EC_POINT_add(group, M, U, V, ctx);
-        
+
         EC_POINT_get_affine_coordinates_GFp(group, M, Mx, NULL, ctx);
 
         /* substract our offset so that we get the original Mx */
@@ -482,7 +453,7 @@ static uint8_t *decrypt_message(size_t *dec_len, const uint8_t *privkey, const b
     uint8_t *ret = NULL;
 
     size_t size = 0;
-    if (!read_private_header(r, &size))
+    if (!read_private_header(&size, r))
         goto err;
 
     /* success */
@@ -506,6 +477,7 @@ err:
     EC_POINT_clear_free(M);
     EC_POINT_clear_free(T);
 
+    BN_free(Mx);
     BN_clear_free(bn_privkey);
 
     OPENSSL_clear_free(r, r_loc);
@@ -516,71 +488,104 @@ err:
     return ret;
 }
 
-/* wrappers for the core C functions, we'll allow that the message to
- * be encrypted may either be a string (for the encrypting OP_RETURN data)
- * or raw bytes (for raw private keys or something) 
- * */
-
+/* wrappers for the C functions
+ */
 using namespace std;
 
 namespace Jeeq {
 
-/* these two functions are identical, except for the function decleration,
- * is there a better way to do this? We just need .data() and .size() and 
- * that the elements are char
- */
 vector<uint8_t> EncryptMessage(const CPubKey pubkey, const string msg)
 {
     // check pubkey
-    if (!pubkey.IsValid()) 
+    if (!pubkey.IsValid())
         throw runtime_error("Jeeq::EncryptMessage(): called with an invalid public key");
     //  ensure that msg is not empty
     if (msg.size() == 0) throw runtime_error("Jeeq::EncryptMessage(): no message to encrypt");
 
     size_t enc_len = 0;
-    uint8_t *benc = encrypt_message(&enc_len, pubkey.begin(), pubkey.IsCompressed(), (uint8_t*)msg.data(), msg.size());
-    if (benc == NULL || enc_len == 0) 
+    uint8_t *benc = encrypt_message(&enc_len, pubkey.begin(), (uint8_t*)&msg[0], msg.size());
+    if (benc == NULL || enc_len == 0)
         throw runtime_error("Jeeq::EncryptMessage(): failed to encrypt message");
 
     vector<uint8_t> enc(benc, benc+enc_len);
     return enc;
 }
 
-vector<uint8_t> EncryptMessage(const CPubKey pubkey, const vector<uint8_t> msg)
-{
-    // check pubkey
-    if (!pubkey.IsValid()) 
-        throw runtime_error("Jeeq::EncryptMessage(): called with an invalid public key");
-    //  ensure that msg is not empty
-    if (msg.size() == 0) throw runtime_error("Jeeq::EncryptMessage(): no message to encrypt");
-
-    size_t enc_len = 0;
-    uint8_t *benc = encrypt_message(&enc_len, pubkey.begin(), pubkey.IsCompressed(), msg.data(), msg.size());
-    if (benc == NULL || enc_len == 0) 
-        throw runtime_error("Jeeq::EncryptMessage(): failed to encrypt message");
-
-    vector<uint8_t> enc(benc, benc+enc_len);
-    return enc;
-}
-
-vector<uint8_t> DecryptMessage(const CKey privkey, const vector<uint8_t> enc)
+string DecryptMessage(const CKey privkey, const vector<uint8_t> enc)
 {
     // check privkey
-    if (!privkey.IsValid()) 
+    if (!privkey.IsValid())
         throw runtime_error("Jeeq::DecryptMessage(): called with an invalid private key");
     // ensure that enc is not empty
-    if (enc.size() == 0) 
+    if (enc.size() == 0)
         throw runtime_error("Jeeq::DecryptMessage(): no encoded message to decrypt");
 
     size_t dec_len = 0;
-    uint8_t *bdec = decrypt_message(&dec_len, privkey.begin(), privkey.IsCompressed(), 
+    CPubKey pubkey = privkey.GetPubKey();
+    uint8_t *bdec = decrypt_message(&dec_len, privkey.begin(), pubkey.begin(),
                       enc.data(), enc.size());
-    if (bdec == NULL) 
+    if (bdec == NULL)
         throw runtime_error("Jeeq::DecryptMessage(): failed to decrypt message");
 
-    vector<uint8_t> dec(bdec, bdec+dec_len);
+    string dec(bdec, bdec+dec_len);
+    free(bdec);
     return dec;
 }
 
 }
 
+// if we don't do this bignum.h ducks everything up
+#include "base58.h"
+#include "net.h"
+#include "netbase.h"
+#include "util.h"
+#include "wallet.h"
+#include "walletdb.h"
+
+// auxillary function for EncryptMessage
+namespace Jeeq {
+CPubKey SearchForPubKey(CBitcoinAddress addr)
+{
+    CScript spk;
+    spk.SetDestination(addr.Get());
+
+    CBlock block;
+    uint256 blockhash;
+    CTransaction txout;
+
+    // beginning at the blockchain tip going back
+    for (CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev)
+    {
+        // assume verified blockchain
+        ReadBlockFromDisk(block, pindex);
+
+        // skip coinbase (vtx[0])
+        for (unsigned int i = 1; i < block.vtx.size(); i++)
+        {
+            for (unsigned int j = 0; j < block.vtx[i].vin.size(); j++)
+            {
+                // get tx from txid and blockhash and store it in txout
+                GetTransaction(block.vtx[i].vin[j].prevout.hash, txout, blockhash);
+                int n = block.vtx[i].vin[j].prevout.n;
+
+                if (txout.vout[n].scriptPubKey == spk)
+                {
+                    CScript ssig = block.vtx[i].vin[j].scriptSig;
+
+                    opcodetype opcode;
+                    std::vector<unsigned char> pkdata;
+                    auto pc = ssig.begin();
+
+                    // we do it twice since the pubkey is the second item
+                    ssig.GetOp(pc, opcode, pkdata);
+                    ssig.GetOp(pc, opcode, pkdata);
+
+                    return CPubKey(pkdata.begin(), pkdata.end());
+                }
+            }
+        }
+    }
+
+    return CPubKey();
+}
+} // Namespace Jeeq

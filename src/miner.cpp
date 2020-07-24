@@ -17,8 +17,6 @@
 //
 // BitcoinMiner
 //
-//
-static CCriticalSection cs_jeeq;
 
 int static FormatHashBlocks(void* pbuffer, unsigned int len)
 {
@@ -380,11 +378,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
       txNew.vout.push_back(EIASTxOut);
       pblock->vtx[0] = txNew;
       pblocktemplate->vTxFees[0] = -nFees;
-
-    CKey secret;
-    secret.MakeNewKey(true);
-    CPubKey pubkey = secret.GetPubKey();
-
+      
+      
     // Fill in header
     pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
     UpdateTime(*pblock, pindexPrev);
