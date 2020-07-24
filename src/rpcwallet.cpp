@@ -484,26 +484,40 @@ Value encryptmessage(const Array& params, bool fHelp)
     string strAddress = params[0].get_str();
     string strMessage = params[1].get_str();
 
+    if (strMessage.empty())
+        throw JSONRPCError(RPC_TYPE_ERROR, "No message to encrypt");
+
     CBitcoinAddress addr(strAddress);
     if (!addr.IsValid())
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
+    if (addr.IsScript())
+        throw JSONRPCError(RPC_TYPE_ERROR, "Address must be a P2PKH address");
+
 
     CKeyID keyID;
     if (!addr.GetKeyID(keyID))
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
 
     CKey key;
-    if (!pwalletMain->GetKey(keyID, key))
-        throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
+    CPubKey pubkey;
+    // if the key is in our wallet, we use it, else we search the blockchain
+    if (pwalletMain->GetKey(keyID, key))
+    {
+        pubkey = key.GetPubKey();
+    }
+    else
+    {
+        pubkey = Jeeq::SearchForPubkey(addr);
+        if (!pubkey.IsValid())
+            throw JSONRPCError(RPC_TYPE_ERROR, 
+                    "The address has not been spent on the blockchain so its public key is unavailable");
 
-    CHashWriter ss(SER_GETHASH, 0);
-    ss << strMessageMagic;
-    ss << strMessage;
+    }
 
-    vector<unsigned char> vchEnc;
-    CPubKey pubkey = key.GetPubKey();
+    vector<uint8_t> vchEnc;
     vchEnc = Jeeq::EncryptMessage(pubkey, strMessage);
-//        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Encryption failed");
+    if (vchEnc.empty())
+        throw JSONRPCError(RPC_MISC_ERROR, "Could not encrypt message");
 
     return EncodeBase64(&vchEnc[0], vchEnc.size());
 }
@@ -535,7 +549,12 @@ Value decryptmessage(const Array& params, bool fHelp)
 
     string strAddress = params[0].get_str();
     string strEnc = params[1].get_str();
-    vector<unsigned char> enc =  DecodeBase64(&strEnc[0]);
+
+    if (strEnc.empty())
+        throw JSONRPCError(RPC_TYPE_ERROR, "No message to encrypt");
+
+    vector<unsigned char> enc = DecodeBase64(&strEnc[0]);
+
 
     CBitcoinAddress addr(strAddress);
     if (!addr.IsValid())
@@ -549,12 +568,12 @@ Value decryptmessage(const Array& params, bool fHelp)
     if (!pwalletMain->GetKey(keyID, key))
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
 
-    vector<unsigned char> vchDec;
+    string vchDec;
     vchDec = Jeeq::DecryptMessage(key, enc);
+    if (vchDec.empty())
+        throw JSONRPCError(RPC_MISC_ERROR, "Could not decrypt message");
 
-    string str(vchDec.begin(), vchDec.end());
-
-    return str;
+    return vchDec;
 }
 
 Value getreceivedbyaddress(const Array& params, bool fHelp)
