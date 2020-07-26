@@ -556,8 +556,8 @@ CPubKey SearchForPubKey(CBitcoinAddress addr)
     // beginning at the blockchain tip going back
     for (CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev)
     {
-        // assume verified blockchain
-        ReadBlockFromDisk(block, pindex);
+        if (!ReadBlockFromDisk(block, pindex))
+            return CPubKey();
 
         // skip coinbase (vtx[0])
         for (unsigned int i = 1; i < block.vtx.size(); i++)

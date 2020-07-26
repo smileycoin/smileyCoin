@@ -481,6 +481,9 @@ Value encryptmessage(const Array& params, bool fHelp)
 
     EnsureWalletIsUnlocked();
 
+    if (!fTxIndex)
+        throw JSONRPCError(RPC_MISC_ERROR, "Transaction indexing (txindex=1) must be set");
+
     string strAddress = params[0].get_str();
     string strMessage = params[1].get_str();
 
