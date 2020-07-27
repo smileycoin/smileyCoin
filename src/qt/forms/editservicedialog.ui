@@ -37,7 +37,28 @@
                                 </property>
                             </widget>
                         </item>
-                        <item row="1" column="0">
+                        <item row="1" column="1">
+                            <widget class="QLabel" name="sCounterName">
+                                <property name="font">
+                                    <font>
+                                        <family>Helvetica</family>
+                                        <pointsize>11</pointsize>
+                                        <weight>50</weight>
+                                        <bold>false</bold>
+                                    </font>
+                                </property>
+                                <property name="toolTip">
+                                    <string>Name can be no longer than 20 characters.</string>
+                                </property>
+                                <property name="styleSheet">
+                                    <string notr="true">QLabel { color: red; }</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                                </property>
+                            </widget>
+                        </item>
+                        <item row="2" column="0">
                             <widget class="QLabel" name="label_2">
                                 <property name="text">
                                     <string>Service Address</string>
@@ -47,14 +68,14 @@
                                 </property>
                             </widget>
                         </item>
-                        <item row="1" column="1">
+                        <item row="2" column="1">
                             <widget class="QValidatedLineEdit" name="serviceAddress">
                                 <property name="toolTip">
                                     <string>The address associated with this service</string>
                                 </property>
                             </widget>
                         </item>
-                        <item row="2" column="0">
+                        <item row="3" column="0">
                             <widget class="QLabel" name="label_3">
                                 <property name="text">
                                     <string>Service Type</string>
@@ -64,7 +85,7 @@
                                 </property>
                             </widget>
                         </item>
-                        <item row="2" column="1">
+                        <item row="3" column="1">
                             <widget class="QComboBox" name="serviceType">
                                 <property name="toolTip">
                                     <string>The type of service.</string>
@@ -114,7 +135,28 @@
                                 </property>
                             </widget>
                         </item>
-                        <item row="2" column="0">
+                        <item row="2" column="1">
+                            <widget class="QLabel" name="tCounterName">
+                                <property name="font">
+                                    <font>
+                                        <family>Helvetica</family>
+                                        <pointsize>11</pointsize>
+                                        <weight>50</weight>
+                                        <bold>false</bold>
+                                    </font>
+                                </property>
+                                <property name="toolTip">
+                                    <string>The label can be no longer than 20 characters.</string>
+                                </property>
+                                <property name="styleSheet">
+                                    <string notr="true">QLabel { color: red; }</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                                </property>
+                            </widget>
+                        </item>
+                        <item row="3" column="0">
                             <widget class="QLabel" name="label">
                                 <property name="text">
                                     <string>Location</string>
@@ -124,14 +166,35 @@
                                 </property>
                             </widget>
                         </item>
-                        <item row="2" column="1">
+                        <item row="3" column="1">
                             <widget class="QLineEdit" name="ticketLocation">
                                 <property name="toolTip">
                                     <string>The location associated with this ticket</string>
                                 </property>
                             </widget>
                         </item>
-                        <item row="3" column="0">
+                        <item row="4" column="1">
+                            <widget class="QLabel" name="tCounterLoc">
+                                <property name="font">
+                                    <font>
+                                        <family>Helvetica</family>
+                                        <pointsize>11</pointsize>
+                                        <weight>50</weight>
+                                        <bold>false</bold>
+                                    </font>
+                                </property>
+                                <property name="toolTip">
+                                    <string>The label can be no longer than 20 characters.</string>
+                                </property>
+                                <property name="styleSheet">
+                                    <string notr="true">QLabel { color: red; }</string>
+                                </property>
+                                <property name="alignment">
+                                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                                </property>
+                            </widget>
+                        </item>
+                        <item row="5" column="0">
                             <widget class="QLabel" name="dateTimeLabel">
                                 <property name="text">
                                     <string>Date and time</string>
@@ -141,11 +204,11 @@
                                 </property>
                             </widget>
                         </item>
-                        <item row="3" column="1">
+                        <item row="5" column="1">
                             <widget class="QDateTimeEdit" name="ticketDateTime">
                             </widget>
                         </item>
-                        <item row="4" column="0">
+                        <item row="6" column="0">
                             <widget class="QLabel" name="label_3">
                                 <property name="text">
                                     <string>Price</string>
@@ -155,14 +218,14 @@
                                 </property>
                             </widget>
                         </item>
-                        <item row="4" column="1">
+                        <item row="6" column="1">
                             <widget class="QLineEdit" name="ticketPrice">
                                 <property name="toolTip">
                                     <string>Set the ticket price</string>
                                 </property>
                             </widget>
                         </item>
-                        <item row="5" column="0">
+                        <item row="7" column="0">
                             <widget class="QLabel" name="label_2">
                                 <property name="text">
                                     <string>Address</string>
@@ -172,7 +235,7 @@
                                 </property>
                             </widget>
                         </item>
-                        <item row="5" column="1">
+                        <item row="7" column="1">
                             <widget class="QValidatedLineEdit" name="ticketAddress">
                                 <property name="toolTip">
                                     <string>The address associated with this ticket</string>
