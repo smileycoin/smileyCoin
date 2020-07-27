@@ -10,6 +10,8 @@
 #include "base58.h"
 #include "wallet.h"
 #include "servicelistdb.h"
+#include "serviceitemlistdb.h"
+
 
 #include <QFont>
 
@@ -63,7 +65,7 @@ public:
             LogPrintStr("cachedtickettable");
             //LOCK(wallet->cs_wallet);
             std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> retset;
-            ServiceList.GetServiceAddressInfo(retset);
+            ServiceItemList.GetTicketList(retset);
             for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator
                         it = retset.begin(); it!=retset.end(); it++ )
             {

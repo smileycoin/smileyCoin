@@ -22,6 +22,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <regex>
 
 #ifndef WIN32
 #include <sys/resource.h>
@@ -249,6 +250,19 @@ inline std::string hexToAscii(std::string dataStr)
         asciiData.push_back(chr);
     }
     return asciiData;
+}
+
+inline bool is_number(std::string s)
+{
+    return !s.empty() && std::find_if(s.begin(), 
+        s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
+}
+
+inline bool is_date(std::string s)
+{
+    std::string date = "^([1-9]|([012][0-9])|(3[01]))/([0]{0,1}[1-9]|1[012])/\d\d\d\d[012]{0,1}[0-9]:[0-6][0-9]$";
+    std::regex expr(date);
+    return std::regex_match(s, expr);
 }
 
 inline std::string i64tostr(int64_t n)

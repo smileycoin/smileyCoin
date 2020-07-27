@@ -7,6 +7,7 @@
 
 #include "richlistdb.h"
 #include "servicelistdb.h"
+#include "serviceitemlistdb.h"
 #include "core.h"
 #include "uint256.h"
 #include "base58.h"
@@ -19,7 +20,11 @@ static const char DB_COINS = 'c';
 static const char DB_BLOCK_FILES = 'f';
 static const char DB_TXINDEX = 't';
 static const char DB_SERVICEINFO = 'z';
-static const char DB_SERVICEADDRESSINFO = 'k';
+static const char DB_SERVICETICKETLIST = 'k';
+static const char DB_SERVICEUBILIST = 'u';
+static const char DB_SERVICEDEXLIST = 'd';
+static const char DB_SERVICENPOLIST = 'n';
+static const char DB_SERVICEBOOKLIST = 'm';
 static const char DB_ADDRESSINFO = 'a';
 static const char DB_BLOCK_INDEX = 'b';
 
@@ -29,7 +34,12 @@ static const char DB_REINDEX_FLAG = 'R';
 static const char DB_RICHLIST_FORK_FLAG = 'V';
 static const char DB_LAST_BLOCK = 'l';
 static const char DB_SERVICELIST_FORK_FLAG = 'S';
-static const char DB_SERVICEINFOLIST_FORK_FLAG = 'O';
+static const char DB_SERVICETICKETLIST_FORK_FLAG = 'O';
+static const char DB_SERVICEUBILIST_FORK_FLAG = 'U';
+static const char DB_SERVICEDEXLIST_FORK_FLAG = 'D';
+static const char DB_SERVICENPOLIST_FORK_FLAG = 'N';
+static const char DB_SERVICEBOOKLIST_FORK_FLAG = 'M';
+
 
 void static BatchWriteCoins(CLevelDBBatch &batch, const uint256 &hash, const CCoins &coins) {
     if (coins.IsPruned())
@@ -56,14 +66,59 @@ void static BatchWriteServiceInfo(CLevelDBBatch &batch, const CScript &key, cons
     }
 }
 
-void static BatchWriteServiceAddressInfo(CLevelDBBatch &batch, const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
+
+void static BatchWriteServiceTicketList(CLevelDBBatch &batch, const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
     opcodetype opcode;
     CScript::const_iterator pc = key.begin();
 
     if(key.GetOp(pc, opcode) && opcode == OP_RETURN) {
-        batch.Write(make_pair(DB_SERVICEADDRESSINFO, key), value);
+        batch.Write(make_pair(DB_SERVICETICKETLIST, key), value);
     } else {
-        batch.Erase(make_pair(DB_SERVICEADDRESSINFO, key));
+        batch.Erase(make_pair(DB_SERVICETICKETLIST, key));
+    }
+}
+
+void static BatchWriteServiceUbiList(CLevelDBBatch &batch, const CScript &key, const std::tuple<std::string, std::string> &value) {
+    opcodetype opcode;
+    CScript::const_iterator pc = key.begin();
+
+    if(key.GetOp(pc, opcode) && opcode == OP_RETURN) {
+        batch.Write(make_pair(DB_SERVICEUBILIST, key), value);
+    } else {
+        batch.Erase(make_pair(DB_SERVICEUBILIST, key));
+    }
+}
+
+void static BatchWriteServiceDexList(CLevelDBBatch &batch, const CScript &key, const std::tuple<std::string, std::string, std::string> &value) {
+    opcodetype opcode;
+    CScript::const_iterator pc = key.begin();
+
+    if(key.GetOp(pc, opcode) && opcode == OP_RETURN) {
+        batch.Write(make_pair(DB_SERVICEDEXLIST, key), value);
+    } else {
+        batch.Erase(make_pair(DB_SERVICEDEXLIST, key));
+    }
+}
+
+void static BatchWriteServiceNpoList(CLevelDBBatch &batch, const CScript &key, const std::tuple<std::string, std::string, std::string> &value) {
+    opcodetype opcode;
+    CScript::const_iterator pc = key.begin();
+
+    if(key.GetOp(pc, opcode) && opcode == OP_RETURN) {
+        batch.Write(make_pair(DB_SERVICENPOLIST, key), value);
+    } else {
+        batch.Erase(make_pair(DB_SERVICENPOLIST, key));
+    }
+}
+
+void static BatchWriteServiceBookList(CLevelDBBatch &batch, const CScript &key, const std::tuple<std::string, std::string> &value) {
+    opcodetype opcode;
+    CScript::const_iterator pc = key.begin();
+
+    if(key.GetOp(pc, opcode) && opcode == OP_RETURN) {
+        batch.Write(make_pair(DB_SERVICEBOOKLIST, key), value);
+    } else {
+        batch.Erase(make_pair(DB_SERVICEBOOKLIST, key));
     }
 }
 
@@ -94,13 +149,53 @@ bool CCoinsViewDB::SetServiceInfo(const CScript &key, const std::tuple<std::stri
     return db.WriteBatch(batch);
 }
 
-bool CCoinsViewDB::GetServiceAddressInfo(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
-    return db.Read(make_pair(DB_SERVICEADDRESSINFO, key), value);
+bool CCoinsViewDB::GetTicketList(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
+    return db.Read(make_pair(DB_SERVICETICKETLIST, key), value);
 }
 
-bool CCoinsViewDB::SetServiceAddressInfo(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
+bool CCoinsViewDB::SetTicketList(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
     CLevelDBBatch batch;
-    BatchWriteServiceAddressInfo(batch, key, value);
+    BatchWriteServiceTicketList(batch, key, value);
+    return db.WriteBatch(batch);
+}
+
+bool CCoinsViewDB::GetUbiList(const CScript &key, std::tuple<std::string, std::string> &value) {
+    return db.Read(make_pair(DB_SERVICEUBILIST, key), value);
+}
+
+bool CCoinsViewDB::SetUbiList(const CScript &key, const std::tuple<std::string, std::string> &value) {
+    CLevelDBBatch batch;
+    BatchWriteServiceUbiList(batch, key, value);
+    return db.WriteBatch(batch);
+}
+
+bool CCoinsViewDB::GetDexList(const CScript &key, std::tuple<std::string, std::string, std::string> &value) {
+    return db.Read(make_pair(DB_SERVICEDEXLIST, key), value);
+}
+
+bool CCoinsViewDB::SetDexList(const CScript &key, const std::tuple<std::string, std::string, std::string> &value) {
+    CLevelDBBatch batch;
+    BatchWriteServiceDexList(batch, key, value);
+    return db.WriteBatch(batch);
+}
+
+bool CCoinsViewDB::GetNpoList(const CScript &key, std::tuple<std::string, std::string, std::string> &value) {
+    return db.Read(make_pair(DB_SERVICENPOLIST, key), value);
+}
+
+bool CCoinsViewDB::SetNpoList(const CScript &key, const std::tuple<std::string, std::string, std::string> &value) {
+    CLevelDBBatch batch;
+    BatchWriteServiceNpoList(batch, key, value);
+    return db.WriteBatch(batch);
+}
+
+bool CCoinsViewDB::GetBookList(const CScript &key, std::tuple<std::string, std::string> &value) {
+    return db.Read(make_pair(DB_SERVICEBOOKLIST, key), value);
+}
+
+bool CCoinsViewDB::SetBookList(const CScript &key, const std::tuple<std::string, std::string> &value) {
+    CLevelDBBatch batch;
+    BatchWriteServiceBookList(batch, key, value);
     return db.WriteBatch(batch);
 }
 
@@ -134,7 +229,11 @@ bool CCoinsViewDB::SetBestBlock(const uint256 &hashBlock) {
 bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
                               const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
                               const std::map<CScript, std::tuple<std::string, std::string, std::string>> &mapServiceInfo,
-                              const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>> &mapServiceAddressInfo,
+                              const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>> &mapServiceTicketList,
+                              const std::map<CScript, std::tuple<std::string, std::string>> &mapServiceUbiList,
+                              const std::map<CScript, std::tuple<std::string, std::string, std::string>> &mapServiceDexList,
+                              const std::map<CScript, std::tuple<std::string, std::string, std::string>> &mapServiceNpoList,
+                              const std::map<CScript, std::tuple<std::string, std::string>> &mapServiceBookList,
                               const uint256 &hashBlock) {
     LogPrint("coindb", "Committing %u changed transactions and %u address balances to coin database...\n",(unsigned int)mapCoins.size(), (unsigned int)mapAddressInfo.size());
 
@@ -145,8 +244,16 @@ bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
         BatchWriteAddressInfo(batch, it->first, it->second);
     for (std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = mapServiceInfo.begin(); it != mapServiceInfo.end(); it++)
         BatchWriteServiceInfo(batch, it->first, it->second);
-    for (std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = mapServiceAddressInfo.begin(); it != mapServiceAddressInfo.end(); it++)
-        BatchWriteServiceAddressInfo(batch, it->first, it->second);
+    for (std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>::const_iterator it = mapServiceTicketList.begin(); it != mapServiceTicketList.end(); it++)
+        BatchWriteServiceTicketList(batch, it->first, it->second);
+    for (std::map<CScript, std::tuple<std::string, std::string>>::const_iterator it = mapServiceUbiList.begin(); it != mapServiceUbiList.end(); it++)
+        BatchWriteServiceUbiList(batch, it->first, it->second);
+    for (std::map<CScript, std::tuple<std::string, std::string, std::string>>::const_iterator it = mapServiceDexList.begin(); it != mapServiceDexList.end(); it++)
+        BatchWriteServiceDexList(batch, it->first, it->second);
+    for (std::map<CScript, std::tuple<std::string, std::string, std::string>>::const_iterator it = mapServiceNpoList.begin(); it != mapServiceNpoList.end(); it++)
+        BatchWriteServiceNpoList(batch, it->first, it->second);
+    for (std::map<CScript, std::tuple<std::string, std::string>>::const_iterator it = mapServiceBookList.begin(); it != mapServiceBookList.end(); it++)
+        BatchWriteServiceBookList(batch, it->first, it->second);
 
     if (hashBlock != uint256(0))
         BatchWriteHashBestChain(batch, hashBlock);
@@ -231,14 +338,15 @@ bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist) {
     return true;
 }
 
-bool CCoinsViewDB::GetServiceAddressInfo(CServiceList &servicelist) {
+
+bool CCoinsViewDB::GetTicketList(CServiceItemList &ticketlist) {
 
     leveldb::Iterator *pcursor = db.NewIterator();
 
     std::vector<unsigned char> v;
     v.assign(21,'0');
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
-    ssKeySet << make_pair(DB_SERVICEADDRESSINFO, CScript(v));
+    ssKeySet << make_pair(DB_SERVICETICKETLIST, CScript(v));
     pcursor->Seek(ssKeySet.str());
 
     while (pcursor->Valid())
@@ -250,14 +358,183 @@ bool CCoinsViewDB::GetServiceAddressInfo(CServiceList &servicelist) {
             CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
             std::pair<char,CScript> key;
             ssKey >> key;
-            if (key.first == DB_SERVICEADDRESSINFO)
+            if (key.first == DB_SERVICETICKETLIST)
             {
                 leveldb::Slice slValue = pcursor->value();
                 CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
-                std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> serviceaddressinfo;
-                ssValue >> serviceaddressinfo;
+                std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> ticketitem;
+                ssValue >> ticketitem;
 
-                servicelist.infoaddress.insert(make_pair(key.second, serviceaddressinfo));
+                //if(addressinfo.first >= RICH_AMOUNT)
+                    ticketlist.ticketitems.insert(make_pair(key.second, ticketitem));
+                pcursor->Next();
+            } else {
+                break;
+            }
+        } catch (std::exception &e) {
+            return error("%s : Deserialize or I/O error - %s", __func__, e.what());
+        }
+    }
+    delete pcursor;
+
+    return true;
+}
+
+
+bool CCoinsViewDB::GetUbiList(CServiceItemList &ubilist) {
+
+    leveldb::Iterator *pcursor = db.NewIterator();
+
+    std::vector<unsigned char> v;
+    v.assign(21,'0');
+    CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
+    ssKeySet << make_pair(DB_SERVICEUBILIST, CScript(v));
+    pcursor->Seek(ssKeySet.str());
+
+    while (pcursor->Valid())
+    {
+        boost::this_thread::interruption_point();
+        try
+        {
+            leveldb::Slice slKey = pcursor->key();
+            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
+            std::pair<char,CScript> key;
+            ssKey >> key;
+            if (key.first == DB_SERVICEUBILIST)
+            {
+                leveldb::Slice slValue = pcursor->value();
+                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
+                std::tuple<std::string, std::string> ubiitem;
+                ssValue >> ubiitem;
+
+                //if(addressinfo.first >= RICH_AMOUNT)
+                    ubilist.ubiitems.insert(make_pair(key.second, ubiitem));
+                pcursor->Next();
+            } else {
+                break;
+            }
+        } catch (std::exception &e) {
+            return error("%s : Deserialize or I/O error - %s", __func__, e.what());
+        }
+    }
+    delete pcursor;
+
+    return true;
+}
+
+
+bool CCoinsViewDB::GetDexList(CServiceItemList &dexlist) {
+
+    leveldb::Iterator *pcursor = db.NewIterator();
+
+    std::vector<unsigned char> v;
+    v.assign(21,'0');
+    CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
+    ssKeySet << make_pair(DB_SERVICEDEXLIST, CScript(v));
+    pcursor->Seek(ssKeySet.str());
+
+    while (pcursor->Valid())
+    {
+        boost::this_thread::interruption_point();
+        try
+        {
+            leveldb::Slice slKey = pcursor->key();
+            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
+            std::pair<char,CScript> key;
+            ssKey >> key;
+            if (key.first == DB_SERVICEDEXLIST)
+            {
+                leveldb::Slice slValue = pcursor->value();
+                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
+                std::tuple<std::string, std::string, std::string> dexitem;
+                ssValue >> dexitem;
+
+                //if(addressinfo.first >= RICH_AMOUNT)
+                    dexlist.dexitems.insert(make_pair(key.second, dexitem));
+                pcursor->Next();
+            } else {
+                break;
+            }
+        } catch (std::exception &e) {
+            return error("%s : Deserialize or I/O error - %s", __func__, e.what());
+        }
+    }
+    delete pcursor;
+
+    return true;
+}
+
+
+bool CCoinsViewDB::GetNpoList(CServiceItemList &npolist) {
+
+    leveldb::Iterator *pcursor = db.NewIterator();
+
+    std::vector<unsigned char> v;
+    v.assign(21,'0');
+    CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
+    ssKeySet << make_pair(DB_SERVICENPOLIST, CScript(v));
+    pcursor->Seek(ssKeySet.str());
+
+    while (pcursor->Valid())
+    {
+        boost::this_thread::interruption_point();
+        try
+        {
+            leveldb::Slice slKey = pcursor->key();
+            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
+            std::pair<char,CScript> key;
+            ssKey >> key;
+            if (key.first == DB_SERVICENPOLIST)
+            {
+                leveldb::Slice slValue = pcursor->value();
+                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
+                std::tuple<std::string, std::string, std::string> npoitem;
+                ssValue >> npoitem;
+
+                //if(addressinfo.first >= RICH_AMOUNT)
+                    npolist.npoitems.insert(make_pair(key.second, npoitem));
+                pcursor->Next();
+            } else {
+                break;
+            }
+        } catch (std::exception &e) {
+            return error("%s : Deserialize or I/O error - %s", __func__, e.what());
+        }
+    }
+    delete pcursor;
+
+    return true;
+}
+
+
+bool CCoinsViewDB::GetBookList(CServiceItemList &booklist) {
+
+    leveldb::Iterator *pcursor = db.NewIterator();
+
+    std::vector<unsigned char> v;
+    v.assign(21,'0');
+    CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
+    ssKeySet << make_pair(DB_SERVICEBOOKLIST, CScript(v));
+    pcursor->Seek(ssKeySet.str());
+
+    while (pcursor->Valid())
+    {
+        boost::this_thread::interruption_point();
+        try
+        {
+            leveldb::Slice slKey = pcursor->key();
+            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
+            std::pair<char,CScript> key;
+            ssKey >> key;
+            if (key.first == DB_SERVICEBOOKLIST)
+            {
+                leveldb::Slice slValue = pcursor->value();
+                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
+                std::tuple<std::string, std::string> bookitem;
+                ssValue >> bookitem;
+
+                //if(addressinfo.first >= RICH_AMOUNT)
+                    booklist.bookitems.insert(make_pair(key.second, bookitem));
                 pcursor->Next();
             } else {
                 break;
@@ -399,18 +676,66 @@ bool CBlockTreeDB::ReadServiceListFork(bool &fForked) {
     return true;
 }
 
-bool CBlockTreeDB::WriteServiceInfoListFork(bool fForked) {
+
+bool CBlockTreeDB::WriteServiceTicketListFork(bool fForked) {
     if (fForked)
-        return Write(DB_SERVICEINFOLIST_FORK_FLAG, '1');
+        return Write(DB_SERVICETICKETLIST_FORK_FLAG, '1');
     else
-        return Erase(DB_SERVICEINFOLIST_FORK_FLAG);
+        return Erase(DB_SERVICETICKETLIST_FORK_FLAG);
 }
 
-bool CBlockTreeDB::ReadServiceInfoListFork(bool &fForked) {
-    fForked = Exists(DB_SERVICEINFOLIST_FORK_FLAG);
+bool CBlockTreeDB::ReadServiceTicketListFork(bool &fForked) {
+    fForked = Exists(DB_SERVICETICKETLIST_FORK_FLAG);
     return true;
 }
 
+bool CBlockTreeDB::WriteServiceUbiListFork(bool fForked) {
+    if (fForked)
+        return Write(DB_SERVICEUBILIST_FORK_FLAG, '1');
+    else
+        return Erase(DB_SERVICEUBILIST_FORK_FLAG);
+}
+
+bool CBlockTreeDB::ReadServiceUbiListFork(bool &fForked) {
+    fForked = Exists(DB_SERVICEUBILIST_FORK_FLAG);
+    return true;
+}
+
+bool CBlockTreeDB::WriteServiceDexListFork(bool fForked) {
+    if (fForked)
+        return Write(DB_SERVICEDEXLIST_FORK_FLAG, '1');
+    else
+        return Erase(DB_SERVICEDEXLIST_FORK_FLAG);
+}
+
+bool CBlockTreeDB::ReadServiceDexListFork(bool &fForked) {
+    fForked = Exists(DB_SERVICEDEXLIST_FORK_FLAG);
+    return true;
+}
+
+bool CBlockTreeDB::WriteServiceNpoListFork(bool fForked) {
+    if (fForked)
+        return Write(DB_SERVICENPOLIST_FORK_FLAG, '1');
+    else
+        return Erase(DB_SERVICENPOLIST_FORK_FLAG);
+}
+
+bool CBlockTreeDB::ReadServiceNpoListFork(bool &fForked) {
+    fForked = Exists(DB_SERVICENPOLIST_FORK_FLAG);
+    return true;
+}
+
+bool CBlockTreeDB::WriteServiceBookListFork(bool fForked) {
+    if (fForked)
+        return Write(DB_SERVICEBOOKLIST_FORK_FLAG, '1');
+    else
+        return Erase(DB_SERVICEBOOKLIST_FORK_FLAG);
+}
+
+bool CBlockTreeDB::ReadServiceBookListFork(bool &fForked) {
+    fForked = Exists(DB_SERVICEBOOKLIST_FORK_FLAG);
+    return true;
+}
 
 bool CBlockTreeDB::WriteFlag(const std::string &name, bool fValue) {
     return Write(std::make_pair(DB_FLAG, name), fValue ? '1' : '0');

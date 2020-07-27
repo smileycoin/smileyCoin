@@ -39,10 +39,11 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             ui->serviceForm->show();
             setWindowTitle(tr("Create new service"));
             ui->serviceType->addItem("Ticket Sales"); // == ui->serviceType->setItemData(0, "Ticket Sales", Qt::DisplayRole);
-            ui->serviceType->addItem("Universal Basic Income (UBI)");
+            ui->serviceType->addItem("UBI");
             ui->serviceType->addItem("Book Chapter");
             ui->serviceType->addItem("Traceability");
             ui->serviceType->addItem("Nonprofit Organization");
+            ui->serviceType->addItem("DEX");
 
             break;
         }
@@ -106,17 +107,21 @@ void EditServiceDialog::accept()
                  // Get new service address and convert to hex
                  QString serviceAddress = ui->serviceAddress->text().toLatin1().toHex();
                  // Get type of new service and convert to hex
-                 QString rawServiceType = ui->serviceType->currentText().toLatin1().toHex();
-                 std::vector<std::string> typeStr = splitString(rawServiceType.toStdString(), "20");
-                 // Merge into one string if service type name consists of more than one word
+                 QString rawServiceType = ui->serviceType->currentText();
                  QString serviceType = "";
-                 if (typeStr.size() > 1) {
-                     for (std::string::size_type i = 0; i < typeStr.size(); i++) {
-                         serviceType += QString::fromStdString(typeStr.at(i));
-                     }
-                 } else {
-                     serviceType = rawServiceType;
-                 }
+                    if (rawServiceType == QString::fromStdString("Ticket Sales")) {
+                        serviceType = QString::number(31);
+                    } else if (rawServiceType == QString::fromStdString("UBI")) {
+                        serviceType = QString::number(32);
+                    } else if (rawServiceType == QString::fromStdString("Book Chapter")) {
+                        serviceType = QString::number(33);
+                    } else if (rawServiceType == QString::fromStdString("Traceability")) {
+                        serviceType = QString::number(34);
+                    } else if (rawServiceType == QString::fromStdString("Nonprofit Organization")) {
+                        serviceType = QString::number(35);
+                    } else if (rawServiceType == QString::fromStdString("DEX")) {
+                        serviceType = QString::number(36);
+                    }
 
                  SendCoinsRecipient issuer;
                  // Send new service request transaction to official service address
