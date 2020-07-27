@@ -72,14 +72,6 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
 
             break;
         }
-        case DeleteService:
-        {
-            ui->ticketForm->hide();
-            ui->serviceForm->hide();
-            setWindowTitle(tr("Delete service"));
-
-            break;
-        }
     }
 
     connect(ui->serviceName, SIGNAL(textChanged(const QString &)), this, SLOT(sNameCount(const QString &)));
@@ -225,11 +217,6 @@ void EditServiceDialog::accept()
                  }
              }
 
-             break;
-         }
-         case DeleteService:
-         {
-             LogPrintStr(" deleteservice-editservicedialog-208 ");
              break;
          }
          case NewTicket:
