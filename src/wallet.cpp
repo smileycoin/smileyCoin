@@ -1291,7 +1291,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
                     nFeeRet += nMoveToFee;
                 }
 
-                if (nChange > 0 && !isData)
+                if (nChange > 0)
                 {
                     // Fill a vout to ourself
                     // TODO: pass in scriptChange instead of reservekey so

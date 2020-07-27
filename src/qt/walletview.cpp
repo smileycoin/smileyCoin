@@ -21,6 +21,8 @@
 #include "walletmodel.h"
 #include "init.h"
 #include "servicelistdb.h"
+#include "servicetablemodel.h"
+#include "tickettablemodel.h"
 
 #include "ui_interface.h"
 
@@ -65,10 +67,11 @@ WalletView::WalletView(QWidget *parent):
     //addressBookPage->setModel(walletModel->getAddressTableModel());
 
     servicePage = new ServicePage(this);
-    //servicePage->setModel(walletModel->getServiceTableModel());
+    //servicePage->setServiceModel(walletModel->getServiceTableModel());
     servicePage->setWindowFlags(Qt::Widget);
 
     ticketPage = new TicketPage(this);
+    //ticketPage->setTicketModel(walletModel->getTicketTableModel());
     ticketPage->setWindowFlags(Qt::Widget);
 
     addWidget(overviewPage);
@@ -184,13 +187,19 @@ void WalletView::gotoHistoryPage()
 void WalletView::gotoServicePage()
 {
     servicePage->setWalletModel(walletModel);
-    servicePage->setServiceModel(walletModel->getServiceTableModel());
+
+    ServiceTableModel *serviceModel = new ServiceTableModel(true, pwalletMain, walletModel);
+    servicePage->setServiceModel(serviceModel);
+
     setCurrentWidget(servicePage);
 }
 
 void WalletView::gotoTicketPage() {
     ticketPage->setWalletModel(walletModel);
-    ticketPage->setTicketModel(walletModel->getTicketTableModel());
+
+    TicketTableModel *ticketModel = new TicketTableModel(pwalletMain, walletModel);
+    ticketPage->setTicketModel(ticketModel);
+
     setCurrentWidget(ticketPage);
 }
 

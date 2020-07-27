@@ -9,8 +9,8 @@
 #include "bitcoingui.h"
 #include "bitcoinunits.h"
 #include "guiutil.h"
-#include "util.h"
 #include "base58.h"
+#include "guiconstants.h"
 #include "coincontroldialog.h"
 #include "coincontrol.h"
 #include "optionsmodel.h"
@@ -45,13 +45,8 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             ui->serviceType->addItem("Nonprofit Organization");
             ui->serviceType->addItem("DEX");
 
-            break;
-        }
-        case DeleteService:
-        {
-            ui->ticketForm->hide();
-            ui->serviceForm->hide();
-            setWindowTitle(tr("Delete service"));
+            ui->serviceName->setMaxLength(20);
+            ui->sCounterName->setText("20 characters left");
 
             break;
         }
@@ -69,9 +64,19 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
                     ui->ticketService->addItem(QString::fromStdString(get<0>(it->second)));
                 }
             }
+            ui->ticketName->setMaxLength(20);
+            ui->tCounterName->setText("20 characters left");
+
+            ui->ticketLocation->setMaxLength(20);
+            ui->tCounterLoc->setText("20 characters left");
+
             break;
         }
     }
+
+    connect(ui->serviceName, SIGNAL(textChanged(const QString &)), this, SLOT(sNameCount(const QString &)));
+    connect(ui->ticketName, SIGNAL(textChanged(const QString &)), this, SLOT(tNameCount(const QString &)));
+    connect(ui->ticketLocation, SIGNAL(textChanged(const QString &)), this, SLOT(tLocationCount(const QString &)));
 }
 
 EditServiceDialog::~EditServiceDialog()
@@ -101,259 +106,285 @@ void EditServiceDialog::accept()
                                       tr("The entered address \"%1\" is not a valid Smileycoin address.").arg(ui->serviceAddress->text()),
                                       QMessageBox::Ok, QMessageBox::Ok);
                  return;
-             } else {
-                 // Get new service name and convert to hex
-                 QString serviceName = ui->serviceName->text().toLatin1().toHex();
-                 // Get new service address and convert to hex
-                 QString serviceAddress = ui->serviceAddress->text().toLatin1().toHex();
-                 // Get type of new service and convert to hex
-                 QString rawServiceType = ui->serviceType->currentText();
-                 QString serviceType = "";
-                    if (rawServiceType == QString::fromStdString("Ticket Sales")) {
-                        serviceType = QString::number(31);
-                    } else if (rawServiceType == QString::fromStdString("UBI")) {
-                        serviceType = QString::number(32);
-                    } else if (rawServiceType == QString::fromStdString("Book Chapter")) {
-                        serviceType = QString::number(33);
-                    } else if (rawServiceType == QString::fromStdString("Traceability")) {
-                        serviceType = QString::number(34);
-                    } else if (rawServiceType == QString::fromStdString("Nonprofit Organization")) {
-                        serviceType = QString::number(35);
-                    } else if (rawServiceType == QString::fromStdString("DEX")) {
-                        serviceType = QString::number(36);
-                    }
+             } 
+             
+             if (!IsMine(*pwalletMain, sAddress.Get())) {
+                 QMessageBox::warning(this, windowTitle(),
+                         tr("The entered address \"%1\" does not belong to this wallet. Please use one of your own addresses or create a new one.").arg(ui->serviceAddress->text()),
+                         QMessageBox::Ok, QMessageBox::Ok);
+                 return;
+             }
 
-                 SendCoinsRecipient issuer;
-                 // Send new service request transaction to official service address
-                 //issuer.address = QString::fromStdString("B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn");
-                 issuer.address = QString::fromStdString("B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc");
+            // Get new service name and convert to hex
+            QString serviceName = ui->serviceName->text().toLatin1().toHex();
+            // Get new service address and convert to hex
+            QString serviceAddress = ui->serviceAddress->text().toLatin1().toHex();
+            // Get type of new service and convert to hex
+            QString rawServiceType = ui->serviceType->currentText();
+            QString serviceType = "";
+            if (rawServiceType == QString::fromStdString("Ticket Sales")) {
+                serviceType = QString::number(31);
+            } else if (rawServiceType == QString::fromStdString("UBI")) {
+                serviceType = QString::number(32);
+            } else if (rawServiceType == QString::fromStdString("Book Chapter")) {
+                serviceType = QString::number(33);
+            } else if (rawServiceType == QString::fromStdString("Traceability")) {
+                serviceType = QString::number(34);
+            } else if (rawServiceType == QString::fromStdString("Nonprofit Organization")) {
+                serviceType = QString::number(35);
+            } else if (rawServiceType == QString::fromStdString("DEX")) {
+                serviceType = QString::number(36);
+            }
 
-                 // Start with n = 10 (0.001) to get rid of spam
-                 issuer.amount = 1000000000;
+             SendCoinsRecipient issuer;
+             // Send new service request transaction to official service address
+             //issuer.address = QString::fromStdString("B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn");
+             issuer.address = QString::fromStdString("B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc");
 
-                 // Create op_return in the following form OP_RETURN = "new service serviceName serviceAddress serviceType"
-                 issuer.data = QString::fromStdString("6e6577207365727669636520") + serviceName +
-                               QString::fromStdString("20") + serviceAddress + QString::fromStdString("20") + serviceType;
+             // Start with n = 10 (0.001) to get rid of spam
+             issuer.amount = 1000000000;
 
-                 QList <SendCoinsRecipient> recipients;
-                 recipients.append(issuer);
+             // Create op_return in the following form OP_RETURN = "new service serviceName serviceAddress serviceType"
+             issuer.data = QString::fromStdString("6e6577207365727669636520") + serviceName +
+                           QString::fromStdString("20") + serviceAddress + QString::fromStdString("20") + serviceType;
 
-                 // Format confirmation message
-                 QStringList formatted;
+             QList <SendCoinsRecipient> recipients;
+             recipients.append(issuer);
 
-                 // generate bold amount string
-                 QString amount = "<b>" + BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), issuer.amount);
-                 amount.append("</b>");
+             // Format confirmation message
+             QStringList formatted;
 
-                 // generate monospace address string
-                 QString address2 = "<span style='font-family: monospace;'>" + issuer.address;
-                 address2.append("</span>");
+             // generate bold amount string
+             QString amount = "<b>" + BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), issuer.amount);
+             amount.append("</b>");
 
-                 QString recipientElement = tr("%1 to %2").arg(amount, address2);
+             // generate monospace address string
+             QString address2 = "<span style='font-family: monospace;'>" + issuer.address;
+             address2.append("</span>");
 
-                 formatted.append(recipientElement);
+             QString recipientElement = tr("%1 to %2").arg(amount, address2);
 
-                 WalletModelTransaction currentTransaction(recipients);
-                 WalletModel::SendCoinsReturn prepareStatus;
-                 if (model->getOptionsModel()->getCoinControlFeatures()) // coin control enabled
-                     prepareStatus = model->prepareTransaction(currentTransaction, CoinControlDialog::coinControl);
-                 else
-                     prepareStatus = model->prepareTransaction(currentTransaction);
+             formatted.append(recipientElement);
 
-                 // process prepareStatus and on error generate message shown to user
-                 processSendCoinsReturn(prepareStatus,
-                                        BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(),
-                                                                     currentTransaction.getTransactionFee()));
+             WalletModelTransaction currentTransaction(recipients);
+             WalletModel::SendCoinsReturn prepareStatus;
+             if (model->getOptionsModel()->getCoinControlFeatures()) // coin control enabled
+                 prepareStatus = model->prepareTransaction(currentTransaction, CoinControlDialog::coinControl);
+             else
+                 prepareStatus = model->prepareTransaction(currentTransaction);
 
-                 qint64 txFee = currentTransaction.getTransactionFee();
-                 QString questionString = tr("Are you sure you want to create a new service?");
-                 questionString.append("<br /><br />%1");
+             // process prepareStatus and on error generate message shown to user
+             processSendCoinsReturn(prepareStatus,
+                                    BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(),
+                                                                 currentTransaction.getTransactionFee()));
 
-                 if (txFee > 0) {
-                     // append fee string if a fee is required
-                     questionString.append("<hr /><span style='color:#aa0000;'>");
-                     questionString.append(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), txFee));
-                     questionString.append("</span> ");
-                     questionString.append(tr("added as transaction fee"));
-                 }
+             qint64 txFee = currentTransaction.getTransactionFee();
+             QString questionString = tr("Are you sure you want to create a new service?");
+             questionString.append("<br /><br />%1");
 
-                 // add total amount in all subdivision units
-                 questionString.append("<hr />");
-                 qint64 totalAmount = currentTransaction.getTotalTransactionAmount() + txFee;
-                 QStringList alternativeUnits;
-                 foreach(BitcoinUnits::Unit u, BitcoinUnits::availableUnits())
-                 {
-                     if (u != model->getOptionsModel()->getDisplayUnit())
-                         alternativeUnits.append(BitcoinUnits::formatWithUnit(u, totalAmount));
-                 }
-                 questionString.append(tr("Total Amount %1 (= %2)")
-                                               .arg(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(),
-                                                                                 totalAmount))
-                                               .arg(alternativeUnits.join(" " + tr("or") + " ")));
+             if (txFee > 0) {
+                 // append fee string if a fee is required
+                 questionString.append("<hr /><span style='color:#aa0000;'>");
+                 questionString.append(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), txFee));
+                 questionString.append("</span> ");
+                 questionString.append(tr("added as transaction fee"));
+             }
 
-                 QMessageBox::StandardButton retval = QMessageBox::question(this,
-                                                                            tr("Confirm new service"),
-                                                                            questionString.arg(formatted.join("<br />")),
-                                                                            QMessageBox::Yes | QMessageBox::Cancel,
-                                                                            QMessageBox::Cancel);
+             // add total amount in all subdivision units
+             questionString.append("<hr />");
+             qint64 totalAmount = currentTransaction.getTotalTransactionAmount() + txFee;
+             QStringList alternativeUnits;
+             foreach(BitcoinUnits::Unit u, BitcoinUnits::availableUnits())
+             {
+                 if (u != model->getOptionsModel()->getDisplayUnit())
+                     alternativeUnits.append(BitcoinUnits::formatWithUnit(u, totalAmount));
+             }
+             questionString.append(tr("Total Amount %1 (= %2)")
+                                           .arg(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(),
+                                                                             totalAmount))
+                                           .arg(alternativeUnits.join(" " + tr("or") + " ")));
 
-                 if (retval == QMessageBox::Yes) {
-                     // now send the prepared transaction
-                     WalletModel::SendCoinsReturn sendStatus = model->sendCoins(currentTransaction);
-                     processSendCoinsReturn(sendStatus);
+             QMessageBox::StandardButton retval = QMessageBox::question(this,
+                                                                        tr("Confirm new service"),
+                                                                        questionString.arg(formatted.join("<br />")),
+                                                                        QMessageBox::Yes | QMessageBox::Cancel,
+                                                                        QMessageBox::Cancel);
 
-                     if (sendStatus.status == WalletModel::OK) {
-                         QDialog::accept();
-                         CoinControlDialog::coinControl->UnSelectAll();
-                     }
+             if (retval == QMessageBox::Yes) {
+                 // now send the prepared transaction
+                 WalletModel::SendCoinsReturn sendStatus = model->sendCoins(currentTransaction);
+                 processSendCoinsReturn(sendStatus);
+
+                 if (sendStatus.status == WalletModel::OK) {
+                     QDialog::accept();
+                     CoinControlDialog::coinControl->UnSelectAll();
                  }
              }
-             break;
-         }
-         case DeleteService:
-         {
-             LogPrintStr(" deleteservice-editservicedialog-208 ");
+
              break;
          }
          case NewTicket:
          {
+
              CBitcoinAddress tAddress = CBitcoinAddress(ui->ticketAddress->text().toStdString());
              if (!tAddress.IsValid()) {
                  QMessageBox::warning(this, windowTitle(),
-                                      tr("The entered address \"%1\" is not a valid Smileycoin address.").arg(ui->ticketAddress->text()),
-                                      QMessageBox::Ok, QMessageBox::Ok);
+                         tr("The entered address \"%1\" is not a valid Smileycoin address.").arg(ui->ticketAddress->text()),
+                         QMessageBox::Ok, QMessageBox::Ok);
                  return;
+             }
+
+             if (!IsMine(*pwalletMain, tAddress.Get())) {
+                 QMessageBox::warning(this, windowTitle(),
+                         tr("The entered address \"%1\" does not belong to this wallet. Please use one of your own addresses or create a new one.").arg(ui->serviceAddress->text()),
+                         QMessageBox::Ok, QMessageBox::Ok);
+                 return;
+             }
+
+             QString rawTicketService = ui->ticketService->currentText();
+             QString rawTicketLoc = ui->ticketLocation->text().toLatin1().toHex();
+             QString rawTicketName = ui->ticketName->text().toLatin1().toHex();
+             QString ticketDateTime = ui->ticketDateTime->dateTime().toString("dd/MM/yyyyhh:mm").toLatin1().toHex();
+             QString ticketPrice = ui->ticketPrice->text().toLatin1().toHex();
+             QString ticketAddress = ui->ticketAddress->text().toLatin1().toHex();
+
+             std::vector<std::string> nameStr = splitString(rawTicketName.toStdString(), "20");
+             std::vector<std::string> locStr = splitString(rawTicketLoc.toStdString(), "20");
+
+             // Merge into one string if ticket name or ticket location consists of more than one word
+             QString ticketName = "";
+             if (nameStr.size() > 1) {
+                 for (std::string::size_type i = 0; i < nameStr.size(); i++) {
+                     ticketName += QString::fromStdString(nameStr.at(i));
+                 }
              } else {
-                 QString rawTicketService = ui->ticketService->currentText();
-                 QString rawTicketLoc = ui->ticketLocation->text().toLatin1().toHex();
-                 QString rawTicketName = ui->ticketName->text().toLatin1().toHex();
-                 QString ticketDateTime = ui->ticketDateTime->dateTime().toString("dd/MM/yyyyhh:mm").toLatin1().toHex();
-                 QString ticketPrice = ui->ticketPrice->text().toLatin1().toHex();
-                 QString ticketAddress = ui->ticketAddress->text().toLatin1().toHex();
+                 ticketName = rawTicketName;
+             }
 
-                 std::vector<std::string> nameStr = splitString(rawTicketName.toStdString(), "20");
-                 std::vector<std::string> locStr = splitString(rawTicketLoc.toStdString(), "20");
-
-                 // Merge into one string if ticket name or ticket location consists of more than one word
-                 QString ticketName = "";
-                 if (nameStr.size() > 1) {
-                     for (std::string::size_type i = 0; i < nameStr.size(); i++) {
-                         ticketName += QString::fromStdString(nameStr.at(i));
-                     }
-                 } else {
-                     ticketName = rawTicketName;
+             QString ticketLoc = "";
+             if (locStr.size() > 1) {
+                 for (std::string::size_type i = 0; i < locStr.size(); i++) {
+                     ticketLoc += QString::fromStdString(locStr.at(i));
                  }
-
-                 QString ticketLoc = "";
-                 if (locStr.size() > 1) {
-                     for (std::string::size_type i = 0; i < locStr.size(); i++) {
-                         ticketLoc += QString::fromStdString(locStr.at(i));
-                     }
-                 } else {
-                     ticketLoc = rawTicketLoc;
-                 }
+             } else {
+                 ticketLoc = rawTicketLoc;
+             }
 
 
-                 QString ticketServiceAddress = "";
-                 SendCoinsRecipient issuer;
-                 // Send new ticket to own service address
-                 for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
-                 {
-                     if(rawTicketService == QString::fromStdString(get<0>(it->second))) {
-                         ticketServiceAddress = QString::fromStdString(get<1>(it->second));
-                     }
-                 }
-                 issuer.address = ticketServiceAddress;
-                 // Start with n = 1 to get rid of spam
-                 issuer.amount = 100000000;
-
-                 // Create op_return in the following form OP_RETURN = "new ticket ticketLoc ticketName ticketDate ticketTime ticketPrice ticketAddress"
-                 issuer.data = QString::fromStdString("6e6577207469636b657420") +
-                                  ticketLoc + QString::fromStdString("20") +
-                                  ticketName + QString::fromStdString("20") +
-                                  ticketDateTime + QString::fromStdString("20") +
-                                  ticketPrice + QString::fromStdString("20") +
-                                  ticketAddress;
-
-                 QList <SendCoinsRecipient> recipients;
-                 recipients.append(issuer);
-
-                 // Format confirmation message
-                 QStringList formatted;
-
-                 // generate bold amount string
-                 QString amount = "<b>" + BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), issuer.amount);
-                 amount.append("</b>");
-
-                 // generate monospace address string
-                 QString address2 = "<span style='font-family: monospace;'>" + issuer.address;
-                 address2.append("</span>");
-
-                 QString recipientElement = tr("%1 to %2").arg(amount, address2);
-
-                 formatted.append(recipientElement);
-
-                 WalletModelTransaction currentTransaction(recipients);
-                 WalletModel::SendCoinsReturn prepareStatus;
-                 if (model->getOptionsModel()->getCoinControlFeatures()) // coin control enabled
-                     prepareStatus = model->prepareTransaction(currentTransaction, CoinControlDialog::coinControl);
-                 else
-                     prepareStatus = model->prepareTransaction(currentTransaction);
-
-                 // process prepareStatus and on error generate message shown to user
-                 processSendCoinsReturn(prepareStatus,
-                                        BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(),
-                                                                     currentTransaction.getTransactionFee()));
-
-                 qint64 txFee = currentTransaction.getTransactionFee();
-                 QString questionString = tr("Are you sure you want to create a new ticket?");
-                 questionString.append("<br /><br />%1");
-
-                 if (txFee > 0) {
-                     // append fee string if a fee is required
-                     questionString.append("<hr /><span style='color:#aa0000;'>");
-                     questionString.append(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), txFee));
-                     questionString.append("</span> ");
-                     questionString.append(tr("added as transaction fee"));
-                 }
-
-                 // add total amount in all subdivision units
-                 questionString.append("<hr />");
-                 qint64 totalAmount = currentTransaction.getTotalTransactionAmount() + txFee;
-                 QStringList alternativeUnits;
-                 foreach(BitcoinUnits::Unit u, BitcoinUnits::availableUnits())
-                 {
-                     if (u != model->getOptionsModel()->getDisplayUnit())
-                         alternativeUnits.append(BitcoinUnits::formatWithUnit(u, totalAmount));
-                 }
-                 questionString.append(tr("Total Amount %1 (= %2)")
-                                               .arg(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(),
-                                                                                 totalAmount))
-                                               .arg(alternativeUnits.join(" " + tr("or") + " ")));
-
-                 QMessageBox::StandardButton retval = QMessageBox::question(this,
-                                                                            tr("Confirm new ticket"),
-                                                                            questionString.arg(formatted.join("<br />")),
-                                                                            QMessageBox::Yes | QMessageBox::Cancel,
-                                                                            QMessageBox::Cancel);
-
-                 if (retval == QMessageBox::Yes) {
-                     // now send the prepared transaction
-                     WalletModel::SendCoinsReturn sendStatus = model->sendCoins(currentTransaction);
-                     processSendCoinsReturn(sendStatus);
-
-                     if (sendStatus.status == WalletModel::OK) {
-                         QDialog::accept();
-                         CoinControlDialog::coinControl->UnSelectAll();
-                     } else {
-                         LogPrintStr("---bannad---");
-                         QDialog::reject();
-                     }
+             QString ticketServiceAddress = "";
+             SendCoinsRecipient issuer;
+             // Send new ticket to own service address
+             for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
+             {
+                 if(rawTicketService == QString::fromStdString(get<0>(it->second))) {
+                     ticketServiceAddress = QString::fromStdString(get<1>(it->second));
                  }
              }
+             issuer.address = ticketServiceAddress;
+             // Start with n = 1 to get rid of spam
+             issuer.amount = 100000000;
+
+             // Create op_return in the following form OP_RETURN = "new ticket ticketLoc ticketName ticketDate ticketTime ticketPrice ticketAddress"
+             issuer.data = QString::fromStdString("6e6577207469636b657420") +
+                              ticketLoc + QString::fromStdString("20") +
+                              ticketName + QString::fromStdString("20") +
+                              ticketDateTime + QString::fromStdString("20") +
+                              ticketPrice + QString::fromStdString("20") +
+                              ticketAddress;
+
+             QList <SendCoinsRecipient> recipients;
+             recipients.append(issuer);
+
+             // Format confirmation message
+             QStringList formatted;
+
+             // generate bold amount string
+             QString amount = "<b>" + BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), issuer.amount);
+             amount.append("</b>");
+
+             // generate monospace address string
+             QString address2 = "<span style='font-family: monospace;'>" + issuer.address;
+             address2.append("</span>");
+
+             QString recipientElement = tr("%1 to %2").arg(amount, address2);
+
+             formatted.append(recipientElement);
+
+             WalletModelTransaction currentTransaction(recipients);
+             WalletModel::SendCoinsReturn prepareStatus;
+             if (model->getOptionsModel()->getCoinControlFeatures()) // coin control enabled
+                 prepareStatus = model->prepareTransaction(currentTransaction, CoinControlDialog::coinControl);
+             else
+                 prepareStatus = model->prepareTransaction(currentTransaction);
+
+             // process prepareStatus and on error generate message shown to user
+             processSendCoinsReturn(prepareStatus,
+                                    BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(),
+                                                                 currentTransaction.getTransactionFee()));
+
+             qint64 txFee = currentTransaction.getTransactionFee();
+             QString questionString = tr("Are you sure you want to create a new ticket?");
+             questionString.append("<br /><br />%1");
+
+             if (txFee > 0) {
+                 // append fee string if a fee is required
+                 questionString.append("<hr /><span style='color:#aa0000;'>");
+                 questionString.append(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), txFee));
+                 questionString.append("</span> ");
+                 questionString.append(tr("added as transaction fee"));
+             }
+
+             // add total amount in all subdivision units
+             questionString.append("<hr />");
+             qint64 totalAmount = currentTransaction.getTotalTransactionAmount() + txFee;
+             QStringList alternativeUnits;
+             foreach(BitcoinUnits::Unit u, BitcoinUnits::availableUnits())
+             {
+                 if (u != model->getOptionsModel()->getDisplayUnit())
+                     alternativeUnits.append(BitcoinUnits::formatWithUnit(u, totalAmount));
+             }
+             questionString.append(tr("Total Amount %1 (= %2)")
+                                           .arg(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(),
+                                                                             totalAmount))
+                                           .arg(alternativeUnits.join(" " + tr("or") + " ")));
+
+             QMessageBox::StandardButton retval = QMessageBox::question(this,
+                                                                        tr("Confirm new ticket"),
+                                                                        questionString.arg(formatted.join("<br />")),
+                                                                        QMessageBox::Yes | QMessageBox::Cancel,
+                                                                        QMessageBox::Cancel);
+
+             if (retval == QMessageBox::Yes) {
+                 // now send the prepared transaction
+                 WalletModel::SendCoinsReturn sendStatus = model->sendCoins(currentTransaction);
+                 processSendCoinsReturn(sendStatus);
+
+                 if (sendStatus.status == WalletModel::OK) {
+                     QDialog::accept();
+                     CoinControlDialog::coinControl->UnSelectAll();
+                 } else {
+                     QDialog::reject();
+                 }
+             }
+
              break;
          }
      }
+}
+
+void EditServiceDialog::sNameCount(const QString & text) {
+    QString text_label = QString("%1 characters left").arg(ui->serviceName->maxLength() - text.size());
+    ui->sCounterName->setText(text_label);
+}
+
+void EditServiceDialog::tNameCount(const QString & text) {
+    QString text_label = QString("%1 characters left").arg(ui->ticketName->maxLength() - text.size());
+    ui->tCounterName->setText(text_label);
+}
+
+void EditServiceDialog::tLocationCount(const QString & text) {
+    QString text_label = QString("%1 characters left").arg(ui->ticketLocation->maxLength() - text.size());
+    ui->tCounterLoc->setText(text_label);
 }
 
 void EditServiceDialog::processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg)

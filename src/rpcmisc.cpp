@@ -13,6 +13,8 @@
 #include "richlistdb.h"
 #include "servicelistdb.h"
 #include "serviceitemlistdb.h"
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCDFAInspection"
 #ifdef ENABLE_WALLET
 #include "wallet.h"
 #include "walletdb.h"
@@ -129,95 +131,49 @@ Value getserviceaddresses(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error("getserviceaddresses\n"
-                           "Returns all verified addresses, ordered by the type of services they provide.\n"
-                            );
+                            "Returns all verified addresses, ordered by the type of services they provide.\n"
+        );
 
-    Object tick;
-    Object dex;
-    Object npo;
-    Object book;
-
-    Array arrt;
-    Array arrd;
-    Array arrn;
-    Array arrb;
-
-    Object objt;
-    Object objd;
-    Object objn;
-    Object objb;
-
-    Object obj2;
-    Array arr;
-
-    int a = 0;
-    int b = 0;
-    int c = 0;
-    int d = 0;
+    Object root;
+    Array tservices; /* TicketSales */
+    Array bservices; /* BookChapter */
+    Array nservices; /* NPO */
+    Array dservices; /* DEX */
+    Object name_address;
 
     std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
-
     ServiceList.GetServiceAddresses(retset);
 
+    // Loop through all existing services
     for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
     {
-        if (get<2>(it->second) == "1") {
-            tick.push_back(Pair(get<0>(it->second), get<1>(it->second)));
-            a++;
-        } else if (get<2>(it->second) == "6") {
-            dex.push_back(Pair(get<0>(it->second), get<1>(it->second)));
-            b++;
-        } else if (get<2>(it->second) == "5") {
-            npo.push_back(Pair(get<0>(it->second), get<1>(it->second)));
-            c++;
-        } else if (get<2>(it->second) == "3") {
-            book.push_back(Pair(get<0>(it->second), get<1>(it->second)));
-            d++;
+        name_address.clear();
+        // Ef service type er ticketsales
+        if (get<2>(it->second) == "TicketSales") {
+            name_address.push_back(Pair("name", get<0>(it->second)));
+            name_address.push_back(Pair("address", get<1>(it->second)));
+            tservices.push_back(name_address);
+        } else if (get<2>(it->second) == "BookChapter") {
+            name_address.push_back(Pair("name", get<0>(it->second)));
+            name_address.push_back(Pair("address", get<1>(it->second)));
+            bservices.push_back(name_address);
+        } else if (get<2>(it->second) == "NPO") {
+            name_address.push_back(Pair("name", get<0>(it->second)));
+            name_address.push_back(Pair("address", get<1>(it->second)));
+            nservices.push_back(name_address);
+        } else if (get<2>(it->second) == "DEX") {
+            name_address.push_back(Pair("name", get<0>(it->second)));
+            name_address.push_back(Pair("address", get<1>(it->second)));
+            dservices.push_back(name_address);
         }
     }
 
-    if (a > 0) {
-        arrt.push_back(tick);
-    }
-    if (b > 0) {
-        arrd.push_back(dex);
-    }
-    if (c > 0) {
-        arrn.push_back(npo);
-    }
-    if (d > 0) {
-        arrb.push_back(book);
-    }
+    root.push_back(Pair("Ticket Sales", tservices));
+    root.push_back(Pair("Book Chapter", bservices));
+    root.push_back(Pair("NPO", nservices));
+    root.push_back(Pair("DEX", dservices));
 
-    if (a > 0) {
-        objt.push_back(Pair("Ticket Sales: ", arrt));
-    }
-    if (b > 0) {
-        objd.push_back(Pair("DEX: ", arrd));
-    }
-    if (c > 0) {
-        objn.push_back(Pair("NPO: ", arrn));
-    }
-    if (d > 0) {
-        objb.push_back(Pair("Book Chapters: ", arrb));
-    }
-
-    if (a > 0) {
-        arr.push_back(objt);
-    }
-    if (b > 0) {
-        arr.push_back(objd);
-    }
-    if (c > 0) {
-        arr.push_back(objn);
-    }
-    if (d > 0) {
-        arr.push_back(objb);
-    }
-
-    obj2.push_back(Pair("List of services", arr));
-
-    return obj2;
+    return root;
 }
 
 Value getticketlist(const Array& params, bool fHelp)
@@ -243,15 +199,17 @@ Value getticketlist(const Array& params, bool fHelp)
     if (!isService)
         throw runtime_error("Not a valid service address");
 
-    Array arr;
     Object obj2;
+    Array arr;
     std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > info;
     ServiceItemList.GetTicketList(info);
 
-    for(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > >::const_iterator it = info.begin(); it!=info.end(); it++) {
-        
-        std::string toAddress = get<0>(it->second);
-        if (toAddress == address.ToString()) {
+    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    {
+        std::string ServiceAddress = get<0>(it->second);
+        if (ServiceAddress == address.ToString()) {
+            //obj.push_back(Pair("Sent to: ", get<0>(it->second)));
+            // obj = NULL eða initialize-a objectið
             Object obj;
             obj.push_back(Pair("Name: ", get<2>(it->second)));
             obj.push_back(Pair("Location: ", get<1>(it->second)));
@@ -642,3 +600,5 @@ Value verifymessage(const Array& params, bool fHelp)
 
     return (pubkey.GetID() == keyID);
 }
+
+#pragma clang diagnostic pop

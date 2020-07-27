@@ -52,7 +52,6 @@ class EditServiceDialog : public QDialog
 public:
     enum Mode {
         NewService,
-        DeleteService,
         NewTicket
     };
 
@@ -61,8 +60,16 @@ public:
 
     void setModel(WalletModel *model);
 
+signals:
+    void textChanged(const QString & text);
+
 public slots:
     void accept();
+
+private slots:
+    void sNameCount(const QString & text);
+    void tNameCount(const QString & text);
+    void tLocationCount(const QString & text);
 
 private:
     Ui::EditServiceDialog *ui;
