@@ -505,7 +505,7 @@ vector<uint8_t> EncryptMessage(const CPubKey pubkey, const string msg)
     size_t enc_len = 0;
     uint8_t *benc = encrypt_message(&enc_len, pubkey.begin(), (uint8_t*)&msg[0], msg.size());
     if (benc == NULL || enc_len == 0)
-        throw runtime_error("Jeeq::EncryptMessage(): failed to encrypt message");
+        return vector<uint8_t>{};
 
     vector<uint8_t> enc(benc, benc+enc_len);
     return enc;
@@ -524,8 +524,8 @@ string DecryptMessage(const CKey privkey, const vector<uint8_t> enc)
     CPubKey pubkey = privkey.GetPubKey();
     uint8_t *bdec = decrypt_message(&dec_len, privkey.begin(), pubkey.begin(),
                       enc.data(), enc.size());
-    if (bdec == NULL)
-        throw runtime_error("Jeeq::DecryptMessage(): failed to decrypt message");
+    if (bdec == NULL || dec_len == 0)
+        return string();
 
     string dec(bdec, bdec+dec_len);
     free(bdec);
