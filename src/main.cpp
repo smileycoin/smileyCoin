@@ -1865,6 +1865,16 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 										CBitcoinAddress newTicketAddress = CBitcoinAddress(hexToAscii(ticketAddress));
 										// If the ticket address is valid then save it to the db
 										//TODO bæta við check á dateandtime
+										if (is_number(hexToAscii(ticketValue))) {
+											LogPrintStr("is_number er true");
+										} else {
+											LogPrintStr("is_number er false");
+										}
+										if (is_date(hexToAscii(ticketDateAndTime))) {
+											LogPrintStr("is_date er true");
+										} else {
+											LogPrintStr("is_date er false");
+										}
 										if (newTicketAddress.IsValid() && is_number(hexToAscii(ticketValue)) && is_date(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 && ticketName.length() <= 40) {
 											std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
 											if(!view.GetTicketList(keyService,value))
@@ -2356,6 +2366,16 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 										CBitcoinAddress newTicketAddress = CBitcoinAddress(hexToAscii(ticketAddress));
 										// If the ticket address is valid then save it to the db
 										//TODO bæta við check á dateandtime
+										if (is_number(hexToAscii(ticketValue))) {
+											LogPrintStr("is_number er true");
+										} else {
+											LogPrintStr("is_number er false");
+										}
+										if (is_date(hexToAscii(ticketDateAndTime))) {
+											LogPrintStr("is_date er true");
+										} else {
+											LogPrintStr("is_date er false");
+										}
 										if (newTicketAddress.IsValid() && is_number(hexToAscii(ticketValue)) && is_date(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 && ticketName.length() <= 40) {
 											std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
 											value = std::make_tuple(toAddress, hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateAndTime), hexToAscii(ticketValue), hexToAscii(ticketAddress));
