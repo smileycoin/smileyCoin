@@ -1879,8 +1879,8 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                                     pwalletMain->NotifyTicketPageChanged(pwalletMain,
                                                                                          hexToAscii(ticketName),
                                                                                          hexToAscii(ticketLocation),
-                                                                                         hexToAscii(ticketDateTime),
-                                                                                         hexToAscii(ticketPrice),
+                                                                                         hexToAscii(ticketDateAndTime),
+                                                                                         hexToAscii(ticketValue),
                                                                                          hexToAscii(ticketAddress),
                                                                                          toAddress,
                                                                                          CT_NEW);
@@ -1967,6 +1967,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 										serviceBookList[keyService]=value;
 									}
 								}
+								
                                 // DELETE SERVICE
                                 // If op_return begins with "del service"
                                 if (hexData.substr(0, 22) == "64656c2073657276696365") {
@@ -2366,8 +2367,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                                 pwalletMain->NotifyTicketPageChanged(pwalletMain,
                                                         hexToAscii(ticketName),
                                                         hexToAscii(ticketLocation),
-                                                        hexToAscii(ticketDateTime),
-                                                        hexToAscii(ticketPrice),
+                                                        hexToAscii(ticketDateAndTime),
+                                                        hexToAscii(ticketValue),
                                                         hexToAscii(ticketAddress),
                                                         toAddress,
                                                         CT_NEW);
@@ -2436,7 +2437,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 									assert(view.SetBookList(keyService,value));
 									serviceBookList[keyService]=value;
 								}
-								
+
                                 // If op_return begins with "del service"
                                 if (hexData.substr(0, 22) == "64656c2073657276696365") {
                                     std::string deleteService = hexData.substr(22, hexString.size());

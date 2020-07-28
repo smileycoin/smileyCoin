@@ -23,6 +23,8 @@
 #include <utility>
 #include <vector>
 #include <regex>
+#include <algorithm>
+#include <cctype>
 
 #ifndef WIN32
 #include <sys/resource.h>
@@ -260,7 +262,7 @@ inline bool is_number(std::string s)
 
 inline bool is_date(std::string s)
 {
-    std::string date = "^([1-9]|([012][0-9])|(3[01]))/([0]{0,1}[1-9]|1[012])/\d\d\d\d[012]{0,1}[0-9]:[0-6][0-9]$";
+    std::string date = "^([1-9]|([012][0-9])|(3[01]))/([0]{0,1}[1-9]|1[012])/\d\d\d\d(([01]{0,1}[0-9])|(2[0-4])):[0-5][0-9]$";
     std::regex expr(date);
     return std::regex_match(s, expr);
 }
