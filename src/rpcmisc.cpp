@@ -126,6 +126,82 @@ Value getrichaddresses(const Array& params, bool fHelp)
     return obj;
 }
 
+Value createservice(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 3)
+        throw runtime_error(
+                "createservice \"servicename\" \"serviceaddress\" \"servicetype\" \n"
+                "\nCreate a new service on the blockchain. The price of creating a service is 10 SMLY.\n"
+                + HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1. \"servicename\"  (string, required) The service name associated with the service.\n"
+                "2. \"serviceaddress\"   (string, required) The smileycoin service address associated with the service. \n"
+                "3. \"servicetype\"    (numeric, required) The service type.\n \n"
+                "\nService types:\n"
+                "1 = TicketSales \n"
+                "2 = UBI \n"
+                "3 = BookChapter \n"
+                "4 = Traceability \n"
+                "5 = Charities \n"
+                "6 = DEX \n \n"
+
+                "\nResult:\n"
+                "\"transactionid\"  (string) The transaction id.\n"
+                "\nExamples:\n"
+                + HelpExampleCli("createservice", "Cinema 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd 1")
+                + HelpExampleCli("createservice", "Dracula 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd 3")
+                + HelpExampleRpc("createservice", "UNICEF 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd 5")
+        );
+
+    std::string serviceName = params[0].get_str();
+    std::string serviceAddress = params[1].get_str();
+    std::string serviceType = params[2].get_str();
+
+    CBitcoinAddress address(params[1].get_str());
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
+
+    // Amount
+    int64_t nValue = 10*COIN;
+    int64_t DEFAULT_AMOUNT = 0;
+
+    vector<pair<CScript, int64_t> > vecSend;
+
+    // Parse Smileycoin address
+    CBitcoinAddress toAddress("B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc");
+    CScript scriptPubKey;
+    scriptPubKey.SetDestination(toAddress.Get());
+
+    // Pay 10 SMLY to official service address
+    vecSend.push_back(make_pair(scriptPubKey, nValue));
+
+    vector<string> str;
+    int64_t amount = 0;
+
+    std::string txData = HexStr("new service " + serviceName + " " + serviceAddress + " " + serviceType, false);
+    str.push_back(txData);
+    vector<unsigned char> data = ParseHexV(str[0], "Data");
+
+    // Create op_return script in the form -> new service serviceName serviceAddress serviceType
+    vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
+
+    CWalletTx wtx;
+
+    EnsureWalletIsUnlocked();
+
+    // Send
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
+
+    return wtx.GetHash().GetHex();
+}
+
 Value getserviceaddresses(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
