@@ -15,6 +15,7 @@
 #include "hashqubit.h"
 
 #include <stdint.h>
+#include <cstdint>
 
 enum {
     ALGO_SHA256D = 0,

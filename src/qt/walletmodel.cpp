@@ -8,6 +8,8 @@
 #include "guiconstants.h"
 #include "recentrequeststablemodel.h"
 #include "transactiontablemodel.h"
+#include "servicetablemodel.h"
+#include "tickettablemodel.h"
 
 #include "base58.h"
 #include "db.h"
@@ -27,6 +29,8 @@
 
 WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent) :
     QObject(parent), wallet(wallet), optionsModel(optionsModel), addressTableModel(0),
+    serviceTableModel(0),
+    ticketTableModel(0),
     transactionTableModel(0),
     recentRequestsTableModel(0),
     cachedBalance(0), cachedUnconfirmedBalance(0), cachedImmatureBalance(0),
@@ -35,6 +39,8 @@ WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *p
     cachedNumBlocks(0)
 {
     addressTableModel = new AddressTableModel(wallet, this);
+    serviceTableModel = new ServiceTableModel(true, wallet, this);
+    ticketTableModel = new TicketTableModel(wallet, this);
     transactionTableModel = new TransactionTableModel(wallet, this);
     recentRequestsTableModel = new RecentRequestsTableModel(wallet, this);
 
@@ -156,6 +162,20 @@ void WalletModel::updateAddressBook(const QString &address, const QString &label
 {
     if(addressTableModel)
         addressTableModel->updateEntry(address, label, isMine, purpose, status);
+}
+
+void WalletModel::updateServicePage(const QString &serviceName, const QString &serviceAddress,
+        const QString &serviceType, int status)
+{
+    if(serviceTableModel)
+        serviceTableModel->updateEntry(serviceName, serviceAddress, serviceType, status);
+}
+
+void WalletModel::updateTicketPage(const QString &name, const QString &location, const QString &datetime,
+                                   const QString &price, const QString &address, const QString &service, int status)
+{
+    if(ticketTableModel)
+        ticketTableModel->updateTicketEntry(name, location, datetime, price, address, service, status);
 }
 
 bool WalletModel::validateAddress(const QString &address)
@@ -360,6 +380,16 @@ AddressTableModel *WalletModel::getAddressTableModel()
     return addressTableModel;
 }
 
+ServiceTableModel *WalletModel::getServiceTableModel()
+{
+    return serviceTableModel;
+}
+
+TicketTableModel *WalletModel::getTicketTableModel()
+{
+    return ticketTableModel;
+}
+
 TransactionTableModel *WalletModel::getTransactionTableModel()
 {
     return transactionTableModel;
@@ -454,6 +484,42 @@ static void NotifyAddressBookChanged(WalletModel *walletmodel, CWallet *wallet,
                               Q_ARG(int, status));
 }
 
+static void NotifyServicePageChanged(WalletModel *walletmodel, CWallet *wallet, const std::string &name,
+                                    const std::string &address, const std::string &type,
+                                    ChangeType status)
+{
+    QString strName = QString::fromStdString(name);
+    QString strAddress = QString::fromStdString(address);
+    QString strType = QString::fromStdString(type);
+
+    QMetaObject::invokeMethod(walletmodel, "updateServicePage", Qt::QueuedConnection,
+                              Q_ARG(QString, strName),
+                              Q_ARG(QString, strAddress),
+                              Q_ARG(QString, strType),
+                              Q_ARG(int, status));
+}
+
+static void NotifyTicketPageChanged(WalletModel *walletmodel, CWallet *wallet, const std::string &name,
+        const std::string &location, const std::string &datetime, const std::string &price, const std::string &address,
+        const std::string &service, ChangeType status)
+{
+    QString strName = QString::fromStdString(name);
+    QString strLocation = QString::fromStdString(location);
+    QString strDateTime = QString::fromStdString(datetime);
+    QString strPrice = QString::fromStdString(price);
+    QString strAddress = QString::fromStdString(address);
+    QString strService = QString::fromStdString(service);
+
+    QMetaObject::invokeMethod(walletmodel, "updateTicketPage", Qt::QueuedConnection,
+                              Q_ARG(QString, strName),
+                              Q_ARG(QString, strLocation),
+                              Q_ARG(QString, strDateTime),
+                              Q_ARG(QString, strPrice),
+                              Q_ARG(QString, strAddress),
+                              Q_ARG(QString, strService),
+                              Q_ARG(int, status));
+}
+
 // queue notifications to show a non freezing progress dialog e.g. for rescan
 static bool fQueueNotifications = false;
 static std::vector<std::pair<uint256, ChangeType> > vQueueNotifications;
@@ -497,6 +563,8 @@ void WalletModel::subscribeToCoreSignals()
     // Connect signals to wallet
     wallet->NotifyStatusChanged.connect(boost::bind(&NotifyKeyStoreStatusChanged, this, _1));
     wallet->NotifyAddressBookChanged.connect(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5, _6));
+    wallet->NotifyServicePageChanged.connect(boost::bind(NotifyServicePageChanged, this, _1, _2, _3, _4, _5 ));
+    wallet->NotifyTicketPageChanged.connect(boost::bind(NotifyTicketPageChanged, this, _1, _2, _3, _4, _5, _6, _7, _8));
     wallet->NotifyTransactionChanged.connect(boost::bind(NotifyTransactionChanged, this, _1, _2, _3));
     wallet->ShowProgress.connect(boost::bind(ShowProgress, this, _1, _2));
 }
@@ -506,6 +574,8 @@ void WalletModel::unsubscribeFromCoreSignals()
     // Disconnect signals from wallet
     wallet->NotifyStatusChanged.disconnect(boost::bind(&NotifyKeyStoreStatusChanged, this, _1));
     wallet->NotifyAddressBookChanged.disconnect(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5, _6));
+    wallet->NotifyServicePageChanged.disconnect(boost::bind(NotifyServicePageChanged, this, _1, _2, _3, _4, _5));
+    wallet->NotifyTicketPageChanged.disconnect(boost::bind(NotifyTicketPageChanged, this, _1, _2, _3, _4, _5, _6, _7, _8));
     wallet->NotifyTransactionChanged.disconnect(boost::bind(NotifyTransactionChanged, this, _1, _2, _3));
     wallet->ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));
 }

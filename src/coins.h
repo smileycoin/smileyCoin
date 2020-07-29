@@ -218,6 +218,18 @@ public:
     //Modify the balance of and height where a given scriptPubKey was last used.
     virtual bool SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value);
 
+    //Retrieve the balance of and height where a given scriptPubKey was last used.
+    virtual bool GetServiceInfo(const CScript &key, std::tuple<std::string, std::string, std::string> &value);
+
+    //Modify the balance of and height where a given scriptPubKey was last used.
+    virtual bool SetServiceInfo(const CScript &key, const std::tuple<std::string, std::string, std::string> &value);
+
+    //Retrieve the balance of and height where a given scriptPubKey was last used - serviceaddressinfo
+    virtual bool GetServiceAddressInfo(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+
+    //Modify the balance of and height where a given scriptPubKey was last used - serviceaddressinfo
+    virtual bool SetServiceAddressInfo(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+
     //Just check whether we have data for a given txid.
     virtual bool HaveCoins(const uint256 &txid);
 
@@ -228,7 +240,10 @@ public:
     virtual bool SetBestBlock(const uint256 &hashBlock);
 
     //Do a bulk modification (multiple SetCoins + one SetBestBlock)
-    virtual bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo, const uint256 &hashBlock);
+    virtual bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
+                            const std::map<CScript, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
+                            const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceAddressInfo,
+                            const uint256 &hashBlock);
 
     //Calculate statistics about the unspent transaction output set
     virtual bool GetStats(CCoinsStats &stats);
@@ -250,11 +265,18 @@ public:
     bool SetCoins(const uint256 &txid, const CCoins &coins);
     bool GetAddressInfo(const CScript &key, std::pair<int64_t,int> &value);
     bool SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value);
+    bool GetServiceInfo(const CScript &key, std::tuple<std::string, std::string, std::string> &value);
+    bool SetServiceInfo(const CScript &key, const std::tuple<std::string, std::string, std::string> &value);
+    bool GetServiceAddressInfo(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool SetServiceAddressInfo(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
     bool HaveCoins(const uint256 &txid);
     uint256 GetBestBlock();
     bool SetBestBlock(const uint256 &hashBlock);
     void SetBackend(CCoinsView &viewIn);
-    bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo, const uint256 &hashBlock);
+    bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
+                    const std::map<CScript, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
+                    const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceAddressInfo,
+                    const uint256 &hashBlock);
     bool GetStats(CCoinsStats &stats);
 };
 
@@ -266,6 +288,8 @@ protected:
     uint256 hashBlock;
     std::map<uint256,CCoins> cacheCoins;
     std::map<CScript, std::pair<int64_t,int> > cacheAddressInfo;
+    std::map<CScript, std::tuple<std::string, std::string, std::string> > cacheServiceInfo;
+    std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > cacheServiceAddressInfo;
 
 public:
     CCoinsViewCache(CCoinsView &baseIn, bool fDummy = false);
@@ -275,10 +299,17 @@ public:
     bool SetCoins(const uint256 &txid, const CCoins &coins);
     bool GetAddressInfo(const CScript &key, std::pair<int64_t,int> &value);
     bool SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value);
+    bool GetServiceInfo(const CScript &key, std::tuple<std::string, std::string, std::string> &value);
+    bool SetServiceInfo(const CScript &key, const std::tuple<std::string, std::string, std::string> &value);
+    bool GetServiceAddressInfo(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool SetServiceAddressInfo(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
     bool HaveCoins(const uint256 &txid);
     uint256 GetBestBlock();
     bool SetBestBlock(const uint256 &hashBlock);
-    bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo, const uint256 &hashBlock);
+    bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
+                    const std::map<CScript, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
+                    const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceAddressInfo,
+                    const uint256 &hashBlock);
 
     //Return a modifiable reference to a CCoins. Check HaveCoins first.
     CCoins &GetCoins(const uint256 &txid);

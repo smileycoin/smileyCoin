@@ -22,6 +22,7 @@ QT_FORMS_UI = \
   forms/askpassphrasedialog.ui \
   forms/coincontroldialog.ui \
   forms/editaddressdialog.ui \
+  forms/editservicedialog.ui \
   forms/helpmessagedialog.ui \
   forms/intro.ui \
   forms/openuridialog.ui \
@@ -32,6 +33,8 @@ QT_FORMS_UI = \
   forms/rpcconsole.ui \
   forms/sendcoinsdialog.ui \
   forms/sendcoinsentry.ui \
+  forms/servicepage.ui \
+  forms/ticketpage.ui \
   forms/signverifymessagedialog.ui \
   forms/transactiondescdialog.ui
 
@@ -48,6 +51,7 @@ QT_MOC_CPP = \
   moc_coincontroltreewidget.cpp \
   moc_csvmodelwriter.cpp \
   moc_editaddressdialog.cpp \
+  moc_editservicedialog.cpp \
   moc_guiutil.cpp \
   moc_intro.cpp \
   moc_macdockiconhandler.cpp \
@@ -67,6 +71,10 @@ QT_MOC_CPP = \
   moc_rpcconsole.cpp \
   moc_sendcoinsdialog.cpp \
   moc_sendcoinsentry.cpp \
+  moc_servicepage.cpp \
+  moc_servicetablemodel.cpp \
+  moc_tickettablemodel.cpp \
+  moc_ticketpage.cpp \
   moc_signverifymessagedialog.cpp \
   moc_splashscreen.cpp \
   moc_trafficgraphwidget.cpp \
@@ -110,6 +118,7 @@ BITCOIN_QT_H = \
   coincontroltreewidget.h \
   csvmodelwriter.h \
   editaddressdialog.h \
+  editservicedialog.h \
   guiconstants.h \
   guiutil.h \
   intro.h \
@@ -131,6 +140,10 @@ BITCOIN_QT_H = \
   rpcconsole.h \
   sendcoinsdialog.h \
   sendcoinsentry.h \
+  servicepage.h \
+  ticketpage.h \
+  servicetablemodel.h \
+  tickettablemodel.h \
   signverifymessagedialog.h \
   splashscreen.h \
   trafficgraphwidget.h \
@@ -220,6 +233,7 @@ BITCOIN_QT_CPP += \
   coincontroldialog.cpp \
   coincontroltreewidget.cpp \
   editaddressdialog.cpp \
+  editservicedialog.cpp \
   openuridialog.cpp \
   overviewpage.cpp \
   paymentrequestplus.cpp \
@@ -229,6 +243,10 @@ BITCOIN_QT_CPP += \
   recentrequeststablemodel.cpp \
   sendcoinsdialog.cpp \
   sendcoinsentry.cpp \
+  servicepage.cpp \
+  ticketpage.cpp \
+  servicetablemodel.cpp \
+  tickettablemodel.cpp \
   signverifymessagedialog.cpp \
   transactiondesc.cpp \
   transactiondescdialog.cpp \
