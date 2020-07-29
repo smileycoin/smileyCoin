@@ -42,7 +42,7 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             ui->serviceType->addItem("UBI");
             ui->serviceType->addItem("Book Chapter");
             ui->serviceType->addItem("Traceability");
-            ui->serviceType->addItem("NPO");
+            ui->serviceType->addItem("Nonprofit Organization");
             ui->serviceType->addItem("DEX");
 
             ui->serviceName->setMaxLength(20);
