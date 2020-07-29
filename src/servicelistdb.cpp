@@ -304,10 +304,27 @@ bool CServiceList::GetServiceAddresses(std::multiset<std::pair<CScript, std::tup
         std::string hexScript = HexStr(it->first);
         std::string hexData = hexScript.substr(4, hexScript.size());
         std::string asciiData = hexToAscii(hexData);
+        std::string displayType;
 
-        if(hexData.substr(0, 22) == "6e65772073657276696365") // if op_return begins with new service
+        // If op_return begins with new service
+        if(hexData.substr(0, 22) == "6e65772073657276696365")
         {
-            retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
+            if (get<2>(it->second) == "1") {
+                displayType = "Ticket Sales";
+            } else if (get<2>(it->second) == "2") {
+                displayType = "UBI";
+            } else if (get<2>(it->second) == "3") {
+                displayType = "Book Chapter";
+            } else if (get<2>(it->second) == "4") {
+                displayType = "Traceability";
+            } else if (get<2>(it->second) == "5") {
+                displayType = "Nonprofit Organization";
+            } else if (get<2>(it->second) == "6") {
+                displayType = "DEX";
+            } else {
+                displayType = get<2>(it->second);
+            }
+            retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), displayType)));
         }
     }
     return true;
@@ -318,10 +335,28 @@ bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<CScript, std::t
         std::string hexScript = HexStr(it->first);
         std::string hexData = hexScript.substr(4, hexScript.size());
         std::string asciiData = hexToAscii(hexData);
+        std::string displayType;
+
         if (IsMine(*pwalletMain, CBitcoinAddress(get<1>(it->second)).Get())) {
-            if(hexData.substr(0, 22) == "6e65772073657276696365") // if op_return begins with new service
+            // If op_return begins with new service
+            if(hexData.substr(0, 22) == "6e65772073657276696365")
             {
-                retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
+                if (get<2>(it->second) == "1") {
+                    displayType = "Ticket Sales";
+                } else if (get<2>(it->second) == "2") {
+                    displayType = "UBI";
+                } else if (get<2>(it->second) == "3") {
+                    displayType = "Book Chapter";
+                } else if (get<2>(it->second) == "4") {
+                    displayType = "Traceability";
+                } else if (get<2>(it->second) == "5") {
+                    displayType = "Nonprofit Organization";
+                } else if (get<2>(it->second) == "6") {
+                    displayType = "DEX";
+                } else {
+                    displayType = get<2>(it->second);
+                }
+                retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), displayType)));
             }
         }
     }
