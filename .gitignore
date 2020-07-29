@@ -9,17 +9,31 @@ src/smileycoin-cli
 src/test/test_smileycoin
 src/qt/test/test_smileycoin-qt
 
+#autoreconf
 Makefile.in
 aclocal.m4
 autom4te.cache/
+build-aux/config.guess
+build-aux/config.sub
+build-aux/depcomp
+build-aux/install-sh
+build-aux/ltmain.sh
+build-aux/libtool.m4
+build-aux/lt~obsolete.m4
+build-aux/ltoptions.m4
+build-aux/ltsugar.m4
+build-aux/ltversion.m4
+build-aux/missing
+build-aux/compile
+build-aux/test-driver
 config.log
 config.status
 configure
+libtool
 src/smileycoin-config.h
 src/smileycoin-config.h.in
 src/bitcoin-config.h
 src/bitcoin-config.h.in
-src/build-aux/
 src/stamp-h1
 misc/share/qt/Info.plist
 
