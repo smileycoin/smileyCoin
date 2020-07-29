@@ -588,8 +588,14 @@ bool IsFinalTx(const CTransaction &tx, int nBlockHeight, int64_t nBlockTime)
 }
 
 //
-// Check transaction inputs, and make sure any
-// pay-to-script-hash transactions are evaluating IsStandard scripts
+// Check transaction inputs to mitigate two
+// potential denial-of-service attacks:
+//
+// 1. scriptSigs with extra data stuffed into them,
+//    not consumed by scriptPubKey (or P2SH script)
+// 2. P2SH scripts with a crazy number of expensive
+//    CHECKSIG/CHECKMULTISIG operations
+//
 bool AreInputsStandard(const CTransaction& tx, CCoinsViewCache& mapInputs)
 {
 	if (tx.IsCoinBase())
@@ -612,8 +618,9 @@ bool AreInputsStandard(const CTransaction& tx, CCoinsViewCache& mapInputs)
 		// Transactions with extra stuff in their scriptSigs are
 		// non-standard. Note that this EvalScript() call will
 		// be quick, because if there are any operations
-		// beside "push data" in the scriptSig the
-		// IsStandard() call returns false
+		// beside "push data" in the scriptSig
+		// IsStandard() will have already returned false
+    // and this method isn't called.
 		vector<vector<unsigned char> > stack;
 		if (!EvalScript(stack, tx.vin[i].scriptSig, tx, i, false, 0))
 			return false;
@@ -625,16 +632,20 @@ bool AreInputsStandard(const CTransaction& tx, CCoinsViewCache& mapInputs)
 			CScript subscript(stack.back().begin(), stack.back().end());
 			vector<vector<unsigned char> > vSolutions2;
 			txnouttype whichType2;
-			if (!Solver(subscript, whichType2, vSolutions2))
-				return false;
-			if (whichType2 == TX_SCRIPTHASH)
-				return false;
-
-			int tmpExpected;
-			tmpExpected = ScriptSigArgsExpected(whichType2, vSolutions2);
-			if (tmpExpected < 0)
-				return false;
-			nArgsExpected += tmpExpected;
+      if (Solver(subscript, whichType2, vSolutions2))
+      {
+          int tmpExpected = ScriptSigArgsExpected(whichType2, vSolutions2);
+          if (tmpExpected < 0)
+              return false;
+          nArgsExpected += tmpExpected;
+      }
+      else
+      {
+          // Any other Script with less than 15 sigops OK:
+          unsigned int sigops = subscript.GetSigOpCount(true);
+          // ... extra data left on the stack after execution is OK, too:
+          return (sigops <= MAX_P2SH_SIGOPS);
+      }
 		}
 
 		if (stack.size() != (unsigned int)nArgsExpected)
@@ -832,9 +843,9 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
 		return state.DoS(100, error("AcceptToMemoryPool: : coinbase as individual tx"),
 				REJECT_INVALID, "coinbase");
 
-	// Rather not work on nonstandard transactions.
+	// Rather not work on nonstandard transactions (unless -testnet/-regtest)
 	string reason;
-	if (!IsStandardTx(tx, reason))
+	if (Params().NetworkID() == CChainParams::MAIN && !IsStandardTx(tx, reason))
 		return state.DoS(0, error("AcceptToMemoryPool : nonstandard transaction: %s", reason), REJECT_NONSTANDARD, reason);
 
 	// is it already in the memory pool?
@@ -1303,6 +1314,22 @@ unsigned int static GetNextWorkRequired_Original(const CBlockIndex* pindexLast, 
     // Only change once per interval
     if ((pindexLast->nHeight+1) % nInterval != 0)
     {
+        // Special difficulty rule for testnet:
+        if (TestNet())
+        {
+            // If the new block's timestamp is more than 2* 10 minutes
+            // then allow mining of a min-difficulty block.
+            if (pblock->nTime > pindexLast->nTime + nTargetSpacing*2)
+                return nProofOfWorkLimit;
+            else
+            {
+                // Return the last non-special-min-difficulty-rules-block
+                const CBlockIndex* pindex = pindexLast;
+                while (pindex->pprev && pindex->nHeight % nInterval != 0 && pindex->nBits == nProofOfWorkLimit)
+                    pindex = pindex->pprev;
+                return pindex->nBits;
+            }
+        }
         return pindexLast->nBits;
     }
 
@@ -1353,6 +1380,21 @@ unsigned int static GetNextWorkRequired_Original(const CBlockIndex* pindexLast, 
 static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, const CBlockHeader *pblock, int algo)
 {
 	unsigned int nProofOfWorkLimit = Params().ProofOfWorkLimit(algo).GetCompact();
+
+	//if (TestNet())
+	//{
+	//	// Testnet minimum difficulty block if it goes over normal block time.
+	//	if (pblock->nTime > pindexLast->nTime + nTargetSpacing*2)
+	//		return nProofOfWorkLimit;
+	//	else
+	//	{
+	//		// Return the last non-special-min-difficulty-rules-block
+	//		const CBlockIndex* pindex = pindexLast;
+	//		while (pindex->pprev && pindex->nHeight % nInterval != 0 && pindex->nBits == nProofOfWorkLimit)
+	//			pindex = pindex->pprev;
+	//		return pindex->nBits;
+	//	}
+	//}
 
 	//LogPrintf("GetNextWorkRequired RETARGET\n");
 	//LogPrintf("Algo: %s\n", GetAlgoName(algo));
@@ -1438,12 +1480,22 @@ static unsigned int GetNextWorkRequiredMULTI(const CBlockIndex* pindexLast, cons
 
 unsigned int GetNextWorkRequired(const CBlockIndex * pindexLast, const CBlockHeader * pblock, int algo)
 {
-    if (pindexLast->nHeight+1 < nRichForkHeight) {
-        return GetNextWorkRequired_Original(pindexLast, pblock, algo);
+    if (TestNet()) {
+        if (pindexLast->nHeight+1 < 50) {
+            return GetNextWorkRequired_Original(pindexLast, pblock, algo);
+        }
+        else {
+            return GetNextWorkRequiredMULTI(pindexLast, pblock, algo);
+        }
     }
     else {
-        return GetNextWorkRequiredMULTI(pindexLast, pblock, algo);
-    }    
+        if (pindexLast->nHeight+1 < nRichForkHeight) {
+            return GetNextWorkRequired_Original(pindexLast, pblock, algo);
+        }
+        else {
+            return GetNextWorkRequiredMULTI(pindexLast, pblock, algo);
+        }
+    }
 }
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, int algo)
@@ -1625,6 +1677,10 @@ void static InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state
 void UpdateTime(CBlockHeader& block, const CBlockIndex* pindexPrev)
 {
 	block.nTime = max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
+
+	// Updating time can change work required on testnet:
+	//if (TestNet())
+	//	block.nBits = GetNextWorkRequired(pindexPrev, &block, block.GetAlgo());
 }
 
 void UpdateCoins(const CTransaction& tx, CValidationState &state, CCoinsViewCache &inputs, CTxUndo &txundo, int nHeight, const uint256 &txhash)
@@ -2666,7 +2722,7 @@ bool ActivateBestChain(CValidationState &state) {
         else {
             ServiceList.SetForked(false);
         }
-		
+
 		// Connect new blocks.
 		while (!chainActive.Contains(chainMostWork.Tip())) {
 			CBlockIndex *pindexConnect = chainMostWork[chainActive.Height() + 1];
@@ -2936,10 +2992,10 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 		return state.Invalid(error("CheckBlock() : block timestamp too far in the future"),
 				REJECT_INVALID, "time-too-new");
 
-	// Check amount of algos in row 
+	// Check amount of algos in row
 	if(pindexPrev) {
 		// Check count of sequence of same algo
-		if (nHeight >= (nRichForkHeight + nBlockSequentialAlgoMaxCount)) {
+		if ( (TestNet() && (nHeight >= 100)) || (nHeight > (nRichForkHeight + nBlockSequentialAlgoMaxCount)) ) {
 			int nAlgo = block.GetAlgo();
 			int nAlgoCount = 1;
 			CBlockIndex* piPrev = pindexPrev;
@@ -3021,6 +3077,26 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		pindexPrev = (*mi).second;
 		nHeight = pindexPrev->nHeight+1;
 
+	/** // Check count of sequence of same algo
+	if ( (TestNet() && (nHeight >= 100)) || (nHeight > (multiAlgoDiffChangeTarget + nBlockSequentialAlgoMaxCount)) )
+	{
+			int nAlgo = block.GetAlgo();
+			int nAlgoCount = 1;
+			CBlockIndex* piPrev = pindexPrev;
+			while (piPrev && (nAlgoCount <= nBlockSequentialAlgoMaxCount))
+			{
+					if (piPrev->GetAlgo() != nAlgo)
+							break;
+					nAlgoCount++;
+					piPrev = piPrev->pprev;
+			}
+			if (nAlgoCount > nBlockSequentialAlgoMaxCount)
+			{
+					return state.DoS(100, error("AcceptBlock() : too many blocks from same algo"),
+													REJECT_INVALID, "algo-toomany");
+		}
+	}	**/
+
 		// Check proof of work
 		// BioMike: There is a problem here:
 		//   A check on hash validation, based on block.Bits has already been performed (See CheckBlock(...)),
@@ -3029,7 +3105,7 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		//	return state.DoS(100, error("AcceptBlock() : incorrect proof of work"), 
 		//				    REJECT_INVALID, "bad-diffbits");
 
-		if ( nHeight < nRichForkHeight && block.GetAlgo() != ALGO_SCRYPT )
+		if ( !TestNet() && nHeight < nRichForkHeight && block.GetAlgo() != ALGO_SCRYPT )
 			return state.Invalid(error("AcceptBlock() : incorrect hasing algo, only scrypt accepted until block %d", nRichForkHeight),
 					REJECT_INVALID, "bad-hashalgo");
 
@@ -3054,23 +3130,32 @@ bool AcceptBlock(CBlock& block, CValidationState& state, CDiskBlockPos* dbp)
 		if (pcheckpoint && nHeight < pcheckpoint->nHeight)
 			return state.DoS(100, error("AcceptBlock() : forked chain older than last checkpoint (height %d)", nHeight));
 
-		// Reject block.nVersion=1 blocks when 95% of the network has upgraded:
+		// Reject block.nVersion=1 blocks when 95% (75% on testnet) of the network has upgraded:
 		if (block.nVersion < 2)
 		{
-			return state.Invalid(error("AcceptBlock() : rejected nVersion=1 block"),
-					REJECT_OBSOLETE, "bad-version");
+			if ((!TestNet() && CBlockIndex::IsSuperMajority(2, pindexPrev, 950, 1000)) ||
+					(TestNet() && CBlockIndex::IsSuperMajority(2, pindexPrev, 75, 100)))
+			{
+				return state.Invalid(error("AcceptBlock() : rejected nVersion=1 block"),
+						REJECT_OBSOLETE, "bad-version");
+			}
 		}
 		// Enforce block.nVersion=2 rule that the coinbase starts with serialized block height
 		if (block.nVersion >= 2)
 		{
-			CScript expect = CScript() << nHeight;
-			if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
-					!std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin()))
-				return state.DoS(100, error("AcceptBlock() : block height mismatch in coinbase"),
-						REJECT_INVALID, "bad-cb-height");
+			// if 750 of the last 1,000 blocks are version 2 or greater (51/100 if testnet):
+			if ((!TestNet() && CBlockIndex::IsSuperMajority(2, pindexPrev, 750, 1000)) ||
+					(TestNet() && CBlockIndex::IsSuperMajority(2, pindexPrev, 51, 100)))
+			{
+				CScript expect = CScript() << nHeight;
+				if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
+						!std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin()))
+					return state.DoS(100, error("AcceptBlock() : block height mismatch in coinbase"),
+							REJECT_INVALID, "bad-cb-height");
+			}
 		}
 	}
-    
+
 	// Write block to history file
 	try {
 		unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);

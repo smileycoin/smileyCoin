@@ -10,7 +10,6 @@
 #include "core.h"
 #include "uint256.h"
 #include "base58.h"
-#include "rpcserver.h"
 
 #include <stdint.h>
 
@@ -66,15 +65,6 @@ void static BatchWriteServiceInfo(CLevelDBBatch &batch, const CScript &key, cons
 
     } else if (hexData.substr(0, 22) == "6e65772073657276696365") { // If op_return begins with new service
         batch.Write(make_pair(DB_SERVICEINFO, key), value);
-    }
-
-    opcodetype opcode;
-    CScript::const_iterator pc = key.begin();
-
-    if(key.GetOp(pc, opcode) && opcode == OP_RETURN) {
-        batch.Write(make_pair(DB_SERVICEINFO, key), value);
-    } else {
-        batch.Erase(make_pair(DB_SERVICEINFO, key));
     }
 }
 

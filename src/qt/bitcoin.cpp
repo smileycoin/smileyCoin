@@ -178,9 +178,9 @@ public:
     /// Create options model
     void createOptionsModel();
     /// Create main window
-    void createWindow();
+    void createWindow(bool isaTestNet);
     /// Create splash screen
-    void createSplashScreen();
+    void createSplashScreen(bool isaTestNet);
 
     /// Request core initialization
     void requestInitialize();
@@ -317,18 +317,18 @@ void BitcoinApplication::createOptionsModel()
     optionsModel = new OptionsModel();
 }
 
-void BitcoinApplication::createWindow()
+void BitcoinApplication::createWindow(bool isaTestNet)
 {
-    window = new BitcoinGUI(0);
+    window = new BitcoinGUI(isaTestNet, 0);
 
     pollShutdownTimer = new QTimer(window);
     connect(pollShutdownTimer, SIGNAL(timeout()), window, SLOT(detectShutdown()));
     pollShutdownTimer->start(200);
 }
 
-void BitcoinApplication::createSplashScreen()
+void BitcoinApplication::createSplashScreen(bool isaTestNet)
 {
-    SplashScreen *splash = new SplashScreen(QPixmap(), 0);
+    SplashScreen *splash = new SplashScreen(QPixmap(), 0, isaTestNet);
     splash->setAttribute(Qt::WA_DeleteOnClose);
     splash->show();
     connect(this, SIGNAL(splashFinished(QWidget*)), splash, SLOT(slotFinish(QWidget*)));
@@ -535,12 +535,22 @@ int main(int argc, char *argv[])
     // - QSettings() will use the new application name after this, resulting in network-specific settings
     // - Needs to be done before createOptionsModel
 
+    // Check for -testnet or -regtest parameter (Params() calls are only valid after this clause)
+    if (!SelectParamsFromCommandLine()) {
+        QMessageBox::critical(0, QObject::tr("Auroracoin"), QObject::tr("Error: Invalid combination of -regtest and -testnet."));
+        return 1;
+    }
 #ifdef ENABLE_WALLET
     // Parse URIs on command line -- this can affect Params()
     if (!PaymentServer::ipcParseCommandLine(argc, argv))
         exit(0);
 #endif
-    QApplication::setApplicationName(QAPP_APP_NAME_DEFAULT);
+    bool isaTestNet = Params().NetworkID() != CChainParams::MAIN;
+    // Allow for separate UI settings for testnets
+    if (isaTestNet)
+        QApplication::setApplicationName(QAPP_APP_NAME_TESTNET);
+    else
+        QApplication::setApplicationName(QAPP_APP_NAME_DEFAULT);
     // Re-initialize translations after changing application name (language in network-specific settings can be different)
     initTranslations(qtTranslatorBase, qtTranslator, translatorBase, translator);
 
@@ -580,11 +590,11 @@ int main(int argc, char *argv[])
     uiInterface.InitMessage.connect(InitMessage);
 
     if (GetBoolArg("-splash", true) && !GetBoolArg("-min", false))
-        app.createSplashScreen();
+        app.createSplashScreen(isaTestNet);
 
     try
     {
-        app.createWindow();
+        app.createWindow(isaTestNet);
         app.requestInitialize();
 #if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
         WinShutdownMonitor::registerShutdownBlockReason(QObject::tr("Smileycoin Core didn't yet exit safely..."), (HWND)app.getMainWinId());
