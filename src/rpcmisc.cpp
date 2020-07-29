@@ -316,19 +316,19 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     {
         name_address.clear();
         // Ef service type er ticketsales
-        if (get<2>(it->second) == "TicketSales") {
+        if (get<2>(it->second) == "1") {
             name_address.push_back(Pair("name", get<0>(it->second)));
             name_address.push_back(Pair("address", get<1>(it->second)));
             tservices.push_back(name_address);
-        } else if (get<2>(it->second) == "BookChapter") {
+        } else if (get<2>(it->second) == "3") {
             name_address.push_back(Pair("name", get<0>(it->second)));
             name_address.push_back(Pair("address", get<1>(it->second)));
             bservices.push_back(name_address);
-        } else if (get<2>(it->second) == "NPO") {
+        } else if (get<2>(it->second) == "5") {
             name_address.push_back(Pair("name", get<0>(it->second)));
             name_address.push_back(Pair("address", get<1>(it->second)));
             nservices.push_back(name_address);
-        } else if (get<2>(it->second) == "DEX") {
+        } else if (get<2>(it->second) == "6") {
             name_address.push_back(Pair("name", get<0>(it->second)));
             name_address.push_back(Pair("address", get<1>(it->second)));
             dservices.push_back(name_address);
@@ -337,7 +337,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
 
     root.push_back(Pair("Ticket Sales", tservices));
     root.push_back(Pair("Book Chapter", bservices));
-    root.push_back(Pair("NPO", nservices));
+    root.push_back(Pair("Nonprofit Organization", nservices));
     root.push_back(Pair("DEX", dservices));
 
     return root;
