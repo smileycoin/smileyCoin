@@ -75,6 +75,7 @@ private:
     Ui::EditServiceDialog *ui;
     Mode mode;
     WalletModel *model;
+    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> services;
     std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> myServices;
     void processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg = QString());
 };

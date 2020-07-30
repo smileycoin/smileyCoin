@@ -60,7 +60,8 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             ServiceList.GetMyServiceAddresses(myServices);
             for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
             {
-                if(get<2>(it->second) == "TicketSales" || get<2>(it->second) == "Ticketsales") {
+                // If service type is Ticket Sales add to dropdown selection
+                if(get<2>(it->second) == "1") {
                     ui->ticketService->addItem(QString::fromStdString(get<0>(it->second)));
                 }
             }
@@ -113,6 +114,18 @@ void EditServiceDialog::accept()
                          tr("The entered address \"%1\" does not belong to this wallet. Please use one of your own addresses or create a new one.").arg(ui->serviceAddress->text()),
                          QMessageBox::Ok, QMessageBox::Ok);
                  return;
+             }
+
+             ServiceList.GetServiceAddresses(services);
+             for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
+             {
+                 // If service address already in list
+                 if(ui->serviceAddress->text().toStdString() == get<1>(s->second)) {
+                     QMessageBox::warning(this, windowTitle(),
+                             tr("The entered address \"%1\" is already on service list. Please use another address.").arg(ui->serviceAddress->text()),
+                             QMessageBox::Ok, QMessageBox::Ok);
+                     return;
+                 }
              }
 
              // Get new service name and convert to hex

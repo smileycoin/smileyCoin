@@ -2251,8 +2251,19 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                     serviceType = strs.at(2);
 
                                     CBitcoinAddress sAddress = CBitcoinAddress(hexToAscii(serviceAddress));
-                                    // Check whether address field contains a valid address
-                                    if (sAddress.IsValid()) {
+                                    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> services;
+                                    ServiceList.GetServiceAddresses(services);
+                                    bool isService = false;
+                                    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
+                                    {
+                                        // If service address already on service list
+                                        if (serviceAddress == get<1>(s->second)) {
+                                            isService = true;
+                                        }
+                                    }
+                                    // Check whether address field contains a valid address and address
+                                    // not already on service list
+                                    if (sAddress.IsValid() && !isService) {
                                         std::tuple<std::string, std::string, std::string> value;
                                         value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress),
                                                                 hexToAscii(serviceType));
