@@ -231,7 +231,7 @@ inline std::vector<std::string> splitString(const std::string& str, const std::s
 inline std::string hexToAscii(std::string dataStr)
 {
     std::string asciiData;
-    for (int i = 0; i < dataStr.length(); i += 2)
+    for (std::string::size_type i = 0; i < dataStr.length(); i += 2)
     {
         std::string byte = dataStr.substr(i, 2);
         // Write a dot(.) if the hex code stands for a control command

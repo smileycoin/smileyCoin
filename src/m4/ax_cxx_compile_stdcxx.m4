@@ -63,6 +63,7 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX], [dnl
         [m4_fatal([invalid fourth argument `$4' to AX_CXX_COMPILE_STDCXX])])
   AC_LANG_PUSH([C++])dnl
   ac_success=no
+
   m4_if([$4], [nodefault], [], [dnl
   AC_CACHE_CHECK(whether $CXX supports C++$1 features by default,
   ax_cv_cxx_compile_cxx$1,
@@ -72,6 +73,7 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX], [dnl
   if test x$ax_cv_cxx_compile_cxx$1 = xyes; then
     ac_success=yes
   fi])
+
   m4_if([$2], [noext], [], [dnl
   if test x$ac_success = xno; then
     for switch in -std=gnu++$1 -std=gnu++0x; do
@@ -94,6 +96,7 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX], [dnl
       fi
     done
   fi])
+
   m4_if([$2], [ext], [], [dnl
   if test x$ac_success = xno; then
     dnl HP's aCC needs +std=c++11 according to:
@@ -155,45 +158,65 @@ m4_define([_AX_CXX_COMPILE_STDCXX_testbody_14],
 dnl  Tests for new features in C++11
 
 m4_define([_AX_CXX_COMPILE_STDCXX_testbody_new_in_11], [[
+
 // If the compiler admits that it is not ready for C++11, why torture it?
 // Hopefully, this will speed up the test.
+
 #ifndef __cplusplus
+
 #error "This is not a C++ compiler"
+
 #elif __cplusplus < 201103L
+
 #error "This is not a C++11 compiler"
+
 #else
+
 namespace cxx11
 {
+
   namespace test_static_assert
   {
+
     template <typename T>
     struct check
     {
       static_assert(sizeof(int) <= sizeof(T), "not big enough");
     };
+
   }
+
   namespace test_final_override
   {
+
     struct Base
     {
       virtual void f() {}
     };
+
     struct Derived : public Base
     {
       virtual void f() override {}
     };
+
   }
+
   namespace test_double_right_angle_brackets
   {
+
     template < typename T >
     struct check {};
+
     typedef check<void> single_type;
     typedef check<check<void>> double_type;
     typedef check<check<check<void>>> triple_type;
     typedef check<check<check<check<void>>>> quadruple_type;
+
   }
+
   namespace test_decltype
   {
+
     int
     f()
     {
@@ -201,25 +224,31 @@ namespace cxx11
       decltype(a) b = 2;
       return a + b;
     }
+
   }
+
   namespace test_type_deduction
   {
+
     template < typename T1, typename T2 >
     struct is_same
     {
       static const bool value = false;
     };
+
     template < typename T >
     struct is_same<T, T>
     {
       static const bool value = true;
     };
+
     template < typename T1, typename T2 >
     auto
     add(T1 a1, T2 a2) -> decltype(a1 + a2)
     {
       return a1 + a2;
     }
+
     int
     test(const int c, volatile int v)
     {
@@ -237,43 +266,57 @@ namespace cxx11
       static_assert(is_same<int, decltype(add(c, v))>::value == true, "");
       return (sumf > 0.0) ? sumi : add(c, v);
     }
+
   }
+
   namespace test_noexcept
   {
+
     int f() { return 0; }
     int g() noexcept { return 0; }
+
     static_assert(noexcept(f()) == false, "");
     static_assert(noexcept(g()) == true, "");
+
   }
+
   namespace test_constexpr
   {
+
     template < typename CharT >
     unsigned long constexpr
     strlen_c_r(const CharT *const s, const unsigned long acc) noexcept
     {
       return *s ? strlen_c_r(s + 1, acc + 1) : acc;
     }
+
     template < typename CharT >
     unsigned long constexpr
     strlen_c(const CharT *const s) noexcept
     {
       return strlen_c_r(s, 0UL);
     }
+
     static_assert(strlen_c("") == 0UL, "");
     static_assert(strlen_c("1") == 1UL, "");
     static_assert(strlen_c("example") == 7UL, "");
     static_assert(strlen_c("another\0example") == 7UL, "");
+
   }
+
   namespace test_rvalue_references
   {
+
     template < int N >
     struct answer
     {
       static constexpr int value = N;
     };
+
     answer<1> f(int&)       { return answer<1>(); }
     answer<2> f(const int&) { return answer<2>(); }
     answer<3> f(int&&)      { return answer<3>(); }
+
     void
     test()
     {
@@ -283,19 +326,26 @@ namespace cxx11
       static_assert(decltype(f(c))::value == 2, "");
       static_assert(decltype(f(0))::value == 3, "");
     }
+
   }
+
   namespace test_uniform_initialization
   {
+
     struct test
     {
       static const int zero {};
       static const int one {1};
     };
+
     static_assert(test::zero == 0, "");
     static_assert(test::one == 1, "");
+
   }
+
   namespace test_lambdas
   {
+
     void
     test1()
     {
@@ -304,6 +354,7 @@ namespace cxx11
       lambda1();
       lambda2();
     }
+
     int
     test2()
     {
@@ -319,6 +370,7 @@ namespace cxx11
       }(0);
       return a + b + c + d + e;
     }
+
     int
     test3()
     {
@@ -332,62 +384,89 @@ namespace cxx11
       };
       return higher1st(nullary) + higher2nd(nullary)(unary);
     }
+
   }
+
   namespace test_variadic_templates
   {
+
     template <int...>
     struct sum;
+
     template <int N0, int... N1toN>
     struct sum<N0, N1toN...>
     {
       static constexpr auto value = N0 + sum<N1toN...>::value;
     };
+
     template <>
     struct sum<>
     {
       static constexpr auto value = 0;
     };
+
     static_assert(sum<>::value == 0, "");
     static_assert(sum<1>::value == 1, "");
     static_assert(sum<23>::value == 23, "");
     static_assert(sum<1, 2>::value == 3, "");
     static_assert(sum<5, 5, 11>::value == 21, "");
     static_assert(sum<2, 3, 5, 7, 11, 13>::value == 41, "");
+
   }
+
   // http://stackoverflow.com/questions/13728184/template-aliases-and-sfinae
   // Clang 3.1 fails with headers of libstd++ 4.8.3 when using std::function
   // because of this.
   namespace test_template_alias_sfinae
   {
+
     struct foo {};
+
     template<typename T>
     using member = typename T::member_type;
+
     template<typename T>
     void func(...) {}
+
     template<typename T>
     void func(member<T>*) {}
+
     void test();
+
     void test() { func<foo>(0); }
+
   }
+
 }  // namespace cxx11
+
 #endif  // __cplusplus >= 201103L
+
 ]])
 
 
 dnl  Tests for new features in C++14
 
 m4_define([_AX_CXX_COMPILE_STDCXX_testbody_new_in_14], [[
+
 // If the compiler admits that it is not ready for C++14, why torture it?
 // Hopefully, this will speed up the test.
+
 #ifndef __cplusplus
+
 #error "This is not a C++ compiler"
+
 #elif __cplusplus < 201402L
+
 #error "This is not a C++14 compiler"
+
 #else
+
 namespace cxx14
 {
+
   namespace test_polymorphic_lambdas
   {
+
     int
     test()
     {
@@ -400,14 +479,20 @@ namespace cxx14
       };
       return lambda(1, 1L, 1.0f, '1');
     }
+
   }
+
   namespace test_binary_literals
   {
+
     constexpr auto ivii = 0b0000000000101010;
     static_assert(ivii == 42, "wrong value");
+
   }
+
   namespace test_generalized_constexpr
   {
+
     template < typename CharT >
     constexpr unsigned long
     strlen_c(const CharT *const s) noexcept
@@ -417,13 +502,17 @@ namespace cxx14
         ++length;
       return length;
     }
+
     static_assert(strlen_c("") == 0UL, "");
     static_assert(strlen_c("x") == 1UL, "");
     static_assert(strlen_c("test") == 4UL, "");
     static_assert(strlen_c("another\0test") == 7UL, "");
+
   }
+
   namespace test_lambda_init_capture
   {
+
     int
     test()
     {
@@ -432,26 +521,35 @@ namespace cxx14
       const auto lambda2 = [a = lambda1(x)](){ return a; };
       return lambda2();
     }
+
   }
+
   namespace test_digit_seperators
   {
+
     constexpr auto ten_million = 100'000'000;
     static_assert(ten_million == 100000000, "");
+
   }
+
   namespace test_return_type_deduction
   {
+
     auto f(int& x) { return x; }
     decltype(auto) g(int& x) { return x; }
+
     template < typename T1, typename T2 >
     struct is_same
     {
       static constexpr auto value = false;
     };
+
     template < typename T >
     struct is_same<T, T>
     {
       static constexpr auto value = true;
     };
+
     int
     test()
     {
@@ -460,7 +558,11 @@ namespace cxx14
       static_assert(is_same<int&, decltype(g(x))>::value, "");
       return x;
     }
+
   }
+
 }  // namespace cxx14
+
 #endif  // __cplusplus >= 201402L
+
 ]])

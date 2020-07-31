@@ -15,6 +15,7 @@
 #include "hashqubit.h"
 
 #include <stdint.h>
+#include <cstdint>
 
 enum {
     ALGO_SHA256D = 0,
@@ -205,7 +206,7 @@ public:
     bool IsDust(int64_t nMinRelayTxFee) const
     {
         // "Dust": If you'd pay more than 1/3 in fees to spend something, then we consider it dust.
-        if(nValue > 9223372036854775807 / 1000) return false;
+        if(nValue > INT64_MAX / 1000) return false;
         return ((nValue*1000)/(3*((int)GetSerializeSize(SER_DISK,0)+148)) < nMinRelayTxFee);
     }
 

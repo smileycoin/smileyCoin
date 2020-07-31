@@ -241,6 +241,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getaddressinfo",         &getaddressinfo,         false,     false,      false },
     { "getrichaddresses",       &getrichaddresses,       false,     false,      false },
     { "getserviceaddresses",    &getserviceaddresses,    false,     false,      false },
+    { "getserviceaddressinfo",  &getserviceaddressinfo,  false,     false,      false },
     { "getblockchaininfo",      &getblockchaininfo,      true,      false,      false },
     { "getbestblockhash",       &getbestblockhash,       true,      false,      false },
     { "getblockcount",          &getblockcount,          true,      false,      false },
@@ -461,7 +462,7 @@ static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketA
                    const bool fUseSSL)
 {
     // Accept connection
-    boost::shared_ptr< AcceptedConnectionImpl<Protocol> > conn(new AcceptedConnectionImpl<Protocol>(acceptor->get_io_service(), context, fUseSSL));
+    boost::shared_ptr< AcceptedConnectionImpl<Protocol> > conn(new AcceptedConnectionImpl<Protocol>(GetIOServiceFromPtr(acceptor), context, fUseSSL));
 
     acceptor->async_accept(
             conn->sslStream.lowest_layer(),

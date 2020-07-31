@@ -2,6 +2,8 @@
 #define TRACEABILITYPAGE_H
 
 #include "walletmodel.h"
+#include "transactionview.h"
+#include "transactiontablemodel.h"
 
 #include <QWidget>
 #include <QGroupBox>
@@ -26,7 +28,7 @@ class TraceabilityPage : public QWidget
 
 public:
     enum Mode {
-        ForConfirmingTransaction,
+        //ForChoosingPreviousTransaction,
         ForCreatingTransaction,
     };
 
@@ -46,6 +48,10 @@ private:
 
     QGroupBox *formGroupBox;
 
+    QComboBox *transactionTypeCombo;
+    QLabel *typeOfTransaction;
+    QValidatedLineEdit *traceabilityPreviousInput;
+    QLabel *traceabilityInformation;
     QValidatedLineEdit *traceabilityAddressInput;
     QValidatedLineEdit *traceabilityNumberInput;
     QValidatedLineEdit *traceabilityAmountInput;
@@ -56,6 +62,7 @@ private:
 
 private slots:
     void onTraceabilityAction();
+    void onTransactionTypeChanged(const QString &text);
 };
 
 #endif //TRACEABILITYPAGE_H

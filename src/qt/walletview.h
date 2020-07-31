@@ -17,6 +17,7 @@ class TransactionView;
 class WalletModel;
 class AddressBookPage;
 class ServicePage;
+class TicketPage;
 class TraceabilityPage;
 
 QT_BEGIN_NAMESPACE
@@ -63,6 +64,7 @@ private:
     SendCoinsDialog *sendCoinsPage;
     AddressBookPage *addressBookPage;
     ServicePage *servicePage;
+    TicketPage *ticketPage;
     TraceabilityPage *traceabilityPage;
 
     TransactionView *transactionView;
@@ -74,10 +76,12 @@ public slots:
     void gotoOverviewPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
-    /** Switch to service (services) page */
+    /** Switch to service page */
     void gotoServicePage();
-    /** Switch to Traceability page */
-    void gotoTraceabilityPage(QString addr = "");
+    /** Switch to ticket page */
+    void gotoTicketPage();
+    /** Switch to traceability page */
+    void gotoTraceabilityPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */

@@ -6,7 +6,7 @@
 
 #include "addressbookpage.h"
 #include "servicepage.h"
-#include "traceabilitypage.h"
+#include "ticketpage.h"
 #include "askpassphrasedialog.h"
 #include "bitcoingui.h"
 #include "clientmodel.h"
@@ -21,6 +21,9 @@
 #include "walletmodel.h"
 #include "init.h"
 #include "servicelistdb.h"
+#include "servicetablemodel.h"
+#include "tickettablemodel.h"
+#include "traceabilitypage.h"
 
 #include "ui_interface.h"
 
@@ -64,31 +67,17 @@ WalletView::WalletView(QWidget *parent):
     //addressBookPage->setAttribute(Qt::WA_DeleteOnClose);
     //addressBookPage->setModel(walletModel->getAddressTableModel());
 
-    std::vector<std::tuple<std::string, std::string, std::string>> serviceObject;
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
-
-    ServiceList.GetServiceAddresses(retset);
-
-    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
-    {
-        // Check if any of the service addresses belongs to this wallet
-        if (IsMine(*pwalletMain, CBitcoinAddress(get<1>(it->second)).Get())) {
-            serviceObject.push_back(std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second)));
-        }
-    }
-
-    CBitcoinAddress address = CBitcoinAddress("B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc ");
-    if (IsMine(*pwalletMain, address.Get())) {
-        servicePage = new ServicePage(ServicePage::ForConfirmingService, serviceObject, this);
-    } else if (!serviceObject.empty()) {
-        servicePage = new ServicePage(ServicePage::ForServiceOwner, serviceObject, this);
-    } else {
-        servicePage = new ServicePage(ServicePage::ForCreatingService, serviceObject, this);
-    }
-
+    servicePage = new ServicePage(this);
+    //servicePage->setServiceModel(walletModel->getServiceTableModel());
     servicePage->setWindowFlags(Qt::Widget);
 
-    traceabilityPage->setWindowFlags(Qt::Widget); //= new TraceabilityPage();
+    ticketPage = new TicketPage(this);
+    //ticketPage->setTicketModel(walletModel->getTicketTableModel());
+    ticketPage->setWindowFlags(Qt::Widget);
+
+    traceabilityPage = new TraceabilityPage(TraceabilityPage::ForCreatingTransaction, this);
+    //traceabilityPage = new TraceabilityPage(this);
+    traceabilityPage->setWindowFlags(Qt::Widget);
 
     addWidget(overviewPage);
     addWidget(transactionsPage);
@@ -96,6 +85,7 @@ WalletView::WalletView(QWidget *parent):
     addWidget(sendCoinsPage);
     addWidget(addressBookPage);
     addWidget(servicePage);
+    addWidget(ticketPage);
     addWidget(traceabilityPage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
@@ -111,8 +101,6 @@ WalletView::WalletView(QWidget *parent):
     connect(sendCoinsPage, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
     // Pass through messages from transactionView
     connect(transactionView, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
-    //Pass through messages from traceabilityPage
-    //connect(traceabilityPage, SIGNAL(message(QString,QString,unsigned int)), this, SIGNAL(message(QString,QString,unsigned int)));
 }
 
 WalletView::~WalletView()
@@ -204,11 +192,24 @@ void WalletView::gotoHistoryPage()
 
 void WalletView::gotoServicePage()
 {
-    servicePage->setModel(walletModel);
+    servicePage->setWalletModel(walletModel);
+
+    ServiceTableModel *serviceModel = new ServiceTableModel(true, pwalletMain, walletModel);
+    servicePage->setServiceModel(serviceModel);
+
     setCurrentWidget(servicePage);
 }
 
-void WalletView::gotoTraceabilityPage(QString addr)
+void WalletView::gotoTicketPage() {
+    ticketPage->setWalletModel(walletModel);
+
+    TicketTableModel *ticketModel = new TicketTableModel(pwalletMain, walletModel);
+    ticketPage->setTicketModel(ticketModel);
+
+    setCurrentWidget(ticketPage);
+}
+
+void WalletView::gotoTraceabilityPage()
 {
     traceabilityPage->setModel(walletModel);
     setCurrentWidget(traceabilityPage);

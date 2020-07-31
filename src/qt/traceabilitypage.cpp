@@ -13,6 +13,8 @@
 #include "coincontrol.h"
 #include "sendcoinsentry.h"
 #include "sendcoinsdialog.h"
+#include "transactionview.h"
+#include "transactiontablemodel.h"
 
 #include <QGroupBox>
 #include <QFormLayout>
@@ -44,16 +46,26 @@ TraceabilityPage::TraceabilityPage(Mode mode, QWidget *parent) :
 #endif
 
     switch(mode) {
-        case ForConfirmingTransaction: {
-            formGroupBox = new QGroupBox(tr("Confirm tracking transaction"));
-
-            sendButton = new QPushButton(tr("Confirm tracking transaction"));
-            mainLayout->addWidget(formGroupBox);
-            break;
-        }
         case ForCreatingTransaction: {
             formGroupBox = new QGroupBox(tr("Create new tracking transaction"));
             QFormLayout *layout = new QFormLayout(this);
+
+            transactionTypeCombo = new QComboBox(this);
+            transactionTypeCombo->addItem("Create new traceable product");
+            transactionTypeCombo->addItem("Track existing product");
+            transactionTypeCombo->setObjectName(QStringLiteral("transactionTypeCombo"));
+            layout->addRow(new QLabel(tr("Type of transaction:")), transactionTypeCombo);
+            
+            typeOfTransaction = new QLabel(this);
+            typeOfTransaction->setText("Previous data:");
+            traceabilityPreviousInput = new QValidatedLineEdit(this);
+            traceabilityPreviousInput->setReadOnly(true);
+            traceabilityPreviousInput->setObjectName(QStringLiteral("previousData"));
+            layout->addRow(typeOfTransaction, traceabilityPreviousInput);
+
+            traceabilityInformation = new QLabel(this);
+            traceabilityInformation->setText("Leave the field above empty when creating a traceable product.        ");
+            layout->addRow(traceabilityInformation);
             
             traceabilityAddressInput = new QValidatedLineEdit(this);
             traceabilityAddressInput->setObjectName(QStringLiteral("address"));
@@ -73,7 +85,7 @@ TraceabilityPage::TraceabilityPage(Mode mode, QWidget *parent) :
 
             sendButton = new QPushButton(tr("Create tracking transaction"));
             sendButton->setObjectName(QStringLiteral("sendButton"));
-            layout->addRow(sendButton);
+            layout->addRow(sendButton); 
 
             formGroupBox->setLayout(layout);
             mainLayout->addWidget(formGroupBox);
@@ -86,12 +98,25 @@ TraceabilityPage::TraceabilityPage(Mode mode, QWidget *parent) :
 
     // Connect signals for context menu actions
     connect(sendButton, SIGNAL(clicked()), this, SLOT(onTraceabilityAction()));
+    connect(transactionTypeCombo, SIGNAL(currentTextChanged(const QString &)), this, SLOT(onTransactionTypeChanged(const QString &)));  //AUFPASSEN
 }
 
 void TraceabilityPage::setModel(WalletModel *model) {
     this->model = model;
     if(!model)
         return;
+}
+
+void TraceabilityPage::onTransactionTypeChanged(const QString &text) {  //AUFPASSEN
+    if (text == "Create new traceable product") {
+        traceabilityPreviousInput->clear();
+        traceabilityPreviousInput->setReadOnly(true);
+        traceabilityInformation->setText("Leave the field above empty when creating a traceable product.        ");
+    }
+    else {
+        traceabilityPreviousInput->setReadOnly(false);
+        traceabilityInformation->setText("Copy the data of the product you want to track into the field above.");
+    }
 }
 
 void TraceabilityPage::onTraceabilityAction() {
@@ -108,10 +133,20 @@ void TraceabilityPage::onTraceabilityAction() {
     issuer.address = traceabilityAddress;
     // Amount sent with transaction n = 10 (0.001)
     issuer.amount = 1000000000;
-    // OP_RETURN = "Traceability traceabilityNumber traceabilityamount"
-    issuer.data = QString::fromStdString("54726163656162696c697479") + QString::fromStdString("3b") + 
-                  traceabilityNumber + QString::fromStdString("3b") + traceabilityAmount + 
-                  QString::fromStdString("3b") + traceabilityLocation;
+
+    if(traceabilityPreviousInput->text() != "") {
+        //OP_RETURN Track existing product = "Traceability previousData traceabilityNumber traceabilityAmount traceabilityLocation"
+        QString traceabilityPreviousData = traceabilityPreviousInput->text();
+        issuer.data = traceabilityPreviousData + QString::fromStdString("3b") + 
+                      traceabilityNumber + QString::fromStdString("3a") + traceabilityAmount + 
+                      QString::fromStdString("3a") + traceabilityLocation;
+    }
+    else {
+        // OP_RETURN Create new traceable product = "Traceability traceabilityNumber traceabilityamount traceabilityLocation"
+        issuer.data = QString::fromStdString("54726163656162696c697479") + QString::fromStdString("3b") + 
+                      traceabilityNumber + QString::fromStdString("3a") + traceabilityAmount + 
+                      QString::fromStdString("3a") + traceabilityLocation;
+    }
 
     QList <SendCoinsRecipient> recipients;
     recipients.append(issuer);
@@ -191,8 +226,11 @@ void TraceabilityPage::onTraceabilityAction() {
 
 void TraceabilityPage::clear()
 {
+    traceabilityPreviousInput->clear();
+    traceabilityAddressInput->clear();
     traceabilityNumberInput->clear();
     traceabilityAmountInput->clear();
+    traceabilityLocationInput->clear();
 }
 
 void TraceabilityPage::accept()

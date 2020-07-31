@@ -19,6 +19,7 @@
 #include <string.h>
 #include <utility>
 #include <vector>
+#include <tuple>
 
 //#include <boost/tuple/tuple.hpp>
 #include <boost/type_traits/is_fundamental.hpp>
@@ -407,6 +408,16 @@ template<typename T0, typename T1, typename T2, typename T3> unsigned int GetSer
 template<typename Stream, typename T0, typename T1, typename T2, typename T3> void Serialize(Stream& os, const std::tuple<T0, T1, T2, T3>& item, int nType, int nVersion);
 template<typename Stream, typename T0, typename T1, typename T2, typename T3> void Unserialize(Stream& is, std::tuple<T0, T1, T2, T3>& item, int nType, int nVersion);
 
+// 5 tuple
+template<typename T0, typename T1, typename T2, typename T3, typename T4> unsigned int GetSerializeSize(const std::tuple<T0, T1, T2, T3, T4>& item, int nType, int nVersion);
+template<typename Stream, typename T0, typename T1, typename T2, typename T3, typename T4> void Serialize(Stream& os, const std::tuple<T0, T1, T2, T3, T4>& item, int nType, int nVersion);
+template<typename Stream, typename T0, typename T1, typename T2, typename T3, typename T4> void Unserialize(Stream& is, std::tuple<T0, T1, T2, T3, T4>& item, int nType, int nVersion);
+
+// 6 tuple
+template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5> unsigned int GetSerializeSize(const std::tuple<T0, T1, T2, T3, T4, T5>& item, int nType, int nVersion);
+template<typename Stream, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5> void Serialize(Stream& os, const std::tuple<T0, T1, T2, T3, T4, T5>& item, int nType, int nVersion);
+template<typename Stream, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5> void Unserialize(Stream& is, std::tuple<T0, T1, T2, T3, T4, T5>& item, int nType, int nVersion);
+
 // map
 template<typename K, typename T, typename Pred, typename A> unsigned int GetSerializeSize(const std::map<K, T, Pred, A>& m, int nType, int nVersion);
 template<typename Stream, typename K, typename T, typename Pred, typename A> void Serialize(Stream& os, const std::map<K, T, Pred, A>& m, int nType, int nVersion);
@@ -659,6 +670,7 @@ unsigned int GetSerializeSize(const std::tuple<T0, T1, T2, T3>& item, int nType,
     return nSize;
 }
 
+
 template<typename Stream, typename T0, typename T1, typename T2, typename T3>
 void Serialize(Stream& os, const std::tuple<T0, T1, T2, T3>& item, int nType, int nVersion)
 {
@@ -676,6 +688,83 @@ void Unserialize(Stream& is, std::tuple<T0, T1, T2, T3>& item, int nType, int nV
     Unserialize(is, std::get<2>(item), nType, nVersion);
     Unserialize(is, std::get<3>(item), nType, nVersion);
 }
+
+
+
+//
+// 5 tuple
+//
+template<typename T0, typename T1, typename T2, typename T3, typename T4>
+unsigned int GetSerializeSize(const std::tuple<T0, T1, T2, T3, T4>& item, int nType, int nVersion)
+{
+    unsigned int nSize = 0;
+    nSize += GetSerializeSize(std::get<0>(item), nType, nVersion);
+    nSize += GetSerializeSize(std::get<1>(item), nType, nVersion);
+    nSize += GetSerializeSize(std::get<2>(item), nType, nVersion);
+    nSize += GetSerializeSize(std::get<3>(item), nType, nVersion);
+    nSize += GetSerializeSize(std::get<4>(item), nType, nVersion);
+    return nSize;
+}
+
+template<typename Stream, typename T0, typename T1, typename T2, typename T3, typename T4>
+void Serialize(Stream& os, const std::tuple<T0, T1, T2, T3, T4>& item, int nType, int nVersion)
+{
+    Serialize(os, std::get<0>(item), nType, nVersion);
+    Serialize(os, std::get<1>(item), nType, nVersion);
+    Serialize(os, std::get<2>(item), nType, nVersion);
+    Serialize(os, std::get<3>(item), nType, nVersion);
+    Serialize(os, std::get<4>(item), nType, nVersion);
+}
+
+template<typename Stream, typename T0, typename T1, typename T2, typename T3, typename T4>
+void Unserialize(Stream& is, std::tuple<T0, T1, T2, T3, T4>& item, int nType, int nVersion)
+{
+    Unserialize(is, std::get<0>(item), nType, nVersion);
+    Unserialize(is, std::get<1>(item), nType, nVersion);
+    Unserialize(is, std::get<2>(item), nType, nVersion);
+    Unserialize(is, std::get<3>(item), nType, nVersion);
+    Unserialize(is, std::get<4>(item), nType, nVersion);
+}
+
+
+//
+// 6 tuple
+//
+template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+unsigned int GetSerializeSize(const std::tuple<T0, T1, T2, T3, T4, T5>& item, int nType, int nVersion)
+{
+    unsigned int nSize = 0;
+    nSize += GetSerializeSize(std::get<0>(item), nType, nVersion);
+    nSize += GetSerializeSize(std::get<1>(item), nType, nVersion);
+    nSize += GetSerializeSize(std::get<2>(item), nType, nVersion);
+    nSize += GetSerializeSize(std::get<3>(item), nType, nVersion);
+    nSize += GetSerializeSize(std::get<4>(item), nType, nVersion);
+    nSize += GetSerializeSize(std::get<5>(item), nType, nVersion);
+    return nSize;
+}
+
+template<typename Stream, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+void Serialize(Stream& os, const std::tuple<T0, T1, T2, T3, T4, T5>& item, int nType, int nVersion)
+{
+    Serialize(os, std::get<0>(item), nType, nVersion);
+    Serialize(os, std::get<1>(item), nType, nVersion);
+    Serialize(os, std::get<2>(item), nType, nVersion);
+    Serialize(os, std::get<3>(item), nType, nVersion);
+    Serialize(os, std::get<4>(item), nType, nVersion);
+    Serialize(os, std::get<5>(item), nType, nVersion);
+}
+
+template<typename Stream, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+void Unserialize(Stream& is, std::tuple<T0, T1, T2, T3, T4, T5>& item, int nType, int nVersion)
+{
+    Unserialize(is, std::get<0>(item), nType, nVersion);
+    Unserialize(is, std::get<1>(item), nType, nVersion);
+    Unserialize(is, std::get<2>(item), nType, nVersion);
+    Unserialize(is, std::get<3>(item), nType, nVersion);
+    Unserialize(is, std::get<4>(item), nType, nVersion);
+    Unserialize(is, std::get<5>(item), nType, nVersion);
+}
+
 
 
 
@@ -1263,8 +1352,8 @@ public:
     int nVersion;
 
     CBufferedFile(FILE *fileIn, uint64_t nBufSize, uint64_t nRewindIn, int nTypeIn, int nVersionIn) :
-        src(fileIn), nSrcPos(0), nReadPos(0), nReadLimit((uint64_t)(-1)), nRewind(nRewindIn), vchBuf(nBufSize, 0),
-        state(0), exceptmask(std::ios_base::badbit | std::ios_base::failbit), nType(nTypeIn), nVersion(nVersionIn) {
+            src(fileIn), nSrcPos(0), nReadPos(0), nReadLimit((uint64_t)(-1)), nRewind(nRewindIn), vchBuf(nBufSize, 0),
+            state(0), exceptmask(std::ios_base::badbit | std::ios_base::failbit), nType(nTypeIn), nVersion(nVersionIn) {
     }
 
     // check whether no error occurred
