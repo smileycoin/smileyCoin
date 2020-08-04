@@ -10,6 +10,8 @@
 #include "base58.h"
 #include "wallet.h"
 #include "servicelistdb.h"
+#include "serviceitemlistdb.h"
+
 
 #include <QFont>
 
@@ -65,9 +67,8 @@ public:
             std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
             ServiceList.GetServiceAddresses(services);
 
-
             std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> tickets;
-            ServiceList.GetServiceAddressInfo(tickets);
+            ServiceItemList.GetTicketList(tickets);
             for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator
                         t = tickets.begin(); t!=tickets.end(); t++ )
             {

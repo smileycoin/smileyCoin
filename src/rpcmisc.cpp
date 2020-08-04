@@ -12,6 +12,7 @@
 #include "util.h"
 #include "richlistdb.h"
 #include "servicelistdb.h"
+#include "serviceitemlistdb.h"
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"
 #ifdef ENABLE_WALLET
@@ -343,12 +344,12 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     return root;
 }
 
-Value getserviceaddressinfo(const Array& params, bool fHelp)
+Value getticketlist(const Array& params, bool fHelp)
 {
 
     if (fHelp || params.size() != 1)
-        throw runtime_error("getserviceaddressinfo\n"
-                            "Returns all addresses that belong to a specific service\n"
+        throw runtime_error("getticketlist\n"
+                            "Returns all tickets that belong to a specific service\n"
         );
 
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
@@ -369,7 +370,7 @@ Value getserviceaddressinfo(const Array& params, bool fHelp)
     Object obj2;
     Array arr;
     std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > info;
-    ServiceList.GetServiceAddressInfo(info);
+    ServiceItemList.GetTicketList(info);
 
     for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
@@ -381,19 +382,132 @@ Value getserviceaddressinfo(const Array& params, bool fHelp)
             obj.push_back(Pair("Name: ", get<2>(it->second)));
             obj.push_back(Pair("Location: ", get<1>(it->second)));
             obj.push_back(Pair("Date and Time: ", get<3>(it->second)));
-            obj.push_back(Pair("Value: ", get<4>(it->second)));
-            obj.push_back(Pair("Address: ", get<5>(it->second)));
+            obj.push_back(Pair("Price: ", get<4>(it->second)));
+            obj.push_back(Pair("Ticket address: ", get<5>(it->second)));
             arr.push_back(obj);
-            //i++;
         }
     }
 
     obj2.push_back(Pair("Tickets: " , arr));
-    // Athuga ef það er service addressa
-    // if(!address.IsService())
-    //  throw runtime_error("Not a service address");
-
     return obj2;
+}
+
+
+Value getubilist(const Array& params, bool fHelp)
+{
+
+    if (fHelp || params.size() != 1)
+        throw runtime_error("getubilist\n"
+                            "Returns all ubi addresses that belong to a specific address that you must own\n"
+                            );
+    
+    CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
+    if(!address.IsValid())
+        throw runtime_error("Not a valid Smileycoin address");
+    
+    std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string> > > services;
+    ServiceList.GetServiceAddresses(services);
+    bool isService = false;
+    bool isUbi = false;
+    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
+        if (address.ToString() == get<1>(it->second)) {
+            isService = true;
+        }
+        if (get<2>(it->second) == "2") {
+            isUbi = true;
+        }
+    }
+    if (!isService)
+        throw runtime_error("Not a valid service address");
+    
+    if (!IsMine(*pwalletMain, address.Get()))
+        throw runtime_error("Not your service address, permission denied");
+    
+    if (!isUbi)
+        throw runtime_error("Not a ubi address");
+
+    Object obj;
+    std::multiset<std::pair< CScript, std::tuple<std::string, std::string>>> info;
+
+    ServiceItemList.GetUbiList(info);
+
+    int i = 0;
+    
+    for(std::set< std::pair< CScript, std::tuple<std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    {
+        std::string toAddress = get<0>(it->second);
+        if (toAddress == address.ToString()) {
+            obj.push_back(Pair("Ubi address: ", get<1>(it->second)));
+        }
+    }
+    
+    return obj;
+}
+
+Value getdexlist(const Array& params, bool fHelp)
+{
+
+    if (fHelp || params.size() != 0)
+        throw runtime_error("getdexlist\n"
+                            "Returns all dex addresses\n"
+                            );
+    
+    Object obj;
+    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> info;
+
+    ServiceItemList.GetDexList(info);
+    
+    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    {
+        obj.push_back(Pair("Dex address: ", get<1>(it->second)));
+        obj.push_back(Pair("Description: ", get<2>(it->second)));
+    }
+    
+    return obj;
+}
+
+Value getnpolist(const Array& params, bool fHelp)
+{
+
+    if (fHelp || params.size() != 0)
+        throw runtime_error("getnpolist\n"
+                            "Returns all non profit organization addresses\n"
+                            );
+    
+    Object obj;
+    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> info;
+
+    ServiceItemList.GetNpoList(info);
+    
+    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    {
+        obj.push_back(Pair("Npo name: ", get<1>(it->second)));
+        obj.push_back(Pair("Npo address: ", get<2>(it->second)));
+    }
+    
+    return obj;
+}
+
+Value getbooklist(const Array& params, bool fHelp)
+{
+
+    if (fHelp || params.size() != 0)
+        throw runtime_error("getbooklist\n"
+                            "Returns all book chapters\n"
+                            );
+    
+    Object obj;
+    std::multiset<std::pair< CScript, std::tuple<std::string, std::string>>> info;
+
+    ServiceItemList.GetBookList(info);
+    
+    //TODO bæta við book name, book author og year
+    for(std::set< std::pair< CScript, std::tuple<std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    {
+        obj.push_back(Pair("Book chapter: ", get<1>(it->second)));
+    }
+    
+    return obj;
 }
 
 Value getaddressinfo(const Array& params, bool fHelp)

@@ -133,31 +133,20 @@ void EditServiceDialog::accept()
              // Get new service address and convert to hex
              QString serviceAddress = ui->serviceAddress->text().toLatin1().toHex();
              // Get type of new service and convert to hex
-             QString rawServiceType = ui->serviceType->currentText().toLatin1().toHex();
-
-             //std::vector<std::string> typeStr = splitString(rawServiceType.toStdString(), "20");
-
-             // Merge into one string if service type name consists of more than one word
+             QString rawServiceType = ui->serviceType->currentText();
              QString serviceType = "";
-             /*if (typeStr.size() > 1) {
-                 for (std::string::size_type i = 0; i < typeStr.size(); i++) {
-                     serviceType += QString::fromStdString(typeStr.at(i));
-                 }
-             } else {
-                 serviceType = rawServiceType;
-             }*/
 
-             if (rawServiceType == "5469636b65742053616c6573") { /* Ticket Sales */
+             if (rawServiceType == "Ticket Sales") {
                  serviceType = "31";
-             } else if (rawServiceType == "554249") { /* UBI */
+             } else if (rawServiceType == "UBI") {
                  serviceType = "32";
-             } else if (rawServiceType == "426f6f6b2043686170746572") { /* Book Chapter*/
+             } else if (rawServiceType == "Book Chapter") {
                  serviceType = "33";
-             } else if (rawServiceType == "54726163656162696c697479") { /* Traceability */
+             } else if (rawServiceType == "Traceability") {
                  serviceType = "34";
-             } else if (rawServiceType == "4e6f6e70726f666974204f7267616e697a6174696f6e") { /* Nonprofit Organization */
+             } else if (rawServiceType == "Nonprofit Organization") {
                  serviceType = "35";
-             } else if (rawServiceType == "444558") { /* DEX */
+             } else if (rawServiceType == "DEX") {
                  serviceType = "36";
              }
 

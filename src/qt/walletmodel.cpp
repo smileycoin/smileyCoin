@@ -20,6 +20,7 @@
 #include "ui_interface.h"
 #include "wallet.h"
 #include "walletdb.h" // for BackupWallet
+#include "regex.h"
 
 #include <stdint.h>
 
@@ -278,7 +279,10 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
         if(txData.length() > 0) {
             vector<string> str;
             int64_t amount = 0;
-
+            if(isRegex(txData)) {
+                str.push_back(txData);
+            }
+            
             str.push_back(txData);
             vector<unsigned char> data = ParseHexV(str[0], "Data");
 
