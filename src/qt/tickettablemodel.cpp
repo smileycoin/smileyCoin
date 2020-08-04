@@ -62,7 +62,7 @@ public:
             LOCK(wallet->cs_wallet);
 
             QString serviceName;
-            std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> services;
+            std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
             ServiceList.GetServiceAddresses(services);
 
 
@@ -71,16 +71,16 @@ public:
             for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator
                         t = tickets.begin(); t!=tickets.end(); t++ )
             {
-                for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
+                for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
                 {
                     // Display corresponding service name instead of address
-                    if (QString::fromStdString(get<0>(t->second)) == QString::fromStdString(get<1>(s->second))) {
+                    if (QString::fromStdString(get<0>(t->second)) == QString::fromStdString(s->first)) {
                         cachedTicketTable.append(TicketTableEntry(QString::fromStdString(get<2>(t->second)),
                                 QString::fromStdString(get<1>(t->second)),
                                 QString::fromStdString(get<3>(t->second)),
                                 QString::fromStdString(get<4>(t->second)),
                                 QString::fromStdString(get<5>(t->second)),
-                                QString::fromStdString(get<0>(s->second))));
+                                QString::fromStdString(get<1>(s->second))));
                     }
                 }
             }

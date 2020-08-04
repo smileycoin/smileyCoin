@@ -45,25 +45,12 @@ void static BatchWriteAddressInfo(CLevelDBBatch &batch, const CScript &key, cons
         batch.Write(make_pair(DB_ADDRESSINFO, key), value);
 }
 
-void static BatchWriteServiceInfo(CLevelDBBatch &batch, const CScript &key, const std::tuple<std::string, std::string, std::string> &value) {
-    std::string hexStr = HexStr(key);
-    std::string hexData = hexStr.substr(4, hexStr.size());
-
-    // If op_return begins with "del service"
-    if (hexData.substr(0, 22) == "64656c2073657276696365") {
-        CScript serviceScript;
-        std::string txData = "new service " + get<0>(value) + " " + get<1>(value) + " " + get<2>(value); //original service script
-        std::string hexData = HexStr(txData);
-        vector<string> str;
-        str.push_back(hexData);
-
-        vector<unsigned char> data = ParseHex(str[0]);
-        serviceScript << OP_RETURN << data;
-
-        // Erase the service given in value
-        batch.Erase(make_pair(DB_SERVICEINFO, serviceScript));
-
-    } else if (hexData.substr(0, 22) == "6e65772073657276696365") { // If op_return begins with new service
+void static BatchWriteServiceInfo(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
+    // If op_return begins with "DS" (delete service)
+    if (get<0>(value) == "4453") {
+        // Erase the service associated with address
+        batch.Erase(make_pair(DB_SERVICEINFO, key));
+    } else if (get<0>(value) == "4e53") { // If op_return begins with NS (new service)
         batch.Write(make_pair(DB_SERVICEINFO, key), value);
     }
 }
@@ -96,11 +83,11 @@ bool CCoinsViewDB::SetAddressInfo(const CScript &key, const std::pair<int64_t, i
     return db.WriteBatch(batch);
 }
 
-bool CCoinsViewDB::GetServiceInfo(const CScript &key, std::tuple<std::string, std::string, std::string> &value) {
+bool CCoinsViewDB::GetServiceInfo(const std::string &key, std::tuple<std::string, std::string, std::string> &value) {
     return db.Read(make_pair(DB_SERVICEINFO, key), value);
 }
 
-bool CCoinsViewDB::SetServiceInfo(const CScript &key, const std::tuple<std::string, std::string, std::string> &value) {
+bool CCoinsViewDB::SetServiceInfo(const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
     CLevelDBBatch batch;
     BatchWriteServiceInfo(batch, key, value);
     return db.WriteBatch(batch);
@@ -145,7 +132,7 @@ bool CCoinsViewDB::SetBestBlock(const uint256 &hashBlock) {
 
 bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
                               const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
-                              const std::map<CScript, std::tuple<std::string, std::string, std::string>> &mapServiceInfo,
+                              const std::map<std::string, std::tuple<std::string, std::string, std::string>> &mapServiceInfo,
                               const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>> &mapServiceAddressInfo,
                               const uint256 &hashBlock) {
     LogPrint("coindb", "Committing %u changed transactions and %u address balances to coin database...\n",(unsigned int)mapCoins.size(), (unsigned int)mapAddressInfo.size());
@@ -155,7 +142,7 @@ bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
         BatchWriteCoins(batch, it->first, it->second);
     for (std::map<CScript, std::pair<int64_t,int> >::const_iterator it = mapAddressInfo.begin(); it != mapAddressInfo.end(); it++)
         BatchWriteAddressInfo(batch, it->first, it->second);
-    for (std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = mapServiceInfo.begin(); it != mapServiceInfo.end(); it++)
+    for (std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = mapServiceInfo.begin(); it != mapServiceInfo.end(); it++)
         BatchWriteServiceInfo(batch, it->first, it->second);
     for (std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = mapServiceAddressInfo.begin(); it != mapServiceAddressInfo.end(); it++)
         BatchWriteServiceAddressInfo(batch, it->first, it->second);
@@ -208,10 +195,13 @@ bool CCoinsViewDB::GetRichAddresses(CRichList &richlist) {
 
 bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist) {
     leveldb::Iterator *pcursor = db.NewIterator();
+    if (!pcursor)
+        throw runtime_error("CCoinsViewDB::GetServiceAddresses : cannot create DB cursor");
+
     std::vector<unsigned char> v;
     v.assign(21,'0');
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
-    ssKeySet << make_pair(DB_SERVICEINFO, CScript(v));
+    ssKeySet << make_pair(DB_SERVICEINFO, std::string("696e6974"));
     pcursor->Seek(ssKeySet.str());
 
     while (pcursor->Valid())
@@ -221,7 +211,7 @@ bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist) {
         {
             leveldb::Slice slKey = pcursor->key();
             CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
-            std::pair<char,CScript> key;
+            std::pair<char, std::string> key;
             ssKey >> key;
             if (key.first == DB_SERVICEINFO)
             {
@@ -229,9 +219,7 @@ bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist) {
                 CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
                 std::tuple<std::string, std::string, std::string> serviceinfo;
                 ssValue >> serviceinfo;
-                std::string hexStr = HexStr(key.second);
-                //if (hexStr.substr(0, 22) == "6e65772073657276696365")
-                    servicelist.maddresses.insert(make_pair(key.second, serviceinfo));
+                servicelist.maddresses.insert(make_pair(key.second, serviceinfo));
                 pcursor->Next();
 
             } else {

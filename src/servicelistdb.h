@@ -15,7 +15,7 @@ class CServiceList;
 extern CServiceList ServiceList;
 
 typedef std::tuple<std::string, std::string, std::string> CServiceInfo;
-typedef std::map< CScript, CServiceInfo> mapServiceScriptPubKeys;
+typedef std::map<std::string, CServiceInfo> mapServiceScriptPubKeys;
 
 typedef std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> CServiceAddressInfo;
 typedef std::map<CScript, CServiceAddressInfo> mapServiceInfoScriptPubKeys;
@@ -27,8 +27,8 @@ private:
     mapServiceInfoScriptPubKeys infoaddress;
     bool fForked;
 
-    CScript ScriptPubKey(const mapServiceScriptPubKeys::iterator &it) const { return it -> first; }
-    std::string ServiceAddress(const mapServiceScriptPubKeys::iterator &it) const { return get<0>(it -> second); }
+    std::string ServiceAddress(const mapServiceScriptPubKeys::iterator &it) const { return it -> first; }
+    std::string ServiceAction(const mapServiceScriptPubKeys::iterator &it) const { return get<0>(it -> second); }
     std::string ServiceName(const mapServiceScriptPubKeys::iterator &it) const { return get<1>(it -> second); }
     std::string ServiceType(const mapServiceScriptPubKeys::iterator &it) const { return get<2>(it -> second); }
 
@@ -46,14 +46,14 @@ public:
     friend bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist);
     friend bool CCoinsViewDB::GetServiceAddressInfo(CServiceList &servicelist);
 
-    bool GetServiceAddresses(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string>>> &retset) const;
-    bool GetMyServiceAddresses(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string>>> &retset) const;
+    bool GetServiceAddresses(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> &retset) const;
+    bool GetMyServiceAddresses(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> &retset) const;
     bool GetServiceAddressInfo(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> &info) const;
 
     bool SetForked(const bool &fFork);
     bool IsForked(){return fForked;}
 
-    bool UpdateServiceInfo(const std::map<CScript, std::tuple<std::string, std::string, std::string> > &map);
+    bool UpdateServiceInfo(const std::map<std::string, std::tuple<std::string, std::string, std::string> > &map);
     bool UpdateServiceAddressInfo(const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &map);
 
     bool UpdateServiceAddressHeights();

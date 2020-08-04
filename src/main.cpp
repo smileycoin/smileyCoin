@@ -1794,6 +1794,18 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, CCoinsViewCach
 	return true;
 }
 
+bool IsService(std::string address) {
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
+    ServiceList.GetServiceAddresses(services);
+
+    for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
+    {
+        if (address == s->first)
+            return true;
+    }
+    return false;
+}
+
 bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, bool* pfClean)
 {
 	assert(pindex->GetBlockHash() == view.GetBestBlock());
@@ -1814,7 +1826,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 		return error("DisconnectBlock() : block and undo data inconsistent");
 
     std::map<CScript, std::pair<int64_t, int> > addressInfo;
-    std::map<CScript, std::tuple<std::string, std::string, std::string> > serviceInfo;
+    std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceInfo;
     std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > serviceAddressInfo;
 
     // undo transactions in reverse order
@@ -1845,25 +1857,25 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                         if (hexString.substr(0, 2) == "6a") {
                             hexData = hexString.substr(4, hexString.size());
                             // NEW SERVICE
-                            // If op_return starts with "new service"
-                            if (hexData.substr(0, 22) == "6e65772073657276696365") {
-                                newService = hexData.substr(22, hexString.size());
+                            // If op_return starts with "NS" (new service)
+                            if (hexData.substr(0, 4) == "4e53") {
+                                newService = hexData.substr(4, hexString.size());
                                 std::vector<std::string> strs = splitString(newService, "20");
                                 if (strs.size() == 3) {
                                     serviceName = strs.at(0);
                                     serviceAddress = strs.at(1);
                                     serviceType = strs.at(2);
 
-                                    CBitcoinAddress sAddress = CBitcoinAddress(hexToAscii(serviceAddress));
-                                    if (sAddress.IsValid()) {
+                                    std::string asciiAddress = hexToAscii(serviceAddress);
+                                    CBitcoinAddress sAddress = CBitcoinAddress(asciiAddress);
+                                    if (sAddress.IsValid() && !IsService(asciiAddress)) {
                                         std::tuple<std::string, std::string, std::string> value;
-                                        if (!view.GetServiceInfo(keyService, value)) {
+                                        if (!view.GetServiceInfo(asciiAddress, value)) {
                                             return state.Abort(_("Failed to read service index"));
                                         } else {
-                                            value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress),
-                                                                    hexToAscii(serviceType));
-                                            assert(view.SetServiceInfo(keyService, value));
-                                            serviceInfo[keyService] = value;
+                                            value = std::make_tuple("NS", hexToAscii(serviceName), hexToAscii(serviceType));
+                                            assert(view.SetServiceInfo(asciiAddress, value));
+                                            serviceInfo[asciiAddress] = value;
 
                                             if (pwalletMain) {
                                                 pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName),
@@ -1879,19 +1891,19 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                     }
                 } else {
                     std::string toAddress = CBitcoinAddress(des).ToString();
-                    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
+                    /*std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> retset;
                     ServiceList.GetServiceAddresses(retset);
                     bool isService = false;
 
-                    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
+                    for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
                     {
-                        if (toAddress == get<1>(it->second)) {
+                        if (toAddress == it->first) {
                             isService = true;
                         }
-                    }
+                    }*/
 
                     //if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) {
-                    if (CBitcoinAddress(toAddress).IsValid() && isService) { // vantar && addressan er a service listanum
+                    if (CBitcoinAddress(toAddress).IsValid() && IsService(toAddress)) { // vantar && addressan er a service listanum
                         for(unsigned int l = 0; l < tx.vout.size(); l++) {
                             const CTxOut &outService = tx.vout[l];
                             const CScript &keyService = outService.scriptPubKey;
@@ -1942,21 +1954,22 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                     }
                                 }
                                 // DELETE SERVICE
-                                // If op_return begins with "del service"
-                                if (hexData.substr(0, 22) == "64656c2073657276696365") {
-                                    std::string deleteService = hexData.substr(22, hexString.size());
+                                // If op_return begins with "DS"
+                                if (hexData.substr(0, 4) == "4453") {
+                                    std::string deleteService = hexData.substr(4, hexString.size());
                                     std::vector<std::string> strs = splitString(deleteService, "20");
                                     if (strs.size() == 3) {
                                         std::string serviceName = strs.at(0);
                                         std::string serviceAddress = strs.at(1);
                                         std::string serviceType = strs.at(2);
 
-                                        CBitcoinAddress asciiAddress = CBitcoinAddress(hexToAscii(serviceAddress));
-                                        if (asciiAddress.IsValid()) {
+                                        std::string asciiAddress = hexToAscii(serviceAddress);
+                                        CBitcoinAddress sAddress = CBitcoinAddress(asciiAddress);
+                                        if (sAddress.IsValid() && IsService(asciiAddress)) {
                                             std::tuple<std::string, std::string, std::string> value;
-                                            value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress), hexToAscii(serviceType));
-                                            assert(view.SetServiceInfo(keyService, value));
-                                            serviceInfo[keyService] = value;
+                                            value = std::make_tuple("DS", hexToAscii(serviceName), hexToAscii(serviceType));
+                                            assert(view.SetServiceInfo(asciiAddress, value));
+                                            serviceInfo[asciiAddress] = value;
 
                                             if (pwalletMain) {
                                                 pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName),
@@ -2155,7 +2168,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	std::vector<std::pair<uint256, CDiskTxPos> > vPos;
 	vPos.reserve(block.vtx.size());
 	std::map<CScript, std::pair<int64_t, int> > addressInfo;
-    std::map<CScript, std::tuple<std::string, std::string, std::string> > serviceInfo;
+    std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceInfo;
     std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > serviceAddressInfo;
 
     for (unsigned int i = 0; i < block.vtx.size(); i++)
@@ -2240,35 +2253,24 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                         if (hexString.substr(0, 2) == "6a") {
                             // Get the op_return value
                             hexData = hexString.substr(4, hexString.size());
-                            // Continue if data string begins with "new service"
-                            if (hexData.substr(0, 22) == "6e65772073657276696365") {
-                                // Retrieve data that follows "new service"
-                                newService = hexData.substr(22, hexString.size());
+                            // Continue if data string begins with "NS" (new service)
+                            if (hexData.substr(0, 4) == "4e53") {
+                                // Retrieve data that follows "NS"
+                                newService = hexData.substr(4, hexString.size());
                                 std::vector<std::string> strs = splitString(newService, "20");
                                 if (strs.size() == 3) {
                                     serviceName = strs.at(0);
                                     serviceAddress = strs.at(1);
                                     serviceType = strs.at(2);
 
-                                    CBitcoinAddress sAddress = CBitcoinAddress(hexToAscii(serviceAddress));
-                                    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> services;
-                                    ServiceList.GetServiceAddresses(services);
-                                    bool isService = false;
-                                    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
-                                    {
-                                        // If service address already on service list
-                                        if (serviceAddress == get<1>(s->second)) {
-                                            isService = true;
-                                        }
-                                    }
-                                    // Check whether address field contains a valid address and address
-                                    // not already on service list
-                                    if (sAddress.IsValid() && !isService) {
+                                    std::string asciiAddress = hexToAscii(serviceAddress);
+                                    CBitcoinAddress sAddress = CBitcoinAddress(asciiAddress);
+
+                                    if (sAddress.IsValid() && !IsService(asciiAddress)) {
                                         std::tuple<std::string, std::string, std::string> value;
-                                        value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress),
-                                                                hexToAscii(serviceType));
-                                        assert(view.SetServiceInfo(keyService, value));
-                                        serviceInfo[keyService] = value;
+                                        value = std::make_tuple("NS", hexToAscii(serviceName), hexToAscii(serviceType));
+                                        assert(view.SetServiceInfo(asciiAddress, value));
+                                        serviceInfo[asciiAddress] = value;
 
                                         if (pwalletMain)
                                         {
@@ -2284,19 +2286,19 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                 } else {  //kommentad ut medan min addressa vid testun
                     // TICKET SALES
                     std::string toAddress = CBitcoinAddress(des).ToString();
-                    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
+                    /*std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> retset;
                     ServiceList.GetServiceAddresses(retset);
                     bool isService = false;
 
-                    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
+                    for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
                     {
-                        if (toAddress == get<1>(it->second)) {
+                        if (toAddress == it->first) {
                             isService = true;
                         }
-                    }
+                    }*/
 
                     //if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) {
-                    if (CBitcoinAddress(toAddress).IsValid() && isService) { // vantar && addressan er a service listanum
+                    if (CBitcoinAddress(toAddress).IsValid() && IsService(toAddress)) { // vantar && addressan er a service listanum
                         for (unsigned int l = 0; l < tx.vout.size(); l++) {
                             const CTxOut &outService = tx.vout[l];
                             const CScript &keyService = outService.scriptPubKey;
@@ -2337,21 +2339,22 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         }
                                     }
                                 }
-                                // If op_return begins with "del service"
-                                if (hexData.substr(0, 22) == "64656c2073657276696365") {
-                                    std::string deleteService = hexData.substr(22, hexString.size());
+                                // If op_return begins with "DS"
+                                if (hexData.substr(0, 4) == "4453") {
+                                    std::string deleteService = hexData.substr(4, hexString.size());
                                     std::vector<std::string> strs = splitString(deleteService, "20");
                                     if (strs.size() == 3) {
                                         std::string serviceName = strs.at(0);
                                         std::string serviceAddress = strs.at(1);
                                         std::string serviceType = strs.at(2);
 
-                                        CBitcoinAddress asciiAddress = CBitcoinAddress(hexToAscii(serviceAddress));
-                                        if (asciiAddress.IsValid()) {
+                                        std::string asciiAddress = hexToAscii(serviceAddress);
+                                        CBitcoinAddress sAddress = CBitcoinAddress(asciiAddress);
+                                        if (sAddress.IsValid() && IsService(asciiAddress)) {
                                             std::tuple<std::string, std::string, std::string> value;
-                                            value = std::make_tuple(hexToAscii(serviceName), hexToAscii(serviceAddress), hexToAscii(serviceType));
-                                            assert(view.SetServiceInfo(keyService, value));
-                                            serviceInfo[keyService] = value;
+                                            value = std::make_tuple("DS", hexToAscii(serviceName), hexToAscii(serviceType));
+                                            assert(view.SetServiceInfo(asciiAddress, value));
+                                            serviceInfo[asciiAddress] = value;
 
                                             if (pwalletMain) {
                                                 pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName),
@@ -3750,9 +3753,9 @@ bool InitServiceList(CCoinsView &dbview)
 {
     LOCK(cs_main);
     if (fReindex || chainActive.Genesis() == NULL) {
-        std::vector<unsigned char> v;
-        v.assign(21,'0');
-        if(!dbview.SetServiceInfo(CScript(v),std::make_tuple("1", "0", "0"))) {
+        //std::vector<unsigned char> v;
+        //v.assign(21,'0');
+        if(!dbview.SetServiceInfo(string("init"), std::make_tuple("1", "0", "0"))) {
             return false; }
         pblocktree->WriteFlag("serviceinfo", true);
     }

@@ -179,11 +179,11 @@ Value createservice(const Array& params, bool fHelp)
     vector<string> str;
     int64_t amount = 0;
 
-    std::string txData = HexStr("new service " + serviceName + " " + serviceAddress + " " + serviceType, false);
+    std::string txData = HexStr("NS " + serviceName + " " + serviceAddress + " " + serviceType, false);
     str.push_back(txData);
     vector<unsigned char> data = ParseHexV(str[0], "Data");
 
-    // Create op_return script in the form -> new service serviceName serviceAddress serviceType
+    // Create op_return script in the form -> NS serviceName serviceAddress serviceType
     vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
 
     CWalletTx wtx;
@@ -236,11 +236,11 @@ Value deleteservice(const Array& params, bool fHelp)
 
     CBitcoinAddress address(params[1].get_str());
 
-    std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string> > > services;
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
     bool isService = false;
-    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
-        if (address.ToString() == get<1>(it->second)) {
+    for(std::multiset< std::pair<std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
+        if (address.ToString() == it->first) {
             isService = true;
         }
     }
@@ -270,11 +270,11 @@ Value deleteservice(const Array& params, bool fHelp)
     vector<string> str;
     int64_t amount = 0;
 
-    std::string txData = HexStr("del service " + serviceName + " " + serviceAddress + " " + serviceType, false);
+    std::string txData = HexStr("DS " + serviceName + " " + serviceAddress + " " + serviceType, false);
     str.push_back(txData);
     vector<unsigned char> data = ParseHexV(str[0], "Data");
 
-    // Create op_return script in the form -> del service serviceName serviceAddress serviceType
+    // Create op_return script in the form -> DS serviceName serviceAddress serviceType
     vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
 
     CWalletTx wtx;
@@ -308,29 +308,29 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     Array dservices; /* DEX */
     Object name_address;
 
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
-    ServiceList.GetServiceAddresses(retset);
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
+    ServiceList.GetServiceAddresses(services);
 
     // Loop through all existing services
-    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
+    for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
     {
         name_address.clear();
         // Ef service type er ticketsales
-        if (get<2>(it->second) == "1") {
-            name_address.push_back(Pair("name", get<0>(it->second)));
-            name_address.push_back(Pair("address", get<1>(it->second)));
+        if (get<2>(s->second) == "Ticket Sales") { // "1"
+            name_address.push_back(Pair("name", get<1>(s->second)));
+            name_address.push_back(Pair("address", s->first));
             tservices.push_back(name_address);
-        } else if (get<2>(it->second) == "3") {
-            name_address.push_back(Pair("name", get<0>(it->second)));
-            name_address.push_back(Pair("address", get<1>(it->second)));
+        } else if (get<2>(s->second) == "Book Chapter") { // "3"
+            name_address.push_back(Pair("name", get<1>(s->second)));
+            name_address.push_back(Pair("address", s->first));
             bservices.push_back(name_address);
-        } else if (get<2>(it->second) == "5") {
-            name_address.push_back(Pair("name", get<0>(it->second)));
-            name_address.push_back(Pair("address", get<1>(it->second)));
+        } else if (get<2>(s->second) == "Nonprofit Organization") { // "5"
+            name_address.push_back(Pair("name", get<1>(s->second)));
+            name_address.push_back(Pair("address", s->first));
             nservices.push_back(name_address);
-        } else if (get<2>(it->second) == "6") {
-            name_address.push_back(Pair("name", get<0>(it->second)));
-            name_address.push_back(Pair("address", get<1>(it->second)));
+        } else if (get<2>(s->second) == "DEX") { // "6"
+            name_address.push_back(Pair("name", get<1>(s->second)));
+            name_address.push_back(Pair("address", s->first));
             dservices.push_back(name_address);
         }
     }
@@ -355,11 +355,11 @@ Value getserviceaddressinfo(const Array& params, bool fHelp)
     if(!address.IsValid())
         throw runtime_error("Invalid Smileycoin address");
 
-    std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string> > > services;
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
     bool isService = false;
-    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
-        if (address.ToString() == get<1>(it->second)) {
+    for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
+        if (address.ToString() == it->first) {
             isService = true;
         }
     }

@@ -74,7 +74,7 @@ private:
     TicketTableModel *ticketModel;
     WalletModel *walletModel;
     QString returnValue;
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> myServices;
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> myServices;
     QSortFilterProxyModel *proxyModel;
     QVBoxLayout *verticalLayout;
     QLineEdit *addressWidget;

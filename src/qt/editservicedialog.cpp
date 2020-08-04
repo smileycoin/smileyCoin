@@ -58,11 +58,11 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             setWindowTitle(tr("Create new ticket"));
 
             ServiceList.GetMyServiceAddresses(myServices);
-            for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
+            for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
             {
                 // If service type is Ticket Sales add to dropdown selection
                 if(get<2>(it->second) == "1") {
-                    ui->ticketService->addItem(QString::fromStdString(get<0>(it->second)));
+                    ui->ticketService->addItem(QString::fromStdString(get<1>(it->second)));
                 }
             }
             ui->ticketName->setMaxLength(20);
@@ -117,10 +117,10 @@ void EditServiceDialog::accept()
              }
 
              ServiceList.GetServiceAddresses(services);
-             for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
+             for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
              {
                  // If service address already in list
-                 if(ui->serviceAddress->text().toStdString() == get<1>(s->second)) {
+                 if(ui->serviceAddress->text().toStdString() == s->first) {
                      QMessageBox::warning(this, windowTitle(),
                              tr("The entered address \"%1\" is already on service list. Please use another address.").arg(ui->serviceAddress->text()),
                              QMessageBox::Ok, QMessageBox::Ok);
@@ -134,15 +134,31 @@ void EditServiceDialog::accept()
              QString serviceAddress = ui->serviceAddress->text().toLatin1().toHex();
              // Get type of new service and convert to hex
              QString rawServiceType = ui->serviceType->currentText().toLatin1().toHex();
-             std::vector<std::string> typeStr = splitString(rawServiceType.toStdString(), "20");
+
+             //std::vector<std::string> typeStr = splitString(rawServiceType.toStdString(), "20");
+
              // Merge into one string if service type name consists of more than one word
              QString serviceType = "";
-             if (typeStr.size() > 1) {
+             /*if (typeStr.size() > 1) {
                  for (std::string::size_type i = 0; i < typeStr.size(); i++) {
                      serviceType += QString::fromStdString(typeStr.at(i));
                  }
              } else {
                  serviceType = rawServiceType;
+             }*/
+
+             if (rawServiceType == "5469636b65742053616c6573") { /* Ticket Sales */
+                 serviceType = "31";
+             } else if (rawServiceType == "554249") { /* UBI */
+                 serviceType = "32";
+             } else if (rawServiceType == "426f6f6b2043686170746572") { /* Book Chapter*/
+                 serviceType = "33";
+             } else if (rawServiceType == "54726163656162696c697479") { /* Traceability */
+                 serviceType = "34";
+             } else if (rawServiceType == "4e6f6e70726f666974204f7267616e697a6174696f6e") { /* Nonprofit Organization */
+                 serviceType = "35";
+             } else if (rawServiceType == "444558") { /* DEX */
+                 serviceType = "36";
              }
 
              SendCoinsRecipient issuer;
@@ -153,8 +169,8 @@ void EditServiceDialog::accept()
              // Start with n = 10 (0.001) to get rid of spam
              issuer.amount = 1000000000;
 
-             // Create op_return in the following form OP_RETURN = "new service serviceName serviceAddress serviceType"
-             issuer.data = QString::fromStdString("6e6577207365727669636520") + serviceName +
+             // Create op_return in the following form OP_RETURN = "NS serviceName serviceAddress serviceType"
+             issuer.data = QString::fromStdString("4e5320") + serviceName +
                            QString::fromStdString("20") + serviceAddress + QString::fromStdString("20") + serviceType;
 
              QList <SendCoinsRecipient> recipients;
@@ -283,10 +299,10 @@ void EditServiceDialog::accept()
              QString ticketServiceAddress = "";
              SendCoinsRecipient issuer;
              // Send new ticket to own service address
-             for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
+             for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
              {
-                 if(rawTicketService == QString::fromStdString(get<0>(it->second))) {
-                     ticketServiceAddress = QString::fromStdString(get<1>(it->second));
+                 if(rawTicketService == QString::fromStdString(get<1>(it->second))) {
+                     ticketServiceAddress = QString::fromStdString(it->first);
                  }
              }
              issuer.address = ticketServiceAddress;

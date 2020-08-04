@@ -151,7 +151,22 @@ void ServicePage::onDeleteServiceAction() {
     {
         QString serviceName = idx.sibling(row, 0).data().toString();
         QString serviceAddress = idx.sibling(row, 1).data().toString();
-        QString serviceType = idx.sibling(row, 2).data().toString();
+        QString rawServiceType = idx.sibling(row, 2).data().toString();
+        QString serviceType = "";
+
+        if (rawServiceType == "Ticket Sales") {
+            serviceType = "1";
+        } else if (rawServiceType == "UBI") {
+            serviceType = "2";
+        } else if (rawServiceType == "Book Chapter") {
+            serviceType = "3";
+        } else if (rawServiceType == "Traceability") {
+            serviceType = "4";
+        } else if (rawServiceType == "Nonprofit Organization") {
+            serviceType = "5";
+        } else if (rawServiceType == "DEX") {
+            serviceType = "6";
+        }
 
         SendCoinsRecipient issuer;
         // Send delete service transaction to own service address
@@ -159,8 +174,8 @@ void ServicePage::onDeleteServiceAction() {
         // Start with n = 1 to get rid of spam
         issuer.amount = 100000000;
 
-        // Create op_return in the following form OP_RETURN = "del service serviceName serviceAddress serviceType"
-        issuer.data = QString::fromStdString("64656c207365727669636520") +
+        // Create op_return in the following form OP_RETURN = "DS serviceName serviceAddress serviceType"
+        issuer.data = QString::fromStdString("445320") +
                       serviceName.toLatin1().toHex() + QString::fromStdString("20") +
                       serviceAddress.toLatin1().toHex() + QString::fromStdString("20") +
                       serviceType.toLatin1().toHex();
@@ -198,7 +213,6 @@ void ServicePage::onDeleteServiceAction() {
             if (sendStatus.status == WalletModel::OK) {
                 QDialog::accept();
                 CoinControlDialog::coinControl->UnSelectAll();
-                //ui->tableView->model()->removeRow(selection.at(0).row());
             } else {
                 QDialog::reject();
             }
