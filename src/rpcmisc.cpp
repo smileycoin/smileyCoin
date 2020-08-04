@@ -149,19 +149,19 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     {
         name_address.clear();
         // Ef service type er ticketsales
-        if (get<2>(it->second) == "TicketSales") {
+        if (get<2>(it->second) == "1") {
             name_address.push_back(Pair("name", get<0>(it->second)));
             name_address.push_back(Pair("address", get<1>(it->second)));
             tservices.push_back(name_address);
-        } else if (get<2>(it->second) == "BookChapter") {
+        } else if (get<2>(it->second) == "3") {
             name_address.push_back(Pair("name", get<0>(it->second)));
             name_address.push_back(Pair("address", get<1>(it->second)));
             bservices.push_back(name_address);
-        } else if (get<2>(it->second) == "NPO") {
+        } else if (get<2>(it->second) == "5") {
             name_address.push_back(Pair("name", get<0>(it->second)));
             name_address.push_back(Pair("address", get<1>(it->second)));
             nservices.push_back(name_address);
-        } else if (get<2>(it->second) == "DEX") {
+        } else if (get<2>(it->second) == "6") {
             name_address.push_back(Pair("name", get<0>(it->second)));
             name_address.push_back(Pair("address", get<1>(it->second)));
             dservices.push_back(name_address);
@@ -169,8 +169,8 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     }
 
     root.push_back(Pair("Ticket Sales", tservices));
-    root.push_back(Pair("Book Chapter", bservices));
-    root.push_back(Pair("NPO", nservices));
+    root.push_back(Pair("Book Chapters", bservices));
+    root.push_back(Pair("Non-profit Organizations", nservices));
     root.push_back(Pair("DEX", dservices));
 
     return root;
@@ -230,7 +230,7 @@ Value getubilist(const Array& params, bool fHelp)
 
     if (fHelp || params.size() != 1)
         throw runtime_error("getubilist\n"
-                            "Returns all ubi addresses that belong to a specific address that you must own\n"
+                            "Returns all ubi addresses that belong to a specific address\n"
                             );
     
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
@@ -252,8 +252,8 @@ Value getubilist(const Array& params, bool fHelp)
     if (!isService)
         throw runtime_error("Not a valid service address");
     
-    if (!IsMine(*pwalletMain, address.Get()))
-        throw runtime_error("Not your service address, permission denied");
+    // if (!IsMine(*pwalletMain, address.Get()))
+    //     throw runtime_error("Not your service address, permission denied");
     
     if (!isUbi)
         throw runtime_error("Not a ubi address");

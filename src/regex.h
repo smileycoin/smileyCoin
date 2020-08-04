@@ -40,6 +40,10 @@ bool isRegex(const string& txData) {
     for (int i = 0; i < lines.size(); i++) {
         std::string strengur = lines[i];
         std::regex expr(strengur);
-        return std::regex_match(txData, expr);
+        if (std::regex_match(txData, expr)) {
+            return true;
+        }
+        // send the data encrypted
+        return false;
     }
 }
