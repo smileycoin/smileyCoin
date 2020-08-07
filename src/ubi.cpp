@@ -10,16 +10,12 @@
 #include <boost/filesystem.hpp>
 #include <boost/version.hpp>
 
-/* To the reader:
- * We calculate the next batch of UBI recipients for every thread,
- * but we can do it only for each block height when someone has
- * actually been paid. 
- *
- * Could move initialization to init.cpp to conform to the other code
- * but that's annoying.
- */
-
 using namespace std;
+
+CCriticalSection cs_currentheight;
+unsigned int nCurrentHeight = 0;
+
+vector<CScript> vBatch;
 
 // compare recipients only via block-last-paid, the address is irrelevant
 bool operator<(const Recipient& lhs, const Recipient& rhs)
@@ -49,7 +45,6 @@ static void InitCirculation()
     if (!addressfile.good())
         LogPrintf("UBI::InitCirculation() couldn't read ubi_addresses file, not paying any UBI\n");
 
-
     string ln;
     while (getline(addressfile, ln))
     {
@@ -60,6 +55,8 @@ static void InitCirculation()
         // user has not been paid, so he is initialized with the height 0
         vRecipients.push_back({0, CBitcoinAddress(ln)});
     }
+
+    vBatch.assign(min(nBatchSize, vRecipients.size()), CScript());
 }
 
 // goes through vRecipients and selects the addresses that haven't been paid
@@ -70,33 +67,28 @@ vector<CScript> NextBatch(const unsigned int nHeight)
 {
     boost::call_once(&InitCirculation, ubiInitFlag);
 
+    LOCK(cs_currentheight);
+    if (nHeight == nCurrentHeight)
+        return vBatch;
+
+    nCurrentHeight = nHeight;
+
     int stop = min(vRecipients.size(), nBatchSize);
 
-    vector<Recipient> batch(vRecipients.begin(), vRecipients.begin()+stop);
-
     // choose the recipients with the lowest lastpaid values
-    for (auto &r : vRecipients)
+    for (int i = 0; i < stop; i++)
     {
         // using our operator< get the iterator of the recipient in batch that
         // has been paid most recently
-        auto it = max_element(batch.begin(), batch.end());
+        auto it = min_element(vRecipients.begin(), vRecipients.end());
+        it->lastpaid = nHeight;
 
-        if (r < *it)
-        {
-            *it = r;
-            r.lastpaid = nHeight;
-        }
-    }
-
-    vector<CScript> ret;
-    for (auto r : batch)
-    {
         CScript s;
-        s.SetDestination(r.address.Get());
-        ret.push_back(s);
+        s.SetDestination(it->address.Get());
+        vBatch[i] = s;
     }
 
-    return ret;
+    return vBatch;
 }
 
 // Similar to GetBlockValueDividends but doesn't depend on block height
