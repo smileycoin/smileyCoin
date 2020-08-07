@@ -66,6 +66,7 @@ BITCOIN_CORE_H = \
   tinyformat.h \
   txdb.h \
   txmempool.h \
+  ubi.h \
   ui_interface.h \
   uint256.h \
   util.h \
@@ -117,6 +118,7 @@ libbitcoin_server_a_SOURCES = \
   leveldbwrapper.cpp \
   main.cpp \
   miner.cpp \
+  ubi.cpp \
   net.cpp \
   noui.cpp \
   richlistdb.cpp \

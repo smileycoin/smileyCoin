@@ -10,6 +10,7 @@
 #include "main.h"
 #include "net.h"
 #include "richlistdb.h"
+#include "ubi.h"
 #ifdef ENABLE_WALLET
 #include "wallet.h"
 #endif
@@ -366,7 +367,8 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
 
   
-      txNew.vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees);
+      // miner's reward
+      txNew.vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees*0.10);
       //CTxOut minerTxOut = CTxOut(0, scriptPubKeyIn);
       CScript richpubkey;
       if(!RichList.NextRichScriptPubKey(richpubkey))
@@ -376,6 +378,19 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
       //txNew.vout.push_back(minerTxOut);
       txNew.vout.push_back(richTxOut);
       txNew.vout.push_back(EIASTxOut);
+
+
+      if (fUBI && UBI::GetUBIDividends(nFees) > 0)
+      {
+          vector<CScript> ubi_pubkeys = UBI::NextBatch(pindexPrev->nHeight + 1);
+          for (auto ubi_pubkey : ubi_pubkeys)
+          {
+              CTxOut ubi_txout = CTxOut(UBI::GetUBIDividends(nFees), ubi_pubkey);
+              txNew.vout.push_back(ubi_txout);
+          }
+      }
+
+
       pblock->vtx[0] = txNew;
       pblocktemplate->vTxFees[0] = -nFees;
       
