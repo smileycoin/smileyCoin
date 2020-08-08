@@ -152,7 +152,6 @@ void EditServiceDialog::accept()
 
              SendCoinsRecipient issuer;
              // Send new service request transaction to official service address
-             //issuer.address = QString::fromStdString("B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn");
              issuer.address = QString::fromStdString("B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc");
 
              // Start with n = 10 (0.001) to get rid of spam
@@ -298,8 +297,8 @@ void EditServiceDialog::accept()
              // Start with n = 1 to get rid of spam
              issuer.amount = 100000000;
 
-             // Create op_return in the following form OP_RETURN = "new ticket ticketLoc ticketName ticketDate ticketTime ticketPrice ticketAddress"
-             issuer.data = QString::fromStdString("6e6577207469636b657420") +
+             // Create op_return in the following form OP_RETURN = "NT ticketLoc ticketName ticketDate ticketTime ticketPrice ticketAddress"
+             issuer.data = QString::fromStdString("4e5420") +
                               ticketLoc + QString::fromStdString("20") +
                               ticketName + QString::fromStdString("20") +
                               ticketDateTime + QString::fromStdString("20") +

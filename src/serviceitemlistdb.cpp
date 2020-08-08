@@ -18,27 +18,23 @@
 #include <boost/version.hpp>
 #include <boost/filesystem.hpp>
 
-inline std::string TicketToAddress(const CServiceTicket &ai) {return get<0>(ai);}
-inline std::string TicketLocation(const CServiceTicket &ai) {return get<1>(ai);}
-inline std::string TicketName(const CServiceTicket &ai) {return get<2>(ai);}
-inline std::string TicketDateAndTime(const CServiceTicket &ai) {return get<3>(ai);}
-inline std::string TicketValue(const CServiceTicket &ai) {return get<4>(ai);}
-inline std::string TicketAddress(const CServiceTicket &ai) {return get<5>(ai);}
+inline std::string TicketAction(const CServiceTicket &ai) {return get<0>(ai);}
+inline std::string TicketToAddress(const CServiceTicket &ai) {return get<1>(ai);}
+inline std::string TicketLocation(const CServiceTicket &ai) {return get<2>(ai);}
+inline std::string TicketName(const CServiceTicket &ai) {return get<3>(ai);}
+inline std::string TicketDateAndTime(const CServiceTicket &ai) {return get<4>(ai);}
+inline std::string TicketValue(const CServiceTicket &ai) {return get<5>(ai);}
 
-inline std::string UbiToAddress(const CServiceUbi &ai) {return get<0>(ai);}
-inline std::string UbiAddress(const CServiceUbi &ai) {return get<1>(ai);}
+inline std::string UbiAction(const CServiceUbi &ai) {return get<0>(ai);}
+inline std::string UbiToAddress(const CServiceUbi &ai) {return get<1>(ai);}
 
-inline std::string DexToAddress(const CServiceDex &ai) {return get<0>(ai);}
-inline std::string DexAddress(const CServiceDex &ai) {return get<1>(ai);}
+inline std::string DexAction(const CServiceDex &ai) {return get<0>(ai);}
+inline std::string DexToAddress(const CServiceDex &ai) {return get<1>(ai);}
 inline std::string DexDescription(const CServiceDex &ai) {return get<2>(ai);}
 
-inline std::string NpoToAddress(const CServiceNpo &ai) {return get<0>(ai);}
-inline std::string NpoName(const CServiceNpo &ai) {return get<1>(ai);}
-inline std::string NpoAddress(const CServiceNpo &ai) {return get<2>(ai);}
-
-inline std::string BookToAddress(const CServiceBook &ai) {return get<0>(ai);}
-inline std::string BookAddress(const CServiceBook &ai) {return get<1>(ai);}
-
+inline std::string ChapterAction(const CServiceBook &ai) {return get<0>(ai);}
+inline std::string ChapterToAddress(const CServiceBook &ai) {return get<1>(ai);}
+inline std::string ChapterNum(const CServiceBook &ai) {return get<2>(ai);}
 
 bool CServiceItemList::SetForked(const bool &fFork)
 {
@@ -46,28 +42,18 @@ bool CServiceItemList::SetForked(const bool &fFork)
     return true;
 }
 
-
-// Tickets
-
-bool CServiceItemList::UpdateTicketList(const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &map)
+bool CServiceItemList::UpdateTicketList(const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &map)
 {
-    for(std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
+    for(std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
-        LogPrintStr("UPDATETICKETLIST");
-        LogPrintStr(it->first.ToString());
-        LogPrintStr(get<0>(it->second));
-        LogPrintStr(get<1>(it->second));
-        LogPrintStr(get<2>(it->second));
-        LogPrintStr(get<3>(it->second));
-        LogPrintStr(get<4>(it->second));
-
-        CScript script = it->first;
-        opcodetype opcode;
-        CScript::const_iterator pc = script.begin();
-        if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
-            LogPrintStr(" OPCODE == OP_RETURN ");
-            LogPrintStr(script.ToString());
-            ticketitems.insert(*it);
+        if (get<0>(it->second) == "DT") { // If op_return begins with DT (delete ticket)
+            mapServiceTicketList::iterator itTicket = taddresses.find(it->first);
+            // If key is found in ticket list
+            if (itTicket != taddresses.end()) {
+                taddresses.erase(itTicket);
+            }
+        } else if (get<0>(it->second) == "NT") { // If op_return begins with NT (new ticket)
+            taddresses.insert(*it);
         }
     }
     return true;
@@ -77,7 +63,6 @@ bool CServiceItemList::UpdateTicketList(const std::map<CScript, std::tuple<std::
 // TODO: We should try to get rid of this and write the height undo information to the disk instead.
 bool CServiceItemList::UpdateTicketListHeights()
 {
-    LogPrintStr("UPDATETICKETLISTHEIGHTS");
     if(!fForked)
         return true;
 
@@ -87,17 +72,19 @@ bool CServiceItemList::UpdateTicketListHeights()
     }
 
     CBlock block;
-    std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > ticketItem;
-    mapServiceTicketListScriptPubKeys mforkedServiceTicketList;
+    std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > ticketItem;
+    mapServiceTicketList mforkedServiceTicketList;
 
-    for(mapServiceTicketListScriptPubKeys::const_iterator it = ticketitems.begin(); it!=ticketitems.end(); it++)
+    for(mapServiceTicketList::const_iterator it = taddresses.begin(); it!=taddresses.end(); it++)
     {
-        CScript script = it->first;
-        opcodetype opcode;
-        CScript::const_iterator pc = script.begin();
-
-        if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
-            ticketitems.insert(*it);
+        if (get<0>(it->second) == "DT") { // If op_return begins with DT (delete ticket)
+            mapServiceTicketList::iterator itTicket = taddresses.find(it->first);
+            // If key is found in ticket list
+            if (itTicket != taddresses.end()) {
+                taddresses.erase(itTicket);
+            }
+        } else if (get<0>(it->second) == "NT") { // If op_return begins with NT (new ticket)
+            taddresses.insert(*it);
         }
     }
 
@@ -107,9 +94,7 @@ bool CServiceItemList::UpdateTicketListHeights()
 
     while(pindexSeek->pprev && !mforkedServiceTicketList.empty())
     {
-
         // return false;
-
         ReadBlockFromDisk(block,pindexSeek);
         block.BuildMerkleTree();
         BOOST_FOREACH(const CTransaction &tx, block.vtx)
@@ -117,12 +102,12 @@ bool CServiceItemList::UpdateTicketListHeights()
             for(unsigned int j = 0; j < tx.vout.size(); j++)
             {
                 CScript key = tx.vout[j].scriptPubKey;
-                mapServiceTicketListScriptPubKeys::iterator it = mforkedServiceTicketList.find(key);
+                /*mapServiceTicketList::iterator it = mforkedServiceTicketList.find(key);
                 if(it == mforkedServiceTicketList.end())
                     continue;
 
                 ticketItem.insert(std::make_pair(key, std::make_tuple(TicketToAddress(it), TicketLocation(it), TicketName(it), TicketDateAndTime(it), TicketValue(it), TicketAddress(it))));
-                mforkedServiceTicketList.erase(it);
+                mforkedServiceTicketList.erase(it);*/
                 if(fDebug) {
                     CTxDestination dest;
                     ExtractDestination(key, dest);
@@ -142,11 +127,11 @@ bool CServiceItemList::UpdateTicketListHeights()
                 for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
                 {
                     CScript key = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                    mapServiceTicketListScriptPubKeys::iterator it = mforkedServiceTicketList.find(key);
+                    /*mapServiceTicketList::iterator it = mforkedServiceTicketList.find(key);
                     if(it == mforkedServiceTicketList.end())
                         continue;
                     ticketItem.insert(std::make_pair(it->first, std::make_tuple(TicketToAddress(it), TicketLocation(it), TicketName(it), TicketDateAndTime(it), TicketValue(it), TicketAddress(it))));
-                    mforkedServiceTicketList.erase(it);
+                    mforkedServiceTicketList.erase(it);*/
                     if(fDebug) {
                         CTxDestination dest;
                         ExtractDestination(key, dest);
@@ -165,7 +150,7 @@ bool CServiceItemList::UpdateTicketListHeights()
     }
 
     bool ret;
-    typedef std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > pairType;
+    typedef std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > pairType;
     BOOST_FOREACH(const pairType &pair, ticketItem) {
         ret = pcoinsTip->SetTicketList(pair.first, pair.second);
         assert(ret);
@@ -177,32 +162,26 @@ bool CServiceItemList::UpdateTicketListHeights()
 }
 
 
-bool CServiceItemList::GetTicketList(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> &retset) const {
-    for(std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it=ticketitems.begin(); it!=ticketitems.end(); it++)
+bool CServiceItemList::GetTicketList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> &retset) const {
+    for(std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it=taddresses.begin(); it!=taddresses.end(); it++)
     {
         retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second), get<3>(it->second), get<4>(it->second), get<5>(it->second))));
     }
     return true;
 }
 
-// Ubi
-
-bool CServiceItemList::UpdateUbiList(const std::map<CScript, std::tuple<std::string, std::string> > &map)
+bool CServiceItemList::UpdateUbiList(const std::map<std::string, std::tuple<std::string, std::string> > &map)
 {
-    for(std::map<CScript, std::tuple<std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
+    for(std::map<std::string, std::tuple<std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
-        LogPrintStr("UPDATEUBILIST");
-        LogPrintStr(it->first.ToString());
-        LogPrintStr(get<0>(it->second));
-        LogPrintStr(get<1>(it->second));
-
-        CScript script = it->first;
-        opcodetype opcode;
-        CScript::const_iterator pc = script.begin();
-        if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
-            LogPrintStr(" OPCODE == OP_RETURN ");
-            LogPrintStr(script.ToString());
-            ubiitems.insert(*it);
+        if (get<0>(it->second) == "DU") { // If op_return begins with DU (delete ubi recipient)
+            mapServiceUbiList::iterator itUbi = uaddresses.find(it->first);
+            // If key is found in ubi recipient list
+            if (itUbi != uaddresses.end()) {
+                uaddresses.erase(itUbi);
+            }
+        } else if (get<0>(it->second) == "NU") { // If op_return begins with NU (new ubi)
+            uaddresses.insert(*it);
         }
     }
     return true;
@@ -212,7 +191,6 @@ bool CServiceItemList::UpdateUbiList(const std::map<CScript, std::tuple<std::str
 // TODO: We should try to get rid of this and write the height undo information to the disk instead.
 bool CServiceItemList::UpdateUbiListHeights()
 {
-    LogPrintStr("UPDATEUBILISTHEIGHTS");
     if(!fForked)
         return true;
 
@@ -222,17 +200,19 @@ bool CServiceItemList::UpdateUbiListHeights()
     }
 
     CBlock block;
-    std::map<CScript, std::tuple<std::string, std::string> > ubiItem;
-    mapServiceUbiListScriptPubKeys mforkedServiceUbiList;
+    std::map<std::string, std::tuple<std::string, std::string> > ubiItem;
+    mapServiceUbiList mforkedServiceUbiList;
 
-    for(mapServiceUbiListScriptPubKeys::const_iterator it = ubiitems.begin(); it!=ubiitems.end(); it++)
+    for(mapServiceUbiList::const_iterator it = uaddresses.begin(); it!=uaddresses.end(); it++)
     {
-        CScript script = it->first;
-        opcodetype opcode;
-        CScript::const_iterator pc = script.begin();
-
-        if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
-            ubiitems.insert(*it);
+        if (get<0>(it->second) == "DU") { // If op_return begins with DU (delete ubi recipient)
+            mapServiceUbiList::iterator itUbi = uaddresses.find(it->first);
+            // If key is found in ubi recipient list
+            if (itUbi != uaddresses.end()) {
+                uaddresses.erase(itUbi);
+            }
+        } else if (get<0>(it->second) == "NU") { // If op_return begins with NU (new ubi recipient)
+            uaddresses.insert(*it);
         }
     }
 
@@ -252,12 +232,12 @@ bool CServiceItemList::UpdateUbiListHeights()
             for(unsigned int j = 0; j < tx.vout.size(); j++)
             {
                 CScript key = tx.vout[j].scriptPubKey;
-                mapServiceUbiListScriptPubKeys::iterator it = mforkedServiceUbiList.find(key);
+                /*mapServiceUbiList::iterator it = mforkedServiceUbiList.find(key);
                 if(it == mforkedServiceUbiList.end())
                     continue;
 
                 ubiItem.insert(std::make_pair(key, std::make_tuple(UbiToAddress(it), UbiAddress(it))));
-                mforkedServiceUbiList.erase(it);
+                mforkedServiceUbiList.erase(it);*/
                 if(fDebug) {
                     CTxDestination dest;
                     ExtractDestination(key, dest);
@@ -277,11 +257,11 @@ bool CServiceItemList::UpdateUbiListHeights()
                 for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
                 {
                     CScript key = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                    mapServiceUbiListScriptPubKeys::iterator it = mforkedServiceUbiList.find(key);
+                    /*mapServiceUbiList::iterator it = mforkedServiceUbiList.find(key);
                     if(it == mforkedServiceUbiList.end())
                         continue;
                     ubiItem.insert(std::make_pair(it->first, std::make_tuple(UbiToAddress(it), UbiAddress(it))));
-                    mforkedServiceUbiList.erase(it);
+                    mforkedServiceUbiList.erase(it);*/
                     if(fDebug) {
                         CTxDestination dest;
                         ExtractDestination(key, dest);
@@ -300,7 +280,7 @@ bool CServiceItemList::UpdateUbiListHeights()
     }
 
     bool ret;
-    typedef std::pair<CScript, std::tuple<std::string, std::string> > pairType;
+    typedef std::pair<std::string, std::tuple<std::string, std::string> > pairType;
     BOOST_FOREACH(const pairType &pair, ubiItem) {
         ret = pcoinsTip->SetUbiList(pair.first, pair.second);
         assert(ret);
@@ -311,33 +291,26 @@ bool CServiceItemList::UpdateUbiListHeights()
     return mforkedServiceUbiList.empty();
 }
 
-bool CServiceItemList::GetUbiList(std::multiset<std::pair<CScript, std::tuple<std::string, std::string>>> &retset) const {
-    for(std::map<CScript, std::tuple<std::string, std::string> >::const_iterator it=ubiitems.begin(); it!=ubiitems.end(); it++)
+bool CServiceItemList::GetUbiList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string>>> &retset) const {
+    for(std::map<std::string, std::tuple<std::string, std::string> >::const_iterator it=uaddresses.begin(); it!=uaddresses.end(); it++)
     {
         retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second))));
     }
     return true;
 }
-    
-// Dex
 
-bool CServiceItemList::UpdateDexList(const std::map<CScript, std::tuple<std::string, std::string, std::string> > &map)
+bool CServiceItemList::UpdateDexList(const std::map<std::string, std::tuple<std::string, std::string, std::string> > &map)
 {
-    for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
+    for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
-        LogPrintStr("UPDATEDEXLIST");
-        LogPrintStr(it->first.ToString());
-        LogPrintStr(get<0>(it->second));
-        LogPrintStr(get<1>(it->second));
-        LogPrintStr(get<2>(it->second));
-
-        CScript script = it->first;
-        opcodetype opcode;
-        CScript::const_iterator pc = script.begin();
-        if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
-            LogPrintStr(" OPCODE == OP_RETURN ");
-            LogPrintStr(script.ToString());
-            dexitems.insert(*it);
+        if (get<0>(it->second) == "DD") { // If op_return begins with DD (delete dex)
+            mapServiceDexList::iterator itDex = daddresses.find(it->first);
+            // If key is found in dex list
+            if (itDex != daddresses.end()) {
+                daddresses.erase(itDex);
+            }
+        } else if (get<0>(it->second) == "ND") { // If op_return begins with ND (new dex)
+            daddresses.insert(*it);
         }
     }
     return true;
@@ -347,7 +320,6 @@ bool CServiceItemList::UpdateDexList(const std::map<CScript, std::tuple<std::str
 // TODO: We should try to get rid of this and write the height undo information to the disk instead.
 bool CServiceItemList::UpdateDexListHeights()
 {
-    LogPrintStr("UPDATEDEXLISTHEIGHTS");
     if(!fForked)
         return true;
 
@@ -357,17 +329,19 @@ bool CServiceItemList::UpdateDexListHeights()
     }
 
     CBlock block;
-    std::map<CScript, std::tuple<std::string, std::string, std::string> > dexItem;
-    mapServiceDexListScriptPubKeys mforkedServiceDexList;
+    std::map<std::string, std::tuple<std::string, std::string, std::string> > dexItem;
+    mapServiceDexList mforkedServiceDexList;
 
-    for(mapServiceDexListScriptPubKeys::const_iterator it = dexitems.begin(); it!=dexitems.end(); it++)
+    for(mapServiceDexList::const_iterator it = daddresses.begin(); it!=daddresses.end(); it++)
     {
-        CScript script = it->first;
-        opcodetype opcode;
-        CScript::const_iterator pc = script.begin();
-
-        if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
-            dexitems.insert(*it);
+        if (get<0>(it->second) == "DD") { // If op_return begins with DD (delete dex)
+            mapServiceDexList::iterator itDex = daddresses.find(it->first);
+            // If key is found in dex list
+            if (itDex != daddresses.end()) {
+                daddresses.erase(itDex);
+            }
+        } else if (get<0>(it->second) == "ND") { // If op_return begins with ND (new dex)
+            daddresses.insert(*it);
         }
     }
 
@@ -387,12 +361,12 @@ bool CServiceItemList::UpdateDexListHeights()
             for(unsigned int j = 0; j < tx.vout.size(); j++)
             {
                 CScript key = tx.vout[j].scriptPubKey;
-                mapServiceDexListScriptPubKeys::iterator it = mforkedServiceDexList.find(key);
+                /*mapServiceDexList::iterator it = mforkedServiceDexList.find(key);
                 if(it == mforkedServiceDexList.end())
                     continue;
 
                 dexItem.insert(std::make_pair(key, std::make_tuple(DexToAddress(it), DexAddress(it), DexDescription(it))));
-                mforkedServiceDexList.erase(it);
+                mforkedServiceDexList.erase(it);*/
                 if(fDebug) {
                     CTxDestination dest;
                     ExtractDestination(key, dest);
@@ -412,11 +386,11 @@ bool CServiceItemList::UpdateDexListHeights()
                 for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
                 {
                     CScript key = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                    mapServiceDexListScriptPubKeys::iterator it = mforkedServiceDexList.find(key);
+                    /*mapServiceDexList::iterator it = mforkedServiceDexList.find(key);
                     if(it == mforkedServiceDexList.end())
                         continue;
                     dexItem.insert(std::make_pair(it->first, std::make_tuple(DexToAddress(it), DexAddress(it), DexDescription(it))));
-                    mforkedServiceDexList.erase(it);
+                    mforkedServiceDexList.erase(it);*/
                     if(fDebug) {
                         CTxDestination dest;
                         ExtractDestination(key, dest);
@@ -435,7 +409,7 @@ bool CServiceItemList::UpdateDexListHeights()
     }
 
     bool ret;
-    typedef std::pair<CScript, std::tuple<std::string, std::string, std::string> > pairType;
+    typedef std::pair<std::string, std::tuple<std::string, std::string, std::string> > pairType;
     BOOST_FOREACH(const pairType &pair, dexItem) {
         ret = pcoinsTip->SetDexList(pair.first, pair.second);
         assert(ret);
@@ -446,167 +420,26 @@ bool CServiceItemList::UpdateDexListHeights()
     return mforkedServiceDexList.empty();
 }
 
-bool CServiceItemList::GetDexList(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string>>> &retset) const {
-    for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it=dexitems.begin(); it!=dexitems.end(); it++)
+bool CServiceItemList::GetDexList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> &retset) const {
+    for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it=daddresses.begin(); it!=daddresses.end(); it++)
     {
         retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
     }
     return true;
 }
 
-// Npo
-
-bool CServiceItemList::UpdateNpoList(const std::map<CScript, std::tuple<std::string, std::string, std::string> > &map)
+bool CServiceItemList::UpdateBookList(const std::map<std::string, std::tuple<std::string, std::string, std::string> > &map)
 {
-    for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
+    for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
-        LogPrintStr("UPDATENPOLIST");
-        LogPrintStr(it->first.ToString());
-        LogPrintStr(get<0>(it->second));
-        LogPrintStr(get<1>(it->second));
-        LogPrintStr(get<2>(it->second));
-
-        CScript script = it->first;
-        opcodetype opcode;
-        CScript::const_iterator pc = script.begin();
-        if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
-            LogPrintStr(" OPCODE == OP_RETURN ");
-            LogPrintStr(script.ToString());
-            npoitems.insert(*it);
-        }
-    }
-    return true;
-}
-
-// The heights need to be rolled back before new blocks are connected if any were disconnected.
-// TODO: We should try to get rid of this and write the height undo information to the disk instead.
-bool CServiceItemList::UpdateNpoListHeights()
-{
-    LogPrintStr("UPDATENPOLISTHEIGHTS");
-    if(!fForked)
-        return true;
-
-    CBlockIndex* pindexSeek = mapBlockIndex.find(pcoinsTip->GetBestBlock())->second;
-    if(!chainActive.Contains(pindexSeek)) {
-        return false;
-    }
-
-    CBlock block;
-    std::map<CScript, std::tuple<std::string, std::string, std::string> > npoItem;
-    mapServiceNpoListScriptPubKeys mforkedServiceNpoList;
-
-    for(mapServiceNpoListScriptPubKeys::const_iterator it = npoitems.begin(); it!=npoitems.end(); it++)
-    {
-        CScript script = it->first;
-        opcodetype opcode;
-        CScript::const_iterator pc = script.begin();
-
-        if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
-            npoitems.insert(*it);
-        }
-    }
-
-    if(fDebug) {
-        LogPrintf("%d addresses seen at fork and need to be relocated\n", mforkedServiceNpoList.size());
-    }
-
-    while(pindexSeek->pprev && !mforkedServiceNpoList.empty())
-    {
-
-        // return false;
-
-        ReadBlockFromDisk(block,pindexSeek);
-        block.BuildMerkleTree();
-        BOOST_FOREACH(const CTransaction &tx, block.vtx)
-        {
-            for(unsigned int j = 0; j < tx.vout.size(); j++)
-            {
-                CScript key = tx.vout[j].scriptPubKey;
-                mapServiceNpoListScriptPubKeys::iterator it = mforkedServiceNpoList.find(key);
-                if(it == mforkedServiceNpoList.end())
-                    continue;
-
-                npoItem.insert(std::make_pair(key, std::make_tuple(NpoToAddress(it), NpoName(it), NpoAddress(it))));
-                mforkedServiceNpoList.erase(it);
-                if(fDebug) {
-                    CTxDestination dest;
-                    ExtractDestination(key, dest);
-                    CBitcoinAddress addr;
-                    addr.Set(dest);
-                    LogPrintf("%s found at height %d\n",addr.ToString(),pindexSeek->nHeight);
-                }
+        if (get<0>(it->second) == "DB") { // If op_return begins with DB (delete book chapter)
+            mapServiceBookList::iterator itChapter = baddresses.find(it->first);
+            // If key is found in book chapter list
+            if (itChapter != baddresses.end()) {
+                baddresses.erase(itChapter);
             }
-        }
-
-        CBlockUndo undo;
-        CDiskBlockPos pos = pindexSeek ->GetUndoPos();
-        if (undo.ReadFromDisk(pos, pindexSeek->pprev->GetBlockHash())) //TODO: hvenær klikkar þetta?
-        {
-            for (unsigned int i=0; i<undo.vtxundo.size(); i++)
-            {
-                for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
-                {
-                    CScript key = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                    mapServiceNpoListScriptPubKeys::iterator it = mforkedServiceNpoList.find(key);
-                    if(it == mforkedServiceNpoList.end())
-                        continue;
-                    npoItem.insert(std::make_pair(it->first, std::make_tuple(NpoToAddress(it), NpoName(it), NpoAddress(it))));
-                    mforkedServiceNpoList.erase(it);
-                    if(fDebug) {
-                        CTxDestination dest;
-                        ExtractDestination(key, dest);
-                        CBitcoinAddress addr;
-                        addr.Set(dest);
-                        LogPrintf("%s found at height %d\n",addr.ToString(),pindexSeek->nHeight);
-                    }
-                }
-            }
-        }
-        else {
-            LogPrintf("UpdateNpoListHeights(): Failed to read undo information\n");
-            break;
-        }
-        pindexSeek = pindexSeek -> pprev;
-    }
-
-    bool ret;
-    typedef std::pair<CScript, std::tuple<std::string, std::string, std::string> > pairType;
-    BOOST_FOREACH(const pairType &pair, npoItem) {
-        ret = pcoinsTip->SetNpoList(pair.first, pair.second);
-        assert(ret);
-    }
-
-    if(!UpdateNpoList(npoItem))
-        return false;
-    return mforkedServiceNpoList.empty();
-}
-
-bool CServiceItemList::GetNpoList(std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string>>> &retset) const {
-    for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it=npoitems.begin(); it!=npoitems.end(); it++)
-    {
-        retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
-    }
-    return true;
-}
-
-// Book
-
-bool CServiceItemList::UpdateBookList(const std::map<CScript, std::tuple<std::string, std::string> > &map)
-{
-    for(std::map<CScript, std::tuple<std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
-    {
-        LogPrintStr("UPDATEBOOKLIST");
-        LogPrintStr(it->first.ToString());
-        LogPrintStr(get<0>(it->second));
-        LogPrintStr(get<1>(it->second));
-
-        CScript script = it->first;
-        opcodetype opcode;
-        CScript::const_iterator pc = script.begin();
-        if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
-            LogPrintStr(" OPCODE == OP_RETURN ");
-            LogPrintStr(script.ToString());
-            bookitems.insert(*it);
+        } else if (get<0>(it->second) == "NB") { // If op_return begins with NB (new book chapter)
+            baddresses.insert(*it);
         }
     }
     return true;
@@ -616,7 +449,6 @@ bool CServiceItemList::UpdateBookList(const std::map<CScript, std::tuple<std::st
 // TODO: We should try to get rid of this and write the height undo information to the disk instead.
 bool CServiceItemList::UpdateBookListHeights()
 {
-    LogPrintStr("UPDATEBOOKLISTHEIGHTS");
     if(!fForked)
         return true;
 
@@ -626,17 +458,19 @@ bool CServiceItemList::UpdateBookListHeights()
     }
 
     CBlock block;
-    std::map<CScript, std::tuple<std::string, std::string> > bookItem;
-    mapServiceBookListScriptPubKeys mforkedServiceBookList;
+    std::map<std::string, std::tuple<std::string, std::string, std::string> > bookItem;
+    mapServiceBookList mforkedServiceBookList;
 
-    for(mapServiceBookListScriptPubKeys::const_iterator it = bookitems.begin(); it!=bookitems.end(); it++)
+    for(mapServiceBookList::const_iterator it = baddresses.begin(); it!=baddresses.end(); it++)
     {
-        CScript script = it->first;
-        opcodetype opcode;
-        CScript::const_iterator pc = script.begin();
-
-        if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
-            bookitems.insert(*it);
+        if (get<0>(it->second) == "DB") { // If op_return begins with DB (delete book chapter)
+            mapServiceBookList::iterator itChapter = baddresses.find(it->first);
+            // If key is found in book chapter list
+            if (itChapter != baddresses.end()) {
+                baddresses.erase(itChapter);
+            }
+        } else if (get<0>(it->second) == "NB") { // If op_return begins with NB (new book chapter)
+            baddresses.insert(*it);
         }
     }
 
@@ -656,12 +490,12 @@ bool CServiceItemList::UpdateBookListHeights()
             for(unsigned int j = 0; j < tx.vout.size(); j++)
             {
                 CScript key = tx.vout[j].scriptPubKey;
-                mapServiceBookListScriptPubKeys::iterator it = mforkedServiceBookList.find(key);
+                /*mapServiceBookList::iterator it = mforkedServiceBookList.find(key);
                 if(it == mforkedServiceBookList.end())
                     continue;
 
                 bookItem.insert(std::make_pair(key, std::make_tuple(BookToAddress(it), BookChapter(it))));
-                mforkedServiceBookList.erase(it);
+                mforkedServiceBookList.erase(it);*/
                 if(fDebug) {
                     CTxDestination dest;
                     ExtractDestination(key, dest);
@@ -681,11 +515,11 @@ bool CServiceItemList::UpdateBookListHeights()
                 for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
                 {
                     CScript key = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                    mapServiceBookListScriptPubKeys::iterator it = mforkedServiceBookList.find(key);
+                    /*mapServiceBookList::iterator it = mforkedServiceBookList.find(key);
                     if(it == mforkedServiceBookList.end())
                         continue;
                     bookItem.insert(std::make_pair(it->first, std::make_tuple(BookToAddress(it), BookChapter(it))));
-                    mforkedServiceBookList.erase(it);
+                    mforkedServiceBookList.erase(it);*/
                     if(fDebug) {
                         CTxDestination dest;
                         ExtractDestination(key, dest);
@@ -704,7 +538,7 @@ bool CServiceItemList::UpdateBookListHeights()
     }
 
     bool ret;
-    typedef std::pair<CScript, std::tuple<std::string, std::string> > pairType;
+    typedef std::pair<std::string, std::tuple<std::string, std::string, std::string> > pairType;
     BOOST_FOREACH(const pairType &pair, bookItem) {
         ret = pcoinsTip->SetBookList(pair.first, pair.second);
         assert(ret);
@@ -715,10 +549,10 @@ bool CServiceItemList::UpdateBookListHeights()
     return mforkedServiceBookList.empty();
 }
 
-bool CServiceItemList::GetBookList(std::multiset<std::pair<CScript, std::tuple<std::string, std::string>>> &retset) const {
-    for(std::map<CScript, std::tuple<std::string, std::string> >::const_iterator it=bookitems.begin(); it!=bookitems.end(); it++)
+bool CServiceItemList::GetBookList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> &retset) const {
+    for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it=baddresses.begin(); it!=baddresses.end(); it++)
     {
-        retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second))));
+        retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
     }
     return true;
 }

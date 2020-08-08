@@ -871,27 +871,22 @@ bool AppInit2(boost::thread_group& threadGroup)
                 }
 
                 
-                if (!InitServiceTicketList(*pcoinsdbview)) { //ef þetta er ekki kemur stuttur listi (bara nýjustu)
+                if (!InitServiceTicketList(*pcoinsdbview)) {
                     strLoadError = _("Error initializing service ticket list. You need to rebuild the database using -reindex");
                     break;
                 }
 
-                if (!InitServiceUbiList(*pcoinsdbview)) { //ef þetta er ekki kemur stuttur listi (bara nýjustu)
+                if (!InitServiceUbiList(*pcoinsdbview)) {
                     strLoadError = _("Error initializing service ubi list. You need to rebuild the database using -reindex");
                     break;
                 }
 
-                if (!InitServiceDexList(*pcoinsdbview)) { //ef þetta er ekki kemur stuttur listi (bara nýjustu)
+                if (!InitServiceDexList(*pcoinsdbview)) {
                     strLoadError = _("Error initializing service dex list. You need to rebuild the database using -reindex");
                     break;
                 }
                 
-                if (!InitServiceNpoList(*pcoinsdbview)) { //ef þetta er ekki kemur stuttur listi (bara nýjustu)
-                    strLoadError = _("Error initializing service npo list. You need to rebuild the database using -reindex");
-                    break;
-                }
-                
-                if (!InitServiceBookList(*pcoinsdbview)) { //ef þetta er ekki kemur stuttur listi (bara nýjustu)
+                if (!InitServiceBookList(*pcoinsdbview)) {
                     strLoadError = _("Error initializing service book list. You need to rebuild the database using -reindex");
                     break;
                 }
@@ -908,31 +903,25 @@ bool AppInit2(boost::thread_group& threadGroup)
                     break;
                 }
 
-                // Reading service addresses into memory
+                // Reading ticket addresses into memory
                 if(!pcoinsdbview -> GetTicketList(ServiceItemList)) {
                     strLoadError = _("Error loading service ticket list");
                     break;
                 }
                 
-                // Reading service addresses into memory
+                // Reading ubi recipient addresses into memory
                 if(!pcoinsdbview -> GetUbiList(ServiceItemList)) {
                     strLoadError = _("Error loading service ubi list");
                     break;
                 }
                 
-                // Reading service addresses into memory
+                // Reading dex addresses into memory
                 if(!pcoinsdbview -> GetDexList(ServiceItemList)) {
                     strLoadError = _("Error loading service dex list");
                     break;
                 }
-
-                // Reading service addresses into memory
-                if(!pcoinsdbview -> GetNpoList(ServiceItemList)) {
-                    strLoadError = _("Error loading service npo list");
-                    break;
-                }
                 
-                // Reading service addresses into memory
+                // Reading book chapter addresses into memory
                 if(!pcoinsdbview -> GetBookList(ServiceItemList)) {
                     strLoadError = _("Error loading service book list");
                     break;
@@ -984,16 +973,9 @@ bool AppInit2(boost::thread_group& threadGroup)
                 } else {
                     ServiceItemList.SetForked(fFork);
                 }
-
-                if(!pblocktree -> ReadServiceNpoListFork(fFork)) {
-                    strLoadError = _("Error reading service npo list fork status");
-                    break;
-                } else {
-                    ServiceItemList.SetForked(fFork);
-                }
                 
                 if(!pblocktree -> ReadServiceBookListFork(fFork)) {
-                    strLoadError = _("Error reading service book list fork status");
+                    strLoadError = _("Error reading service book chapter list fork status");
                     break;
                 } else {
                     ServiceItemList.SetForked(fFork);
@@ -1055,20 +1037,10 @@ bool AppInit2(boost::thread_group& threadGroup)
                         ServiceItemList.SetForked(false);
                     }
                 }
-                
-                if(fFork) {
-                    if(!ServiceItemList.UpdateNpoListHeights()) {
-                        strLoadError = _("Error rollbacking npo list heights");
-                        break;
-                    }
-                    else {
-                        ServiceItemList.SetForked(false);
-                    }
-                }
 
                 if(fFork) {
                     if(!ServiceItemList.UpdateBookListHeights()) {
-                        strLoadError = _("Error rollbacking book list heights");
+                        strLoadError = _("Error rollbacking book chapter list heights");
                         break;
                     }
                     else {

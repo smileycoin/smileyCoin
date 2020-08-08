@@ -159,9 +159,16 @@ Value createservice(const Array& params, bool fHelp)
     std::string serviceAddress = params[1].get_str();
     std::string serviceType = params[2].get_str();
 
+    // VANTAR CHECK FYRIR EF ADDRESSA ER NU ÞEGAR SERVICE OG LENGD OG EF TYPE ER 1-6
+
     CBitcoinAddress address(params[1].get_str());
-    if (!address.IsValid())
+    if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
+    } else if (ServiceList.IsService(serviceAddress)) {
+        throw runtime_error("The entered address is already on service list. Please use another address.");
+    } else if (serviceType != "1" || serviceType != "2" || serviceType != "3"|| serviceType != "4"|| serviceType != "5" || serviceType != "6") {
+        throw runtime_error("Invalid service type. Please choose a type between 1 - 6.");
+    }
 
     // Amount
     int64_t nValue = 10*COIN;
@@ -237,21 +244,23 @@ Value deleteservice(const Array& params, bool fHelp)
 
     CBitcoinAddress address(params[1].get_str());
 
-    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
+    /*std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
     bool isService = false;
     for(std::multiset< std::pair<std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
         if (address.ToString() == it->first) {
             isService = true;
         }
-    }
+    }*/
 
     if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
     } else if (!IsMine(*pwalletMain, address.Get())) {
         throw runtime_error("Permission denied. The service address is not owned by you.");
-    } else if (!isService) {
+    } else if (!ServiceList.IsService(serviceAddress)) {
         throw runtime_error("Invalid Smileycoin service address");
+    } else if (serviceType != "1" || serviceType != "2" || serviceType != "3"|| serviceType != "4"|| serviceType != "5" || serviceType != "6") {
+        throw runtime_error("Invalid service type. Please choose a type between 1 - 6.");
     }
 
     // Amount
@@ -311,10 +320,13 @@ Value getserviceaddresses(const Array& params, bool fHelp)
 
     std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
     ServiceList.GetServiceAddresses(services);
+    LogPrintStr(" rpcmiscgetservice1 ");
+
 
     // Loop through all existing services
     for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
     {
+        LogPrintStr("rpcmiscgetservice: " + s->first + ":" + get<0>(s->second) + ":" + get<1>(s->second) + ":" + get<2>(s->second));
         name_address.clear();
         // Ef service type er ticketsales
         if (get<2>(s->second) == "Ticket Sales") { // "1"
@@ -349,41 +361,41 @@ Value getticketlist(const Array& params, bool fHelp)
 
     if (fHelp || params.size() != 1)
         throw runtime_error("getticketlist\n"
-                            "Returns all tickets that belong to a specific service\n"
+                            "Returns all tickets that belong to the specified ticket service address\n"
         );
 
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
     if(!address.IsValid())
         throw runtime_error("Invalid Smileycoin address");
 
-    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
+    /*std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
     bool isService = false;
     for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
         if (address.ToString() == it->first) {
             isService = true;
         }
-    }
-    if (!isService)
+    }*/
+    if (!ServiceList.IsService(params[0].get_str()))
         throw runtime_error("Invalid Smileycoin service address");
 
     Object obj2;
     Array arr;
-    std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > info;
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > info;
     ServiceItemList.GetTicketList(info);
 
-    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
-        std::string ServiceAddress = get<0>(it->second);
-        if (ServiceAddress == address.ToString()) {
+        std::string serviceAddress = get<1>(it->second);
+        if (serviceAddress == address.ToString()) {
             //obj.push_back(Pair("Sent to: ", get<0>(it->second)));
             // obj = NULL eða initialize-a objectið
             Object obj;
-            obj.push_back(Pair("Name: ", get<2>(it->second)));
-            obj.push_back(Pair("Location: ", get<1>(it->second)));
-            obj.push_back(Pair("Date and Time: ", get<3>(it->second)));
-            obj.push_back(Pair("Price: ", get<4>(it->second)));
-            obj.push_back(Pair("Ticket address: ", get<5>(it->second)));
+            obj.push_back(Pair("Name: ", get<3>(it->second)));
+            obj.push_back(Pair("Location: ", get<2>(it->second)));
+            obj.push_back(Pair("Date and Time: ", get<4>(it->second)));
+            obj.push_back(Pair("Price: ", get<5>(it->second)));
+            obj.push_back(Pair("Ticket Address: ", it->first));
             arr.push_back(obj);
         }
     }
@@ -398,46 +410,47 @@ Value getubilist(const Array& params, bool fHelp)
 
     if (fHelp || params.size() != 1)
         throw runtime_error("getubilist\n"
-                            "Returns all ubi addresses that belong to a specific address that you must own\n"
+                            "Returns all UBI recipient addresses that belong to the specified UBI service address\n"
                             );
     
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
     if(!address.IsValid())
         throw runtime_error("Not a valid Smileycoin address");
     
-    std::multiset<std::pair<CScript, std::tuple<std::string, std::string, std::string> > > services;
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
-    bool isService = false;
+    //bool isService = false;
     bool isUbi = false;
-    for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
-        if (address.ToString() == get<1>(it->second)) {
+    for(std::multiset< std::pair<std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
+        /*if (address.ToString() == get<1>(it->second)) {
             isService = true;
-        }
+        }*/
         if (get<2>(it->second) == "2") {
             isUbi = true;
         }
     }
-    if (!isService)
+    //if (!isService)
+    if (!ServiceList.IsService(params[0].get_str()))
         throw runtime_error("Not a valid service address");
     
     if (!IsMine(*pwalletMain, address.Get()))
         throw runtime_error("Not your service address, permission denied");
     
     if (!isUbi)
-        throw runtime_error("Not a ubi address");
+        throw runtime_error("Not a UBI address");
 
     Object obj;
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string>>> info;
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string>>> info;
 
     ServiceItemList.GetUbiList(info);
 
     int i = 0;
     
-    for(std::set< std::pair< CScript, std::tuple<std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
-        std::string toAddress = get<0>(it->second);
+        std::string toAddress = get<1>(it->second);
         if (toAddress == address.ToString()) {
-            obj.push_back(Pair("Ubi address: ", get<1>(it->second)));
+            obj.push_back(Pair("UBI Recipient Address: ", it->first));
         }
     }
     
@@ -449,17 +462,17 @@ Value getdexlist(const Array& params, bool fHelp)
 
     if (fHelp || params.size() != 0)
         throw runtime_error("getdexlist\n"
-                            "Returns all dex addresses\n"
+                            "Returns all DEX addresses that belong to the specified DEX service address\n"
                             );
     
     Object obj;
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> info;
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> info;
 
     ServiceItemList.GetDexList(info);
     
-    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
-        obj.push_back(Pair("Dex address: ", get<1>(it->second)));
+        obj.push_back(Pair("DEX Address: ", it->first));
         obj.push_back(Pair("Description: ", get<2>(it->second)));
     }
     
@@ -475,7 +488,7 @@ Value getnpolist(const Array& params, bool fHelp)
                             );
     
     Object obj;
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> info;
+    /*std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> info;
 
     ServiceItemList.GetNpoList(info);
     
@@ -483,7 +496,7 @@ Value getnpolist(const Array& params, bool fHelp)
     {
         obj.push_back(Pair("Npo name: ", get<1>(it->second)));
         obj.push_back(Pair("Npo address: ", get<2>(it->second)));
-    }
+    }*/
     
     return obj;
 }
@@ -493,18 +506,18 @@ Value getbooklist(const Array& params, bool fHelp)
 
     if (fHelp || params.size() != 0)
         throw runtime_error("getbooklist\n"
-                            "Returns all book chapters\n"
+                            "Returns all book chapters that belong to the specified book service address\n"
                             );
     
     Object obj;
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string>>> info;
-
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> info;
     ServiceItemList.GetBookList(info);
     
     //TODO bæta við book name, book author og year
-    for(std::set< std::pair< CScript, std::tuple<std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
-        obj.push_back(Pair("Book chapter: ", get<1>(it->second)));
+        obj.push_back(Pair("Chapter Number: ", get<2>(it->second)));
+        obj.push_back(Pair("Chapter Address: ", it->first));
     }
     
     return obj;

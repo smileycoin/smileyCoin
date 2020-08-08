@@ -155,7 +155,6 @@ bool InitServiceList(CCoinsView &dbview);
 bool InitServiceTicketList(CCoinsView &dbview);
 bool InitServiceUbiList(CCoinsView &dbview);
 bool InitServiceDexList(CCoinsView &dbview);
-bool InitServiceNpoList(CCoinsView &dbview);
 bool InitServiceBookList(CCoinsView &dbview);
 /** Load the block tree and coins database from disk */
 bool LoadBlockIndex();
@@ -608,8 +607,6 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 
 // Apply the effects of this block (with given index) on the UTXO set represented by coins
 bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& coins, bool fJustCheck = false, bool fRichCheck = false);
-
-bool IsService(std::string address);
 
 // Add this block to the block index, and if necessary, switch the active block chain to this
 bool AddToBlockIndex(CBlock& block, CValidationState& state, const CDiskBlockPos& pos);

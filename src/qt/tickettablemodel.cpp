@@ -67,20 +67,20 @@ public:
             std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
             ServiceList.GetServiceAddresses(services);
 
-            std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> tickets;
+            std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> tickets;
             ServiceItemList.GetTicketList(tickets);
-            for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator
+            for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator
                         t = tickets.begin(); t!=tickets.end(); t++ )
             {
                 for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
                 {
                     // Display corresponding service name instead of address
-                    if (QString::fromStdString(get<0>(t->second)) == QString::fromStdString(s->first)) {
-                        cachedTicketTable.append(TicketTableEntry(QString::fromStdString(get<2>(t->second)),
-                                QString::fromStdString(get<1>(t->second)),
-                                QString::fromStdString(get<3>(t->second)),
+                    if (QString::fromStdString(get<1>(t->second)) == QString::fromStdString(s->first)) {
+                        cachedTicketTable.append(TicketTableEntry(QString::fromStdString(get<3>(t->second)),
+                                QString::fromStdString(get<2>(t->second)),
                                 QString::fromStdString(get<4>(t->second)),
                                 QString::fromStdString(get<5>(t->second)),
+                                QString::fromStdString(t->first),
                                 QString::fromStdString(get<1>(s->second))));
                     }
                 }

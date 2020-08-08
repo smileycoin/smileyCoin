@@ -42,27 +42,24 @@ public:
     bool SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value);
     bool GetServiceInfo(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
     bool SetServiceInfo(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
-    bool GetTicketList(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
-    bool SetTicketList(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
-    bool GetUbiList(const CScript &key, std::tuple<std::string, std::string> &value);
-    bool SetUbiList(const CScript &key, const std::tuple<std::string, std::string> &value);
-    bool GetDexList(const CScript &key, std::tuple<std::string, std::string, std::string> &value);
-    bool SetDexList(const CScript &key, const std::tuple<std::string, std::string, std::string> &value);
-    bool GetNpoList(const CScript &key, std::tuple<std::string, std::string, std::string> &value);
-    bool SetNpoList(const CScript &key, const std::tuple<std::string, std::string, std::string> &value);
-    bool GetBookList(const CScript &key, std::tuple<std::string, std::string> &value);
-    bool SetBookList(const CScript &key, const std::tuple<std::string, std::string> &value);
+    bool GetTicketList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool SetTicketList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool GetUbiList(const std::string &key, std::tuple<std::string, std::string> &value);
+    bool SetUbiList(const std::string &key, const std::tuple<std::string, std::string> &value);
+    bool GetDexList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
+    bool SetDexList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
+    bool GetBookList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
+    bool SetBookList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
 
     bool HaveCoins(const uint256 &txid);
     uint256 GetBestBlock();
     bool SetBestBlock(const uint256 &hashBlock);
     bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript,std::pair<int64_t,int> > &mapAddressInfo,
                     const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
-                    const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceTicketList,
-                    const std::map<CScript, std::tuple<std::string, std::string> > &mapServiceUbiList,
-                    const std::map<CScript, std::tuple<std::string, std::string, std::string> > &mapServiceDexList,
-                    const std::map<CScript, std::tuple<std::string, std::string, std::string> > &mapServiceNpoList,
-                    const std::map<CScript, std::tuple<std::string, std::string> > &mapServiceBookList,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceTicketList,
+                    const std::map<std::string, std::tuple<std::string, std::string> > &mapServiceUbiList,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceDexList,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceBookList,
                     const uint256 &hashBlock);
     bool GetStats(CCoinsStats &stats);
 
@@ -71,7 +68,6 @@ public:
     bool GetTicketList(CServiceItemList &ticketlist);
     bool GetUbiList(CServiceItemList &ubilist);
     bool GetDexList(CServiceItemList &dexlist);
-    bool GetNpoList(CServiceItemList &npolist);
     bool GetBookList(CServiceItemList &booklist);
 };
 
@@ -104,8 +100,6 @@ public:
     bool ReadServiceUbiListFork(bool &fForked);
     bool WriteServiceDexListFork(bool fForked);
     bool ReadServiceDexListFork(bool &fForked);
-    bool WriteServiceNpoListFork(bool fForked);
-    bool ReadServiceNpoListFork(bool &fForked);
     bool WriteServiceBookListFork(bool fForked);
     bool ReadServiceBookListFork(bool &fForked);
     bool WriteFlag(const std::string &name, bool fValue);
