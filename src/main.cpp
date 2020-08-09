@@ -1832,10 +1832,11 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 			const CScript &key = out.scriptPubKey;
 			const int64_t &value = out.nValue;
 
+			// check if the output contains op_return, then it might be a service output
 			if (ContainsOpReturn(tx)) {
                 CTxDestination des;
                 ExtractDestination(key, des);
-
+                // for the output to be a service output it has to be sent to B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc and have the value 10 SMLY
                 if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc" && value == 10*COIN) {
                     for (unsigned int l = 0; l < tx.vout.size(); l++) {
                         const CTxOut &outService = tx.vout[l];
@@ -1847,6 +1848,8 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                         std::string serviceName;
                         std::string serviceAddress;
                         std::string serviceType;
+
+						// grab the hex data for the op_return
                         if (hexString.substr(0, 2) == "6a") {
                             hexData = hexString.substr(4, hexString.size());
                             // NEW SERVICE
@@ -1854,6 +1857,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                             if (hexData.substr(0, 4) == "4e53") {
                                 newService = hexData.substr(4, hexString.size());
                                 std::vector<std::string> strs = splitString(newService, "20");
+								// the string has to have 3 params to be valid as a service and saved into the db
                                 if (strs.size() == 3) {
                                     serviceName = strs.at(0);
                                     serviceAddress = strs.at(1);
@@ -1873,7 +1877,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                             value = std::make_tuple("NS", hexToAscii(serviceName), hexToAscii(serviceType));
                                             assert(view.SetServiceInfo(asciiAddress, value));
                                             serviceInfo[asciiAddress] = value;
-
+                                            // refresh the wallet if added into the db
                                             if (pwalletMain) {
                                                 pwalletMain->NotifyServicePageChanged(pwalletMain, hexToAscii(serviceName),
                                                         asciiAddress, hexToAscii(serviceType), CT_NEW);
@@ -1885,11 +1889,13 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                         }
                     }
                 } else {
+					// if it is not sent to B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc or doesn't have the value 10 SMLY
                     std::string toAddress = CBitcoinAddress(des).ToString();
                     /*std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> retset;
                     ServiceList.GetServiceAddresses(retset);
                     bool isService = false;
 
+					// checking if the output is sent to a valid service address
                     for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = retset.begin(); it!=retset.end(); it++ )
                     {
                         if (toAddress == it->first) {
@@ -1897,6 +1903,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                         }
                     }*/
 
+                    // if the output is sent to a valid service address then check if it is a ubi, dex, book or npo
                     //if (CBitcoinAddress(toAddress).IsValid() && (std::find(serviceAddressList.begin(), serviceAddressList.end(), toAddress) != serviceAddressList.end())) {
                     if (CBitcoinAddress(toAddress).IsValid() && ServiceList.IsService(toAddress)) {
                         for(unsigned int l = 0; l < tx.vout.size(); l++) {
@@ -1905,14 +1912,14 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 
                             std::string hexString = HexStr(keyService);
 
-                            // If the scriptPubKey contains OP_RETURN(6a)
+                            // check if the scriptPubKey contains op_return(6a)
 							if (hexString.substr(0, 2) == "6a") {
 								std::string hexData = hexString.substr(4, hexString.size());
 								// If the string starts with "NT" (new ticket)
 								if (hexData.substr(0, 4) == "4e54") {
 									std::string newTicket = hexData.substr(4, hexString.size());
 									std::vector<std::string> strs = splitString(newTicket, "20");
-									// The string has to have 5 params to be valid as a service and saved into the db
+									// the string has to have 5 params to be valid as a service and saved into the db
 									if (strs.size() == 5) {
 										std::string ticketLocation = strs.at(0);
 										std::string ticketName = strs.at(1);
@@ -1922,21 +1929,9 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 
                                         std::string asciiAddress = hexToAscii(ticketAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-
-                                        if (is_number(hexToAscii(ticketValue))) {
-                                            LogPrintStr("is_number er true");
-                                        } else {
-                                            LogPrintStr("is_number er false");
-                                        }
-                                        std::string dateTime = hexToAscii(ticketDateAndTime);
-                                        LogPrintStr(dateTime);
-                                        if (is_date(dateTime)) {
-                                            LogPrintStr("is_date er true");
-                                        } else {
-                                            LogPrintStr("is_date er false");
-                                        }
-										// If the ticket address is valid then save it to the db
-										if (tAddress.IsValid() && is_number(hexToAscii(ticketValue)) && is_date(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 && ticketName.length() <= 40) {
+                                        // if the ticket address is valid, the name and location are equal or less than 40,
+                                        // date and time is on the right format and value is an integer then save it to the db
+                                        if (tAddress.IsValid() && is_number(hexToAscii(ticketValue)) && is_date(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 && ticketName.length() <= 40) {
 											std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
 											if(!view.GetTicketList(asciiAddress, value))
 												return state.Abort(_("Failed to read ticket index"));
@@ -1944,7 +1939,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 												value = std::make_tuple("NT", toAddress, hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateAndTime), hexToAscii(ticketValue));
 												assert(view.SetTicketList(asciiAddress, value));
 												serviceTicketList[asciiAddress]=value;
-
+                                                // refresh the wallet when it is saved into the db
 												if (pwalletMain)
                                                 {
                                                     pwalletMain->NotifyTicketPageChanged(pwalletMain,
@@ -1964,7 +1959,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 								else if (hexData.substr(0, 4) == "4e55") {
 									std::string newUbi = hexData.substr(4, hexString.size());
 									std::vector<std::string> strs = splitString(newUbi, "20");
-									// The string has to have 1 params to be valid as a ubi and saved into the db
+									// the string has to have 1 params to be valid as a ubi and saved into the db
 									if (strs.size() == 1) {
 										std::string ubiAddress = strs.at(0);
                                         std::string asciiAddress = hexToAscii(ubiAddress);
@@ -2379,7 +2374,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                 } else {  //kommentad ut medan min addressa vid testun
                     // TICKET SALES
                     std::string toAddress = CBitcoinAddress(des).ToString();
-                    LogPrintStr(" toAddress main2369: "+toAddress);
                     /*std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> retset;
                     ServiceList.GetServiceAddresses(retset);
                     bool isService = false;
@@ -2403,8 +2397,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 								std::string hexData = hexString.substr(4, hexString.size());
 								// If the string starts with "NT" (new ticket)
 								if (hexData.substr(0, 4) == "4e54") {
-                                    LogPrintStr(" main2393: "+ hexData);
-
                                     std::string newTicket = hexData.substr(4, hexString.size());
 									std::vector<std::string> strs = splitString(newTicket, "20");
 									// The string has to have 5 params to be valid as a service and saved into the db

@@ -430,8 +430,8 @@ Value getubilist(const Array& params, bool fHelp)
     if (!ServiceList.IsService(params[0].get_str()))
         throw runtime_error("Not a valid service address");
     
-    if (!IsMine(*pwalletMain, address.Get()))
-        throw runtime_error("Not your service address, permission denied");
+    //if (!IsMine(*pwalletMain, address.Get()))
+    //   throw runtime_error("Not your service address, permission denied");
     
     if (!isUbi)
         throw runtime_error("Not a UBI address");
