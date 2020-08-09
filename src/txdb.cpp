@@ -54,52 +54,51 @@ void static BatchWriteAddressInfo(CLevelDBBatch &batch, const CScript &key, cons
 }
 
 void static BatchWriteServiceInfo(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
-    LogPrintStr(" BatchWriteTxdb: " + key + " : " + get<0>(value) + " : " + get<1>(value) + " : " + get<2>(value));
     // If op_return begins with "DS" (delete service)
-    if (get<0>(value) == "4453") {
+    if (get<0>(value) == "DS") {
         // Erase the service associated with address
         batch.Erase(make_pair(DB_SERVICEINFO, key));
-    } else if (get<0>(value) == "4e53") { // If op_return begins with NS (new service)
+    } else if (get<0>(value) == "NS") { // If op_return begins with NS (new service)
         batch.Write(make_pair(DB_SERVICEINFO, key), value);
     }
 }
 
 void static BatchWriteServiceTicketList(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
     // If op_return begins with "DT" (delete ticket)
-    if (get<0>(value) == "4454") {
+    if (get<0>(value) == "DT") {
         // Erase the ticket associated with address
         batch.Erase(make_pair(DB_SERVICETICKETLIST, key));
-    } else if (get<0>(value) == "4e54") { // If op_return begins with NT (new ticket)
+    } else if (get<0>(value) == "NT") { // If op_return begins with NT (new ticket)
         batch.Write(make_pair(DB_SERVICETICKETLIST, key), value);
     }
 }
 
 void static BatchWriteServiceUbiList(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string> &value) {
     // If op_return begins with "DU" (delete ubi recipient)
-    if (get<0>(value) == "4455") {
+    if (get<0>(value) == "DU") {
         // Erase the ubi recipient associated with address
         batch.Erase(make_pair(DB_SERVICEUBILIST, key));
-    } else if (get<0>(value) == "4e55") { // If op_return begins with NU (new ubi recipient)
+    } else if (get<0>(value) == "NU") { // If op_return begins with NU (new ubi recipient)
         batch.Write(make_pair(DB_SERVICEUBILIST, key), value);
     }
 }
 
 void static BatchWriteServiceDexList(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
     // If op_return begins with "DD" (delete dex)
-    if (get<0>(value) == "4444") {
+    if (get<0>(value) == "DD") {
         // Erase the dex associated with address
         batch.Erase(make_pair(DB_SERVICEDEXLIST, key));
-    } else if (get<0>(value) == "4e44") { // If op_return begins with ND (new dex)
+    } else if (get<0>(value) == "ND") { // If op_return begins with ND (new dex)
         batch.Write(make_pair(DB_SERVICEDEXLIST, key), value);
     }
 }
 
 void static BatchWriteServiceBookList(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
     // If op_return begins with "DB" (delete book chapter)
-    if (get<0>(value) == "4442") {
+    if (get<0>(value) == "DB") {
         // Erase the ticket associated with address
         batch.Erase(make_pair(DB_SERVICEBOOKLIST, key));
-    } else if (get<0>(value) == "4e42") { // If op_return begins with NB (new book chapter)
+    } else if (get<0>(value) == "NB") { // If op_return begins with NB (new book chapter)
         batch.Write(make_pair(DB_SERVICEBOOKLIST, key), value);
     }
 }
@@ -271,23 +270,9 @@ bool CCoinsViewDB::GetRichAddresses(CRichList &richlist) {
 }
 
 bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist) {
-    LogPrintStr(" GetServiceAddressesTxdb1 ");
     leveldb::Iterator *pcursor = db.NewIterator();
-
-    std::string a = "service";
-    std::vector<unsigned char> v;
-    //std::vector<unsigned char> v(a.begin(), a.end());
-    v.assign(21,'0');
-    /*for (int i=0 ;i<v.size();++i) {
-        LogPrintStr("unsignedtxdb: " + v[i]);
-    }*/
-    std::string s(v.begin(), v.end());
-
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
-    //ssKeySet << make_pair(DB_SERVICEINFO, std::string("73657276696365"));
-    //ssKeySet << make_pair(DB_SERVICEINFO, std::string("service"));
-    //ssKeySet << make_pair(DB_SERVICEINFO, CScript(v));
-    ssKeySet << make_pair(DB_SERVICEINFO, s);
+    ssKeySet << make_pair(DB_SERVICEINFO, string("service"));
 
     pcursor->Seek(ssKeySet.str());
 
@@ -298,7 +283,7 @@ bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist) {
         {
             leveldb::Slice slKey = pcursor->key();
             CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
-            std::pair<char, std::string> key;
+            std::pair<char, string> key;
             ssKey >> key;
             if (key.first == DB_SERVICEINFO)
             {
@@ -323,10 +308,9 @@ bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist) {
 
 
 bool CCoinsViewDB::GetTicketList(CServiceItemList &ticketlist) {
-
     leveldb::Iterator *pcursor = db.NewIterator();
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
-    ssKeySet << make_pair(DB_SERVICETICKETLIST, std::string("7469636b6574"));
+    ssKeySet << make_pair(DB_SERVICETICKETLIST, string("ticket"));
     pcursor->Seek(ssKeySet.str());
 
     while (pcursor->Valid())
@@ -336,7 +320,7 @@ bool CCoinsViewDB::GetTicketList(CServiceItemList &ticketlist) {
         {
             leveldb::Slice slKey = pcursor->key();
             CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
-            std::pair<char, std::string> key;
+            std::pair<char, string> key;
             ssKey >> key;
             if (key.first == DB_SERVICETICKETLIST)
             {
@@ -362,7 +346,7 @@ bool CCoinsViewDB::GetTicketList(CServiceItemList &ticketlist) {
 bool CCoinsViewDB::GetUbiList(CServiceItemList &ubilist) {
     leveldb::Iterator *pcursor = db.NewIterator();
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
-    ssKeySet << make_pair(DB_SERVICEUBILIST, std::string("756269"));
+    ssKeySet << make_pair(DB_SERVICEUBILIST, string("ubi"));
     pcursor->Seek(ssKeySet.str());
 
     while (pcursor->Valid())
@@ -372,7 +356,7 @@ bool CCoinsViewDB::GetUbiList(CServiceItemList &ubilist) {
         {
             leveldb::Slice slKey = pcursor->key();
             CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
-            std::pair<char, std::string> key;
+            std::pair<char,string> key;
             ssKey >> key;
             if (key.first == DB_SERVICEUBILIST)
             {
@@ -398,7 +382,7 @@ bool CCoinsViewDB::GetUbiList(CServiceItemList &ubilist) {
 bool CCoinsViewDB::GetDexList(CServiceItemList &dexlist) {
     leveldb::Iterator *pcursor = db.NewIterator();
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
-    ssKeySet << make_pair(DB_SERVICEDEXLIST, std::string("646578"));
+    ssKeySet << make_pair(DB_SERVICEDEXLIST, string("dex"));
     pcursor->Seek(ssKeySet.str());
 
     while (pcursor->Valid())
@@ -408,7 +392,7 @@ bool CCoinsViewDB::GetDexList(CServiceItemList &dexlist) {
         {
             leveldb::Slice slKey = pcursor->key();
             CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
-            std::pair<char, std::string> key;
+            std::pair<char, string> key;
             ssKey >> key;
             if (key.first == DB_SERVICEDEXLIST)
             {
@@ -433,7 +417,7 @@ bool CCoinsViewDB::GetDexList(CServiceItemList &dexlist) {
 bool CCoinsViewDB::GetBookList(CServiceItemList &booklist) {
     leveldb::Iterator *pcursor = db.NewIterator();
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
-    ssKeySet << make_pair(DB_SERVICEBOOKLIST, std::string("63686170746572"));
+    ssKeySet << make_pair(DB_SERVICEBOOKLIST, string("chapter"));
     pcursor->Seek(ssKeySet.str());
 
     while (pcursor->Valid())
@@ -443,7 +427,7 @@ bool CCoinsViewDB::GetBookList(CServiceItemList &booklist) {
         {
             leveldb::Slice slKey = pcursor->key();
             CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
-            std::pair<char, std::string> key;
+            std::pair<char, string> key;
             ssKey >> key;
             if (key.first == DB_SERVICEBOOKLIST)
             {

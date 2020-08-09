@@ -320,13 +320,10 @@ Value getserviceaddresses(const Array& params, bool fHelp)
 
     std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
     ServiceList.GetServiceAddresses(services);
-    LogPrintStr(" rpcmiscgetservice1 ");
-
 
     // Loop through all existing services
     for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
     {
-        LogPrintStr("rpcmiscgetservice: " + s->first + ":" + get<0>(s->second) + ":" + get<1>(s->second) + ":" + get<2>(s->second));
         name_address.clear();
         // Ef service type er ticketsales
         if (get<2>(s->second) == "Ticket Sales") { // "1"
@@ -360,7 +357,7 @@ Value getticketlist(const Array& params, bool fHelp)
 {
 
     if (fHelp || params.size() != 1)
-        throw runtime_error("getticketlist\n"
+        throw runtime_error("getticketlist \"address\"\n"
                             "Returns all tickets that belong to the specified ticket service address\n"
         );
 
@@ -409,7 +406,7 @@ Value getubilist(const Array& params, bool fHelp)
 {
 
     if (fHelp || params.size() != 1)
-        throw runtime_error("getubilist\n"
+        throw runtime_error("getubilist \"address\"\n"
                             "Returns all UBI recipient addresses that belong to the specified UBI service address\n"
                             );
     
@@ -461,7 +458,7 @@ Value getdexlist(const Array& params, bool fHelp)
 {
 
     if (fHelp || params.size() != 0)
-        throw runtime_error("getdexlist\n"
+        throw runtime_error("getdexlist \"address\"\n"
                             "Returns all DEX addresses that belong to the specified DEX service address\n"
                             );
     
@@ -505,7 +502,7 @@ Value getbooklist(const Array& params, bool fHelp)
 {
 
     if (fHelp || params.size() != 0)
-        throw runtime_error("getbooklist\n"
+        throw runtime_error("getbooklist \"address\"\n"
                             "Returns all book chapters that belong to the specified book service address\n"
                             );
     

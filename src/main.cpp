@@ -1835,7 +1835,6 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 			if (ContainsOpReturn(tx)) {
                 CTxDestination des;
                 ExtractDestination(key, des);
-                LogPrintStr(" main1838: " + key.ToString());
 
                 if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc" && value == 10*COIN) {
                     for (unsigned int l = 0; l < tx.vout.size(); l++) {
@@ -1862,22 +1861,15 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 
                                     std::string asciiAddress = hexToAscii(serviceAddress);
                                     CBitcoinAddress sAddress = CBitcoinAddress(asciiAddress);
-
-                                    LogPrintStr(" main1864: " + asciiAddress);
-
                                     if (sAddress.IsValid() && !ServiceList.IsService(asciiAddress) && serviceName.length() <= 40 &&
                                     (hexToAscii(serviceType) == "1" || hexToAscii(serviceType) == "2" ||
                                     hexToAscii(serviceType) == "3"|| hexToAscii(serviceType) == "4"||
                                     hexToAscii(serviceType) == "5"|| hexToAscii(serviceType) == "6")) {
-                                        LogPrintStr(" main1870: " + asciiAddress);
-
                                         //if (sAddress.IsValid() && !ServiceList.IsService(asciiAddress) && (serviceName.length() <= 40) && (std::stoi(hexToAscii(serviceType)) > 0 && std::stoi(hexToAscii(serviceType)) <= 6)) {
                                         std::tuple<std::string, std::string, std::string> value;
                                         if (!view.GetServiceInfo(asciiAddress, value)) {
-                                            LogPrintStr("asciiAddress1871: " + asciiAddress);
                                             return state.Abort(_("Failed to read service index"));
                                         } else {
-                                            LogPrintStr(" SetServiceInfo i disconnect block: " + asciiAddress);
                                             value = std::make_tuple("NS", hexToAscii(serviceName), hexToAscii(serviceType));
                                             assert(view.SetServiceInfo(asciiAddress, value));
                                             serviceInfo[asciiAddress] = value;
@@ -1930,6 +1922,19 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 
                                         std::string asciiAddress = hexToAscii(ticketAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
+
+                                        if (is_number(hexToAscii(ticketValue))) {
+                                            LogPrintStr("is_number er true");
+                                        } else {
+                                            LogPrintStr("is_number er false");
+                                        }
+                                        std::string dateTime = hexToAscii(ticketDateAndTime);
+                                        LogPrintStr(dateTime);
+                                        if (is_date(dateTime)) {
+                                            LogPrintStr("is_date er true");
+                                        } else {
+                                            LogPrintStr("is_date er false");
+                                        }
 										// If the ticket address is valid then save it to the db
 										if (tAddress.IsValid() && is_number(hexToAscii(ticketValue)) && is_date(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 && ticketName.length() <= 40) {
 											std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
@@ -2320,8 +2325,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 			    // SERVICE
                 CTxDestination des;
                 ExtractDestination(key, des);
-                LogPrintStr(" main2322: " + key.ToString());
-
                 if (CBitcoinAddress(des).ToString() == "B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc" && value == 10*COIN) {
                     for (unsigned int l = 0; l < tx.vout.size(); l++) {
                         const CTxOut &outService = tx.vout[l];
@@ -2333,7 +2336,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                         std::string serviceName;
                         std::string serviceAddress;
                         std::string serviceType;
-                        LogPrintStr(" main2331 ");
 
                         // Get the op_return hex value
                         if (hexString.substr(0, 2) == "6a") {
@@ -2352,18 +2354,12 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                     std::string asciiAddress = hexToAscii(serviceAddress);
                                     CBitcoinAddress sAddress = CBitcoinAddress(asciiAddress);
 
-                                    LogPrintStr(" main2349: " + asciiAddress);
-
                                     // Check whether address field contains a valid address
                                     if (sAddress.IsValid() && !ServiceList.IsService(asciiAddress) && serviceName.length() <= 40
                                     && (hexToAscii(serviceType) == "1" || hexToAscii(serviceType) == "2" ||
                                     hexToAscii(serviceType) == "3"|| hexToAscii(serviceType) == "4"||
                                     hexToAscii(serviceType) == "5"|| hexToAscii(serviceType) == "6")) {
-                                        LogPrintStr(" main2356: " + asciiAddress);
-
                                         //if (sAddress.IsValid() && !ServiceList.IsService(asciiAddress) && (serviceName.length() <= 40) && (std::stoi(hexToAscii(serviceType)) > 0 && std::stoi(hexToAscii(serviceType)) <= 6)) {
-                                        LogPrintStr(" SetServiceInfo i connect block: " + asciiAddress);
-
                                         std::tuple<std::string, std::string, std::string> value;
                                         value = std::make_tuple("NS", hexToAscii(serviceName), hexToAscii(serviceType));
                                         assert(view.SetServiceInfo(asciiAddress, value));
@@ -2383,6 +2379,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                 } else {  //kommentad ut medan min addressa vid testun
                     // TICKET SALES
                     std::string toAddress = CBitcoinAddress(des).ToString();
+                    LogPrintStr(" toAddress main2369: "+toAddress);
                     /*std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> retset;
                     ServiceList.GetServiceAddresses(retset);
                     bool isService = false;
@@ -2406,7 +2403,9 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 								std::string hexData = hexString.substr(4, hexString.size());
 								// If the string starts with "NT" (new ticket)
 								if (hexData.substr(0, 4) == "4e54") {
-									std::string newTicket = hexData.substr(4, hexString.size());
+                                    LogPrintStr(" main2393: "+ hexData);
+
+                                    std::string newTicket = hexData.substr(4, hexString.size());
 									std::vector<std::string> strs = splitString(newTicket, "20");
 									// The string has to have 5 params to be valid as a service and saved into the db
 									if (strs.size() == 5) {
@@ -2418,9 +2417,24 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
                                         std::string asciiAddress = hexToAscii(ticketAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
+
+                                        if (is_number(hexToAscii(ticketValue))) {
+                                            LogPrintStr("is_number er true");
+                                        } else {
+                                            LogPrintStr("is_number er false");
+                                        }
+                                        std::string dateTime = hexToAscii(ticketDateAndTime);
+                                        LogPrintStr(dateTime);
+                                        if (is_date(dateTime)) {
+                                            LogPrintStr("is_date er true");
+                                        } else {
+                                            LogPrintStr("is_date er false");
+                                        }
 										// If the ticket address is valid then save it to the db
 										if (tAddress.IsValid() && is_number(hexToAscii(ticketValue)) && is_date(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 && ticketName.length() <= 40) {
-											std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
+                                            LogPrintStr(" main2409 ALLT VALID");
+
+                                            std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
 											value = std::make_tuple("NT", toAddress, hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateAndTime), hexToAscii(ticketValue));
 											assert(view.SetTicketList(asciiAddress, value));
 											serviceTicketList[asciiAddress]=value;
@@ -3939,23 +3953,9 @@ bool InitRichList(CCoinsView &dbview)
 
 bool InitServiceList(CCoinsView &dbview)
 {
-    LogPrintStr(" InitServiceList i main1 ");
     LOCK(cs_main);
     if (fReindex || chainActive.Genesis() == NULL) {
-        LogPrintStr(" InitServiceList i main2 ");
-
-        std::string a = "service";
-        std::vector<unsigned char> v;
-        //std::vector<unsigned char> v(a.begin(), a.end());
-        v.assign(21,'0');
-        /*for (int i=0 ;i<v.size();++i) {
-            LogPrintStr("unsignedmain: " + v[i]);
-        }*/
-        std::string s(v.begin(), v.end());
-
-        //if(!dbview.SetServiceInfo("service", std::make_tuple("1", "0", "0"))) {
-        //if(!dbview.SetServiceInfo("73657276696365", std::make_tuple("1", "0", "0"))) {
-        if(!dbview.SetServiceInfo(s, std::make_tuple("1", "0", "0"))) {
+        if(!dbview.SetServiceInfo(string("service"), std::make_tuple("1", "0", "0"))) {
             return false; }
         pblocktree->WriteFlag("serviceinfo", true);
     }

@@ -22,11 +22,6 @@ class CServiceList
 private:
     mapServiceList saddresses;
     bool fForked;
-    std::string ServiceAddress(const mapServiceList::iterator &it) const { return it -> first; }
-    std::string ServiceAction(const mapServiceList::iterator &it) const { return get<0>(it -> second); }
-    std::string ServiceName(const mapServiceList::iterator &it) const { return get<1>(it -> second); }
-    std::string ServiceType(const mapServiceList::iterator &it) const { return get<2>(it -> second); }
-
 
 public:
     friend bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist);

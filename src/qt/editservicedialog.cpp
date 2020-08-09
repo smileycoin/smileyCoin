@@ -60,8 +60,10 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             ServiceList.GetMyServiceAddresses(myServices);
             for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
             {
+                LogPrintStr("newticket: " + it->first + " : " + get<1>(it->second) + " : " + get<2>(it->second));
                 // If service type is Ticket Sales add to dropdown selection
-                if(get<2>(it->second) == "1") {
+                //if(get<2>(it->second) == "1") {
+                if(get<2>(it->second) == "Ticket Sales") {
                     ui->ticketService->addItem(QString::fromStdString(get<1>(it->second)));
                 }
             }
@@ -254,6 +256,19 @@ void EditServiceDialog::accept()
                  return;
              }
 
+             // ÞARF AÐ HAFA FYRIR TICKETS, NO DUPLICATES
+             /*ServiceList.GetServiceAddresses(services);
+             for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
+             {
+                 // If service address already in list
+                 if(ui->serviceAddress->text().toStdString() == s->first) {
+                     QMessageBox::warning(this, windowTitle(),
+                             tr("The entered address \"%1\" is already on service list. Please use another address.").arg(ui->serviceAddress->text()),
+                             QMessageBox::Ok, QMessageBox::Ok);
+                     return;
+                 }
+             }*/
+
              QString rawTicketService = ui->ticketService->currentText();
              QString rawTicketLoc = ui->ticketLocation->text().toLatin1().toHex();
              QString rawTicketName = ui->ticketName->text().toLatin1().toHex();
@@ -286,7 +301,7 @@ void EditServiceDialog::accept()
 
              QString ticketServiceAddress = "";
              SendCoinsRecipient issuer;
-             // Send new ticket to own service address
+             // Send new ticket transaction to corresponding service address
              for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
              {
                  if(rawTicketService == QString::fromStdString(get<1>(it->second))) {

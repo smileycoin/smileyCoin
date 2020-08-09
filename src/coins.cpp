@@ -138,10 +138,6 @@ bool CCoinsViewCache::SetAddressInfo(const CScript &key, const std::pair<int64_t
 
 bool CCoinsViewCache::GetServiceInfo(const std::string &key, std::tuple<std::string, std::string, std::string> &value) {
     std::map<std::string, std::tuple<std::string, std::string, std::string> >::iterator it = cacheServiceInfo.find(key);
-
-    LogPrintStr(" GetServiceInfoCoins142: " + key + " : " + it->first + "   " + get<0>(value) + " : " + get<0>(it->second)
-            + "     " + get<1>(value) + " : " + get<1>(it->second) + "       " + get<2>(value) + " : " + get<2>(it->second));
-
     if(it!=cacheServiceInfo.end()) {
         value = it->second;
         return true;
@@ -154,7 +150,6 @@ bool CCoinsViewCache::GetServiceInfo(const std::string &key, std::tuple<std::str
 }
 
 bool CCoinsViewCache::SetServiceInfo(const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
-    LogPrintStr(" SetServiceInfoCoins: " + key + " : " + get<0>(value) + " : " + get<1>(value) + " : " + get<2>(value));
     cacheServiceInfo[key] = value;
     return true;
 }

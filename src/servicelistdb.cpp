@@ -24,10 +24,6 @@
 #include <boost/version.hpp>
 #include <boost/filesystem.hpp>
 
-inline std::string ServiceType(const CServiceInfo &ai) {return get<2>(ai);}
-inline std::string ServiceName(const CServiceInfo &ai) {return get<1>(ai);}
-inline std::string ServiceAction(const CServiceInfo &ai) {return get<0>(ai);}
-
 bool CServiceList::SetForked(const bool &fFork)
 {
     fForked = fFork;
@@ -38,7 +34,6 @@ bool CServiceList::UpdateServiceInfo(const std::map<std::string, std::tuple<std:
 {
     for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
-        LogPrintStr("UpdateServiceInfo: " + it->first + " : " + get<0>(it->second) + " : " + get<1>(it->second) + " : " + get<2>(it->second));
         if (get<0>(it->second) == "DS") { // If op_return begins with DS (delete service)
             mapServiceList::iterator itService = saddresses.find(it->first);
             // If key is found in service list
@@ -70,8 +65,6 @@ bool CServiceList::UpdateServiceAddressHeights()
 
     for(mapServiceList::const_iterator it = saddresses.begin(); it!=saddresses.end(); it++)
     {
-        LogPrintStr("UpdateServiceAddressHeights: " + it->first + " : " + get<0>(it->second) + " : " + get<1>(it->second) + " : " + get<2>(it->second));
-
         if (get<0>(it->second) == "DS") { // If op_return begins with DS
             mapServiceList::iterator itService = saddresses.find(it->first);
             // If key is found in service list
@@ -87,67 +80,9 @@ bool CServiceList::UpdateServiceAddressHeights()
         LogPrintf("%d addresses seen at fork and need to be relocated\n", mforkedAddresses.size());
     }
 
-    while(pindexSeek->pprev && !mforkedAddresses.empty())
-    {
-        LogPrintStr(" while i servicelistdb ");
-        // return false;
-        ReadBlockFromDisk(block,pindexSeek);
-        block.BuildMerkleTree();
-        BOOST_FOREACH(const CTransaction &tx, block.vtx)
-        {
-            for(unsigned int j = 0; j < tx.vout.size(); j++)
-            {
-                CScript key = tx.vout[j].scriptPubKey;
-                /*mapServiceList::iterator it = mforkedAddresses.find(key);
-                if(it == mforkedAddresses.end())
-                    continue;
-                serviceInfo.insert(std::make_pair(key, std::make_tuple(ServiceAction(it), ServiceName(it), ServiceType(it))));
-                mforkedAddresses.erase(it);*/
-                if(fDebug) {
-                    CTxDestination dest;
-                    ExtractDestination(key, dest);
-                    CBitcoinAddress addr;
-                    addr.Set(dest);
-                    LogPrintf("%s found at height %d\n",addr.ToString(),pindexSeek->nHeight);
-                }
-            }
-        }
-
-        CBlockUndo undo;
-        CDiskBlockPos pos = pindexSeek ->GetUndoPos();
-        if (undo.ReadFromDisk(pos, pindexSeek->pprev->GetBlockHash())) //TODO: hvenær klikkar þetta?
-        {
-            for (unsigned int i=0; i<undo.vtxundo.size(); i++)
-            {
-                for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
-                {
-                    CScript key = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                    /*mapServiceList::iterator it = mforkedAddresses.find(key);
-                    if(it == mforkedAddresses.end())
-                        continue;
-                    serviceInfo.insert(std::make_pair(it->first, std::make_tuple(ServiceAction(it), ServiceName(it), ServiceType(it))));
-                    mforkedAddresses.erase(it);*/
-                    if(fDebug) {
-                        CTxDestination dest;
-                        ExtractDestination(key, dest);
-                        CBitcoinAddress addr;
-                        addr.Set(dest);
-                        LogPrintf("%s found at height %d\n",addr.ToString(),pindexSeek->nHeight);
-                    }
-                }
-            }
-        }
-        else {
-            LogPrintf("UpdateServiceAddressHeights(): Failed to read undo information\n");
-            break;
-        }
-        pindexSeek = pindexSeek -> pprev;
-    }
-
     bool ret;
     typedef std::pair<std::string, std::tuple<std::string, std::string, std::string> > pairType;
     BOOST_FOREACH(const pairType &pair, serviceInfo) {
-        LogPrintStr(" pairType i UpdateServiceAddressHeights ");
         ret = pcoinsTip->SetServiceInfo(pair.first, pair.second);
         assert(ret);
     }
@@ -160,12 +95,10 @@ bool CServiceList::UpdateServiceAddressHeights()
 bool CServiceList::GetServiceAddresses(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> &retset) const {
     for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it=saddresses.begin(); it!=saddresses.end(); it++)
     {
-        LogPrintStr(" GetServiceAddresses i servielistdb: " + it->first + " : " + get<0>(it->second) + " : " + get<1>(it->second) + " : " + get<2>(it->second));
-
         std::string displayType;
         // If op_return begins with NS (new service)
-        if(get<0>(it->second) == "NS")
-        {
+        //if(get<0>(it->second) == "NS")
+        //{
             if (get<2>(it->second) == "1") {
                 displayType = "Ticket Sales";
             } else if (get<2>(it->second) == "2") {
@@ -182,7 +115,7 @@ bool CServiceList::GetServiceAddresses(std::multiset<std::pair<std::string, std:
                 displayType = get<2>(it->second);
             }
             retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), displayType)));
-        }
+        //}
     }
     return true;
 }
@@ -194,8 +127,8 @@ bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<std::string, st
 
         if (IsMine(*pwalletMain, CBitcoinAddress(it->first).Get())) {
             // If op_return begins with NS (new service)
-            if(get<0>(it->second) == "NS")
-            {
+            //if(get<0>(it->second) == "NS")
+            //{
                 if (get<2>(it->second) == "1") {
                     displayType = "Ticket Sales";
                 } else if (get<2>(it->second) == "2") {
@@ -212,7 +145,7 @@ bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<std::string, st
                     displayType = get<2>(it->second);
                 }
                 retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), displayType)));
-            }
+            //}
         }
     }
     return true;
@@ -221,10 +154,8 @@ bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<std::string, st
 bool CServiceList::IsService(std::string address) {
     for (std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = saddresses.begin();it != saddresses.end(); it++)
     {
-        LogPrintStr(it->first+":"+address+":"+get<0>(it->second)+":"+get<1>(it->second)+":"+get<2>(it->second));
         // If address found on service list
         if (address == it->first) {
-            LogPrintStr(" address found on list: " + it->first + " : " + address);
             return true;
         }
     }
