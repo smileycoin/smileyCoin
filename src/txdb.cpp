@@ -54,10 +54,20 @@ void static BatchWriteAddressInfo(CLevelDBBatch &batch, const CScript &key, cons
 }
 
 void static BatchWriteServiceInfo(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > taddresses;
+    ServiceItemList.GetTicketList(taddresses);
+
     // If op_return begins with "DS" (delete service)
     if (get<0>(value) == "DS") {
         // Erase the service associated with address
         batch.Erase(make_pair(DB_SERVICEINFO, key));
+
+        // Erase tickets associated with service address
+        ServiceList.GetTickets(key, taddresses);
+        for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = taddresses.begin(); it!=taddresses.end(); it++ )
+        {
+            batch.Erase(make_pair(DB_SERVICETICKETLIST, it->first));
+        }
     } else if (get<0>(value) == "NS") { // If op_return begins with NS (new service)
         batch.Write(make_pair(DB_SERVICEINFO, key), value);
     }

@@ -20,6 +20,7 @@
 #include "main.h"
 #include "sync.h"
 #include "wallet.h"
+#include "serviceitemlistdb.h"
 
 bool CServiceList::SetForked(const bool &fFork)
 {
@@ -29,6 +30,9 @@ bool CServiceList::SetForked(const bool &fFork)
 
 bool CServiceList::UpdateServiceInfo(const std::map<std::string, std::tuple<std::string, std::string, std::string> > &map)
 {
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > taddresses;
+    ServiceItemList.GetTicketList(taddresses);
+
     for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
         if (get<0>(it->second) == "DS") { // If op_return begins with DS (delete service)
@@ -36,6 +40,14 @@ bool CServiceList::UpdateServiceInfo(const std::map<std::string, std::tuple<std:
             // If key is found in service list
             if (itService != saddresses.end()) {
                 saddresses.erase(itService);
+
+                // Erase tickets associated with service address
+                ServiceList.GetTickets(it->first, taddresses);
+                for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator t = taddresses.begin(); t!=taddresses.end(); t++ )
+                {
+                    mapServiceTicketList::iterator itTicket = taddresses.find(t->first);
+                    taddresses.erase(itTicket);
+                }
             }
         } else if (get<0>(it->second) == "NS") { // If op_return begins with NS (new service)
             saddresses.insert(*it);
@@ -60,6 +72,9 @@ bool CServiceList::UpdateServiceAddressHeights()
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceInfo;
     mapServiceList mforkedAddresses;
 
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > taddresses;
+    ServiceItemList.GetTicketList(taddresses);
+
     for(mapServiceList::const_iterator it = saddresses.begin(); it!=saddresses.end(); it++)
     {
         if (get<0>(it->second) == "DS") { // If op_return begins with DS
@@ -67,6 +82,14 @@ bool CServiceList::UpdateServiceAddressHeights()
             // If key is found in service list
             if (itService != saddresses.end()) {
                 saddresses.erase(itService);
+
+                // Erase tickets associated with service address
+                ServiceList.GetTickets(it->first, taddresses);
+                for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator t = taddresses.begin(); t!=taddresses.end(); t++ )
+                {
+                    mapServiceTicketList::iterator itTicket = taddresses.find(t->first);
+                    taddresses.erase(itTicket);
+                }
             }
         } else if (get<0>(it->second) == "NS") { // If op_return begins with NS
             saddresses.insert(*it);
@@ -148,4 +171,18 @@ bool CServiceList::IsService(std::string address) {
         }
     }
     return false;
+}
+
+bool CServiceList::GetTickets(std::string serviceAddress, std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> &retset) const {
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > taddresses;
+    ServiceItemList.GetTicketList(taddresses);
+
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = taddresses.begin(); it!=taddresses.end(); it++ )
+    {
+        // If service address matches ticket service address
+        if (serviceAddress == get<1>(it->second)) {
+            retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second), get<3>(it->second), get<4>(it->second), get<5>(it->second))));
+        }
+    }
+    return true;
 }
