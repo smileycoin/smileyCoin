@@ -30,8 +30,8 @@ bool CServiceList::SetForked(const bool &fFork)
 
 bool CServiceList::UpdateServiceInfo(const std::map<std::string, std::tuple<std::string, std::string, std::string> > &map)
 {
-    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > taddresses;
-    ServiceItemList.GetTicketList(taddresses);
+    /*std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > taddresses;
+    ServiceItemList.GetTicketList(taddresses);*/
 
     for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
@@ -42,12 +42,12 @@ bool CServiceList::UpdateServiceInfo(const std::map<std::string, std::tuple<std:
                 saddresses.erase(itService);
 
                 // Erase tickets associated with service address
-                ServiceList.GetTickets(it->first, taddresses);
+                /*ServiceList.GetTickets(it->first, taddresses);
                 for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator t = taddresses.begin(); t!=taddresses.end(); t++ )
                 {
                     mapServiceTicketList::iterator itTicket = taddresses.find(t->first);
                     taddresses.erase(itTicket);
-                }
+                }*/
             }
         } else if (get<0>(it->second) == "NS") { // If op_return begins with NS (new service)
             saddresses.insert(*it);
@@ -72,8 +72,8 @@ bool CServiceList::UpdateServiceAddressHeights()
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceInfo;
     mapServiceList mforkedAddresses;
 
-    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > taddresses;
-    ServiceItemList.GetTicketList(taddresses);
+    /*std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > taddresses;
+    ServiceItemList.GetTicketList(taddresses);*/
 
     for(mapServiceList::const_iterator it = saddresses.begin(); it!=saddresses.end(); it++)
     {
@@ -84,12 +84,12 @@ bool CServiceList::UpdateServiceAddressHeights()
                 saddresses.erase(itService);
 
                 // Erase tickets associated with service address
-                ServiceList.GetTickets(it->first, taddresses);
+                /*ServiceList.GetTickets(it->first, taddresses);
                 for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator t = taddresses.begin(); t!=taddresses.end(); t++ )
                 {
                     mapServiceTicketList::iterator itTicket = taddresses.find(t->first);
                     taddresses.erase(itTicket);
-                }
+                }*/
             }
         } else if (get<0>(it->second) == "NS") { // If op_return begins with NS
             saddresses.insert(*it);
