@@ -44,9 +44,6 @@
                     <property name="contextMenuPolicy">
                         <enum>Qt::CustomContextMenu</enum>
                     </property>
-                    <property name="toolTip">
-                        <string>Double-click to ??????? </string>
-                    </property>
                     <property name="tabKeyNavigation">
                         <bool>false</bool>
                     </property>

@@ -7,10 +7,6 @@
 
 #include "txdb.h"
 
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string.hpp>
-
-
 class CServiceList;
 extern CServiceList ServiceList;
 

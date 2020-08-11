@@ -2,11 +2,6 @@
 #define SMILEYCOIN_SERVICEITEMLISTDB_H
 
 #include "txdb.h"
-#include "init.h"
-#include "core.h"
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string.hpp>
-
 
 class CServiceItemList;
 extern CServiceItemList ServiceItemList;
@@ -60,6 +55,7 @@ public:
     friend bool CCoinsViewDB::GetBookList(CServiceItemList &booklist);
 
     bool GetTicketList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> &retset) const;
+    bool IsTicket(std::string address);
     bool GetUbiList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string>>> &retset) const;
     bool GetDexList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> &retset) const;
     bool GetBookList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> &retset) const;

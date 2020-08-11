@@ -17,6 +17,7 @@
 #include "sendcoinsentry.h"
 #include "sendcoinsdialog.h"
 #include "servicelistdb.h"
+#include "serviceitemlistdb.h"
 #include "init.h"
 #include "editservicedialog.h"
 #include "tickettablemodel.h"
@@ -35,14 +36,29 @@ TicketPage::TicketPage(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // Add current services to dropdown
+    ServiceList.GetServiceAddresses(allServices);
+    ui->ticketService->addItem("All");
+    for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = allServices.begin(); it!=allServices.end(); it++ )
+    {
+        ui->ticketService->addItem(QString::fromStdString(get<1>(it->second)));
+    }
+
     ServiceList.GetMyServiceAddresses(myServices);
     if (myServices.empty()) {
         ui->newTicket->hide();
         ui->deleteTicket->hide();
     }
 
+    //ui->serviceLabel->setFixedWidth(100);
+    //ui->ticketService->setFixedWidth(150);
+    ui->horizontalLayout->setSizeConstraint(QLayout::SetMinimumSize);
+    ui->serviceLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+
     // Connect signals for context menu actions
     connect(ui->newTicket, SIGNAL(clicked()), this, SLOT(onNewTicketAction()));
+    connect(ui->deleteTicket, SIGNAL(clicked()), this, SLOT(onDeleteTicketAction()));
+    connect(ui->ticketService, SIGNAL(activated(QString)), this, SLOT(chooseService(QString)));
 }
 
 TicketPage::~TicketPage()
@@ -124,4 +140,133 @@ void TicketPage::onNewTicketAction() {
     connect(&dlg, SIGNAL(accepted()), this, SLOT(EditServiceDialog::accept()));
     dlg.setModel(walletModel);
     dlg.exec();
+}
+
+void TicketPage::onDeleteTicketAction() {
+    if(!walletModel)
+        return;
+
+    if(!ui->tableView->selectionModel())
+        return;
+
+    QModelIndexList selection = ui->tableView->selectionModel()->selectedRows();
+    if(!selection.isEmpty())
+    {
+        QModelIndex idx = selection.at(0);
+        int row = idx.row();
+
+        QString ticketName = idx.sibling(row, 0).data().toString();
+        QString ticketLoc = idx.sibling(row, 1).data().toString();
+        QString ticketDateTime = idx.sibling(row, 2).data().toString();
+        QString ticketValue = idx.sibling(row, 3).data().toString();
+        QString ticketAddress = idx.sibling(row, 4).data().toString();
+        QString ticketService = idx.sibling(row, 5).data().toString();
+
+        std::string serviceAddress = "";
+        ServiceList.GetServiceAddresses(allServices);
+        for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = allServices.begin(); it!=allServices.end(); it++ )
+        {
+            if (ticketService.toStdString() == get<1>(it->second)) {
+                serviceAddress = it->first;
+            }
+        }
+
+        CBitcoinAddress sAddress = CBitcoinAddress(serviceAddress);
+        CBitcoinAddress tAddress = CBitcoinAddress(ticketAddress.toStdString());
+        if (!IsMine(*pwalletMain, sAddress.Get()) || !IsMine(*pwalletMain, tAddress.Get())) {
+            QMessageBox::warning(this, windowTitle(),
+                    tr("Permission denied. Neither the ticket address \"%1\" nor the service address \"%2\" belong to this wallet.").arg(ticketAddress).arg(QString::fromStdString(serviceAddress)),
+                    QMessageBox::Ok, QMessageBox::Ok);
+            return;
+        }
+
+        SendCoinsRecipient issuer;
+        // Send delete service transaction to own ticket address
+        issuer.address = ticketAddress;
+        // Start with n = 1 to get rid of spam
+        issuer.amount = 1*COIN;
+
+        // Create op_return in the following form OP_RETURN = "DT ticketLocation ticketName ticketDateTime ticketValue ticketAddress"
+        issuer.data = QString::fromStdString("445420") +
+                      ticketLoc.toLatin1().toHex() + QString::fromStdString("20") +
+                      ticketName.toLatin1().toHex() + QString::fromStdString("20") +
+                      ticketDateTime.toLatin1().toHex() + QString::fromStdString("20") +
+                      ticketValue.toLatin1().toHex() + QString::fromStdString("20") +
+                      ticketAddress.toLatin1().toHex();
+
+        QList <SendCoinsRecipient> recipients;
+        recipients.append(issuer);
+
+        WalletModelTransaction currentTransaction(recipients);
+        WalletModel::SendCoinsReturn prepareStatus;
+        if (walletModel->getOptionsModel()->getCoinControlFeatures()) // coin control enabled
+            prepareStatus = walletModel->prepareTransaction(currentTransaction, CoinControlDialog::coinControl);
+        else
+            prepareStatus = walletModel->prepareTransaction(currentTransaction);
+
+        // process prepareStatus and on error generate message shown to user
+        processSendCoinsReturn(prepareStatus,
+                BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(),
+                        currentTransaction.getTransactionFee()));
+
+        QString deleteString = tr("Are you sure you want to delete \"%1\"?").arg(ticketName);
+        deleteString.append("<br /><br />");
+
+        deleteString.append("<span style='font-weight:normal;'>");
+        deleteString.append("This ticket will be deleted when the transaction has been confirmed. You can't undo this action.");
+        deleteString.append("</span> ");
+
+        QMessageBox::StandardButton confirmDelete = QMessageBox::question(this, tr("Confirm Ticket Deletion"),
+                deleteString, QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+
+        if (confirmDelete == QMessageBox::Yes) {
+            // now send the prepared transaction
+            WalletModel::SendCoinsReturn sendStatus = walletModel->sendCoins(currentTransaction);
+            processSendCoinsReturn(sendStatus);
+
+            if (sendStatus.status == WalletModel::OK) {
+                QDialog::accept();
+                CoinControlDialog::coinControl->UnSelectAll();
+            } else {
+                QDialog::reject();
+            }
+        }
+    }
+}
+
+void TicketPage::chooseService(QString text) {
+    ticketModel = new TicketTableModel(text.toStdString(), pwalletMain, walletModel);
+    setTicketModel(ticketModel);
+}
+
+void TicketPage::processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg)
+{
+    QPair<QString, CClientUIInterface::MessageBoxFlags> msgParams;
+    // Default to a warning message, override if error message is needed
+    msgParams.second = CClientUIInterface::MSG_WARNING;
+
+    // This comment is specific to SendCoinsDialog usage of WalletModel::SendCoinsReturn.
+    // WalletModel::TransactionCommitFailed is used only in WalletModel::sendCoins()
+    // all others are used only in WalletModel::prepareTransaction()
+    switch(sendCoinsReturn.status)
+    {
+        case WalletModel::InvalidAddress:
+            msgParams.first = tr("The entered address \"%1\" is not a valid Smileycoin address.");
+            break;
+        case WalletModel::AmountWithFeeExceedsBalance:
+            msgParams.first = tr("The total exceeds your balance when the %1 transaction fee is included.").arg(msgArg);
+            break;
+        case WalletModel::TransactionCreationFailed:
+            msgParams.first = tr("Transaction creation failed!");
+            msgParams.second = CClientUIInterface::MSG_ERROR;
+            break;
+        case WalletModel::TransactionCommitFailed:
+            msgParams.first = tr("The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.");
+            msgParams.second = CClientUIInterface::MSG_ERROR;
+            break;
+            // included to prevent a compiler warning.
+        case WalletModel::OK:
+        default:
+            return;
+    }
 }

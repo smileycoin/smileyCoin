@@ -45,8 +45,8 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             ui->serviceType->addItem("Nonprofit Organization");
             ui->serviceType->addItem("DEX");
 
-            ui->serviceName->setMaxLength(20);
-            ui->sCounterName->setText("20 characters left");
+            ui->serviceName->setMaxLength(25);
+            ui->sCounterName->setText("25 characters left");
 
             break;
         }
@@ -60,9 +60,7 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             ServiceList.GetMyServiceAddresses(myServices);
             for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
             {
-                LogPrintStr("newticket: " + it->first + " : " + get<1>(it->second) + " : " + get<2>(it->second));
                 // If service type is Ticket Sales add to dropdown selection
-                //if(get<2>(it->second) == "1") {
                 if(get<2>(it->second) == "Ticket Sales") {
                     ui->ticketService->addItem(QString::fromStdString(get<1>(it->second)));
                 }
@@ -106,17 +104,17 @@ void EditServiceDialog::accept()
              CBitcoinAddress sAddress = CBitcoinAddress(ui->serviceAddress->text().toStdString());
              if (!sAddress.IsValid()) {
                  QMessageBox::warning(this, windowTitle(),
-                                      tr("The entered address \"%1\" is not a valid Smileycoin address.").arg(ui->serviceAddress->text()),
-                                      QMessageBox::Ok, QMessageBox::Ok);
+                         tr("The entered address \"%1\" is not a valid Smileycoin address.").arg(ui->serviceAddress->text()),
+                         QMessageBox::Ok, QMessageBox::Ok);
                  return;
              }
 
-             if (!IsMine(*pwalletMain, sAddress.Get())) {
+             /*if (!IsMine(*pwalletMain, sAddress.Get())) {
                  QMessageBox::warning(this, windowTitle(),
                          tr("The entered address \"%1\" does not belong to this wallet. Please use one of your own addresses or create a new one.").arg(ui->serviceAddress->text()),
                          QMessageBox::Ok, QMessageBox::Ok);
                  return;
-             }
+             }*/
 
              ServiceList.GetServiceAddresses(services);
              for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
@@ -131,7 +129,7 @@ void EditServiceDialog::accept()
              }
 
              // Get new service name and convert to hex
-             QString serviceName = ui->serviceName->text().toLatin1().toHex();
+             QString rawServiceName = ui->serviceName->text().toLatin1().toHex();
              // Get new service address and convert to hex
              QString serviceAddress = ui->serviceAddress->text().toLatin1().toHex();
              // Get type of new service and convert to hex
@@ -152,12 +150,23 @@ void EditServiceDialog::accept()
                  serviceType = "36";
              }
 
+             std::vector<std::string> nameStr = splitString(rawServiceName.toStdString(), "20");
+             // Merge into one string if service name consists of more than one word
+             QString serviceName = "";
+             if (nameStr.size() > 1) {
+                 for (std::string::size_type i = 0; i < nameStr.size(); i++) {
+                     serviceName += QString::fromStdString(nameStr.at(i));
+                 }
+             } else {
+                 serviceName = rawServiceName;
+             }
+
              SendCoinsRecipient issuer;
              // Send new service request transaction to official service address
              issuer.address = QString::fromStdString("B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc");
 
              // Start with n = 10 (0.001) to get rid of spam
-             issuer.amount = 1000000000;
+             issuer.amount = 10*COIN;
 
              // Create op_return in the following form OP_RETURN = "NS serviceName serviceAddress serviceType"
              issuer.data = QString::fromStdString("4e5320") + serviceName +
@@ -240,7 +249,6 @@ void EditServiceDialog::accept()
          }
          case NewTicket:
          {
-
              CBitcoinAddress tAddress = CBitcoinAddress(ui->ticketAddress->text().toStdString());
              if (!tAddress.IsValid()) {
                  QMessageBox::warning(this, windowTitle(),
@@ -249,12 +257,12 @@ void EditServiceDialog::accept()
                  return;
              }
 
-             if (!IsMine(*pwalletMain, tAddress.Get())) {
+             /*if (!IsMine(*pwalletMain, tAddress.Get())) {
                  QMessageBox::warning(this, windowTitle(),
                          tr("The entered address \"%1\" does not belong to this wallet. Please use one of your own addresses or create a new one.").arg(ui->serviceAddress->text()),
                          QMessageBox::Ok, QMessageBox::Ok);
                  return;
-             }
+             }*/
 
              // ÞARF AÐ HAFA FYRIR TICKETS, NO DUPLICATES
              /*ServiceList.GetServiceAddresses(services);
@@ -310,7 +318,7 @@ void EditServiceDialog::accept()
              }
              issuer.address = ticketServiceAddress;
              // Start with n = 1 to get rid of spam
-             issuer.amount = 100000000;
+             issuer.amount = 1*COIN;
 
              // Create op_return in the following form OP_RETURN = "NT ticketLoc ticketName ticketDate ticketTime ticketPrice ticketAddress"
              issuer.data = QString::fromStdString("4e5420") +

@@ -144,15 +144,23 @@ void ServicePage::onDeleteServiceAction() {
         return;
 
     QModelIndexList selection = ui->tableView->selectionModel()->selectedRows();
-    QModelIndex idx = selection.at(0);
-    int row = idx.row();
-
     if(!selection.isEmpty())
     {
+        QModelIndex idx = selection.at(0);
+        int row = idx.row();
+
         QString serviceName = idx.sibling(row, 0).data().toString();
         QString serviceAddress = idx.sibling(row, 1).data().toString();
         QString rawServiceType = idx.sibling(row, 2).data().toString();
         QString serviceType = "";
+
+        CBitcoinAddress sAddress = CBitcoinAddress(serviceAddress.toStdString());
+        if (!IsMine(*pwalletMain, sAddress.Get())) {
+            QMessageBox::warning(this, windowTitle(),
+                    tr("Permission denied. The service address \"%1\" does not belong to this wallet.").arg(serviceAddress),
+                    QMessageBox::Ok, QMessageBox::Ok);
+            return;
+        }
 
         if (rawServiceType == "Ticket Sales") {
             serviceType = "1";

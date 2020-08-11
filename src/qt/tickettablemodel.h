@@ -19,7 +19,7 @@ class TicketTableModel : public QAbstractTableModel
     Q_OBJECT
 
 public:
-    explicit TicketTableModel(CWallet *wallet, WalletModel *parent = 0);
+    explicit TicketTableModel(std::string serviceFilter, CWallet *wallet, WalletModel *parent = 0);
     ~TicketTableModel();
 
     enum ColumnIndex {
@@ -48,6 +48,7 @@ private:
     CWallet *wallet;
     TicketTablePriv *priv;
     QStringList columns;
+    std::string serviceFilter;
 
     /** Notify listeners that data changed. */
     void emitDataChanged(int index);

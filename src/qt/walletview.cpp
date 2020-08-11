@@ -197,7 +197,7 @@ void WalletView::gotoServicePage()
 void WalletView::gotoTicketPage() {
     ticketPage->setWalletModel(walletModel);
 
-    TicketTableModel *ticketModel = new TicketTableModel(pwalletMain, walletModel);
+    TicketTableModel *ticketModel = new TicketTableModel("All", pwalletMain, walletModel);
     ticketPage->setTicketModel(ticketModel);
 
     setCurrentWidget(ticketPage);

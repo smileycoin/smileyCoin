@@ -67,24 +67,29 @@ public:
     void setTicketModel(TicketTableModel *ticketModel);
 
 public slots:
-        void done(int retval);
+    void done(int retval);
+    void chooseService(QString text);
 
 private:
     Ui::TicketPage *ui;
     TicketTableModel *ticketModel;
     WalletModel *walletModel;
     QString returnValue;
-    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> myServices;
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> allServices;
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> myServices;
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string>>> myTickets;
     QSortFilterProxyModel *proxyModel;
     QVBoxLayout *verticalLayout;
     QLineEdit *addressWidget;
     QComboBox *typeWidget;
+    void processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg = QString());
 
 private slots:
-        void onNewTicketAction();
+    void onNewTicketAction();
+    void onDeleteTicketAction();
 
-    signals:
-        void doubleClicked(const QModelIndex&);
+signals:
+    void doubleClicked(const QModelIndex&);
 
 };
 

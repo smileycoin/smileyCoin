@@ -9,14 +9,17 @@
 
 #include "serviceitemlistdb.h"
 
-#include "main.h"
 #include "base58.h"
-#include "chainparams.h"
-
+#include "net.h"
+#include "netbase.h"
+#include "rpcserver.h"
+#include "util.h"
 #include <vector>
 
-#include <boost/version.hpp>
-#include <boost/filesystem.hpp>
+#include "init.h"
+#include "main.h"
+#include "sync.h"
+#include "wallet.h"
 
 inline std::string TicketAction(const CServiceTicket &ai) {return get<0>(ai);}
 inline std::string TicketToAddress(const CServiceTicket &ai) {return get<1>(ai);}
@@ -168,6 +171,17 @@ bool CServiceItemList::GetTicketList(std::multiset<std::pair<std::string, std::t
         retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second), get<3>(it->second), get<4>(it->second), get<5>(it->second))));
     }
     return true;
+}
+
+bool CServiceItemList::IsTicket(std::string address) {
+    for (std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = taddresses.begin();it != taddresses.end(); it++)
+    {
+        // If address found on ticket list
+        if (address == it->first) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool CServiceItemList::UpdateUbiList(const std::map<std::string, std::tuple<std::string, std::string> > &map)

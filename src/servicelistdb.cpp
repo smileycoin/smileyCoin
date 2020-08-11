@@ -21,9 +21,6 @@
 #include "sync.h"
 #include "wallet.h"
 
-#include <boost/version.hpp>
-#include <boost/filesystem.hpp>
-
 bool CServiceList::SetForked(const bool &fFork)
 {
     fForked = fFork;
@@ -96,9 +93,31 @@ bool CServiceList::GetServiceAddresses(std::multiset<std::pair<std::string, std:
     for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it=saddresses.begin(); it!=saddresses.end(); it++)
     {
         std::string displayType;
-        // If op_return begins with NS (new service)
-        //if(get<0>(it->second) == "NS")
-        //{
+        if (get<2>(it->second) == "1") {
+            displayType = "Ticket Sales";
+        } else if (get<2>(it->second) == "2") {
+            displayType = "UBI";
+        } else if (get<2>(it->second) == "3") {
+            displayType = "Book Chapter";
+        } else if (get<2>(it->second) == "4") {
+            displayType = "Traceability";
+        } else if (get<2>(it->second) == "5") {
+            displayType = "Nonprofit Organization";
+        } else if (get<2>(it->second) == "6") {
+            displayType = "DEX";
+        } else {
+            displayType = get<2>(it->second);
+        }
+        retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), displayType)));
+    }
+    return true;
+}
+
+bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> &retset) const {
+    for (std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = saddresses.begin();it != saddresses.end(); it++)
+    {
+        std::string displayType;
+        if (IsMine(*pwalletMain, CBitcoinAddress(it->first).Get())) {
             if (get<2>(it->second) == "1") {
                 displayType = "Ticket Sales";
             } else if (get<2>(it->second) == "2") {
@@ -115,37 +134,6 @@ bool CServiceList::GetServiceAddresses(std::multiset<std::pair<std::string, std:
                 displayType = get<2>(it->second);
             }
             retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), displayType)));
-        //}
-    }
-    return true;
-}
-
-bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> &retset) const {
-    for (std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = saddresses.begin();it != saddresses.end(); it++)
-    {
-        std::string displayType;
-
-        if (IsMine(*pwalletMain, CBitcoinAddress(it->first).Get())) {
-            // If op_return begins with NS (new service)
-            //if(get<0>(it->second) == "NS")
-            //{
-                if (get<2>(it->second) == "1") {
-                    displayType = "Ticket Sales";
-                } else if (get<2>(it->second) == "2") {
-                    displayType = "UBI";
-                } else if (get<2>(it->second) == "3") {
-                    displayType = "Book Chapter";
-                } else if (get<2>(it->second) == "4") {
-                    displayType = "Traceability";
-                } else if (get<2>(it->second) == "5") {
-                    displayType = "Nonprofit Organization";
-                } else if (get<2>(it->second) == "6") {
-                    displayType = "DEX";
-                } else {
-                    displayType = get<2>(it->second);
-                }
-                retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), displayType)));
-            //}
         }
     }
     return true;

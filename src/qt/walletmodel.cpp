@@ -41,7 +41,7 @@ WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *p
 {
     addressTableModel = new AddressTableModel(wallet, this);
     serviceTableModel = new ServiceTableModel(true, wallet, this);
-    ticketTableModel = new TicketTableModel(wallet, this);
+    ticketTableModel = new TicketTableModel("All", wallet, this);
     transactionTableModel = new TransactionTableModel(wallet, this);
     recentRequestsTableModel = new RecentRequestsTableModel(wallet, this);
 
