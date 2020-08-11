@@ -35,7 +35,7 @@ ServicePage::ServicePage(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ServiceList.GetMyServiceAddresses(myServices);
+    /*ServiceList.GetMyServiceAddresses(myServices);
     if (myServices.empty()) {
         ui->viewAllServices->hide();
         ui->viewMyServices->hide();
@@ -54,12 +54,12 @@ ServicePage::ServicePage(QWidget *parent) :
         ui->horizontalLayout->setAlignment(ui->viewAllServices, Qt::AlignHCenter);
         ui->horizontalLayout->setAlignment(ui->viewMyServices, Qt::AlignHCenter);
     }
-    ui->deleteService->hide();
+    ui->deleteService->hide();*/
 
     connect(ui->newService, SIGNAL(clicked()), this, SLOT(onNewServiceAction()));
     connect(ui->deleteService, SIGNAL(clicked()), this, SLOT(onDeleteServiceAction()));
-    connect(ui->viewAllServices, SIGNAL(toggled(bool)), this, SLOT(onViewAllServices()));
-    connect(ui->viewMyServices, SIGNAL(toggled(bool)), this, SLOT(onViewMyServices()));
+    //connect(ui->viewAllServices, SIGNAL(toggled(bool)), this, SLOT(onViewAllServices()));
+    //connect(ui->viewMyServices, SIGNAL(toggled(bool)), this, SLOT(onViewMyServices()));
 }
 
 ServicePage::~ServicePage()
