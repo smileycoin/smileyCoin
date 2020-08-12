@@ -12,23 +12,32 @@
 
 using namespace std;
 
-CCriticalSection cs_currentheight;
+CCriticalSection cs_ubi;
+
+// the height of vBatch, if the external blockheight changes then vBatch 
+// is updated
 unsigned int nCurrentHeight = 0;
 
+// where we store our batch between blockchain updates
 vector<CScript> vBatch;
 
-// compare recipients only via block-last-paid, the address is irrelevant
+// compare first using lastpaid, and then using the CBitcoinAddress
+// builtin comparator
 bool operator<(const Recipient& lhs, const Recipient& rhs)
 {
-    return lhs.lastpaid < rhs.lastpaid;
+    if (lhs.lastpaid != rhs.lastpaid)
+        return lhs.lastpaid < rhs.lastpaid;
+    else
+        return lhs.address < rhs.address;
 }
 
-// our list of recipients
+// our list of recipients from vRecipients, also only updated on a new blockchain
 vector<Recipient> vRecipients;
 
 // how many recipient are paid per block
 const size_t nBatchSize = 5;
 
+// remove once we move to servicelist, only for reading ubi_addresses
 static boost::once_flag ubiInitFlag = BOOST_ONCE_INIT;
 
 namespace UBI
@@ -61,22 +70,23 @@ static void InitCirculation()
 
 // goes through vRecipients and selects the addresses that haven't been paid
 // for the longest time.
-// in: nHeight, height of the block that pays the addresses
-// return: vector of the CScript's that pay the block's ubi recipients
 vector<CScript> NextBatch(const unsigned int nHeight)
 {
     boost::call_once(&InitCirculation, ubiInitFlag);
 
-    LOCK(cs_currentheight);
+    LOCK(cs_ubi);
+    // probably called by a sister thread, no need to compute everything
+    // all over again for the same heigth
     if (nHeight == nCurrentHeight)
         return vBatch;
 
     nCurrentHeight = nHeight;
 
-    int stop = min(vRecipients.size(), nBatchSize);
-
-    // choose the recipients with the lowest lastpaid values
-    for (int i = 0; i < stop; i++)
+    // choose the recipients with the lowest lastpaid values.
+    //   if we just paid nbatchsize many recipients some would get paid multiple
+    // times without us knowing who, so we cap it at vRecipients.size() if it's
+    // lower than nBatchSize
+    for (unsigned int i = 0; i < min(vRecipients.size(), nBatchSize); i++)
     {
         // using our operator< get the iterator of the recipient in batch that
         // has been paid most recently
@@ -91,17 +101,14 @@ vector<CScript> NextBatch(const unsigned int nHeight)
     return vBatch;
 }
 
-// Similar to GetBlockValueDividends but doesn't depend on block height
-// in: nFees, block fees
-// return: dividends per recipient, 0 if there are none
+// Similar to GetBlockValueDividends but doesn't depend on block height since we only
+// harvest from nFees
 int64_t GetUBIDividends(const int64_t nFees)
 {
     if (vRecipients.empty())
         return 0;
 
-    int64_t nRecipientCount = min(nBatchSize, vRecipients.size());
-
-    return (int64_t)(0.9 * nFees) / nRecipientCount;
+    return (int64_t)(0.9 * nFees) / (int64_t)min(nBatchSize, vRecipients.size());
 }
 
 } // namespace UBI
