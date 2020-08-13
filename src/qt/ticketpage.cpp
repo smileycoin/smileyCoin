@@ -41,18 +41,24 @@ TicketPage::TicketPage(QWidget *parent) :
     ui->ticketService->addItem("All");
     for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = allServices.begin(); it!=allServices.end(); it++ )
     {
-        ui->ticketService->addItem(QString::fromStdString(get<1>(it->second)));
+        // If service type is Ticket Sales add to dropdown selection
+        if(get<2>(it->second) == "Ticket Sales") {
+            ui->ticketService->addItem(QString::fromStdString(get<1>(it->second)));
+        }
     }
 
     ServiceList.GetMyServiceAddresses(myServices);
     if (myServices.empty()) {
         ui->newTicket->hide();
         ui->deleteTicket->hide();
+    } else {
+        ui->newTicket->show();
+        ui->deleteTicket->show();
     }
 
     //ui->serviceLabel->setFixedWidth(100);
     //ui->ticketService->setFixedWidth(150);
-    ui->horizontalLayout->setSizeConstraint(QLayout::SetMinimumSize);
+    //ui->horizontalLayout->setSizeConstraint(QLayout::SetMinimumSize);
     ui->serviceLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
 
     // Connect signals for context menu actions
@@ -79,7 +85,7 @@ void TicketPage::setTicketModel(TicketTableModel *ticketModel) {
 
     ui->tableView->setModel(proxyModel);
     ui->tableView->sortByColumn(0, Qt::AscendingOrder);
-    ui->tableView->verticalHeader()->setDefaultSectionSize(50);
+    //ui->tableView->verticalHeader()->setDefaultSectionSize(50);
 
     // Set column widths
 #if QT_VERSION < 0x050000

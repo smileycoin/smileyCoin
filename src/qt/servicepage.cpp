@@ -79,7 +79,7 @@ void ServicePage::setServiceModel(ServiceTableModel *serviceModel) {
 
     ui->tableView->setModel(proxyModel);
     ui->tableView->sortByColumn(0, Qt::AscendingOrder);
-    ui->tableView->verticalHeader()->setDefaultSectionSize(50);
+    //ui->tableView->verticalHeader()->setDefaultSectionSize(50);
 
     // Set column widths
 #if QT_VERSION < 0x050000
