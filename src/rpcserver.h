@@ -135,6 +135,7 @@ extern json_spirit::Value importwallet(const json_spirit::Array& params, bool fH
 
 extern json_spirit::Value getrichaddresses(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value createservice(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value createticket(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value deleteservice(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getserviceaddresses(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getticketlist(const json_spirit::Array& params, bool fHelp);

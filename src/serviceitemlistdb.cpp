@@ -49,7 +49,8 @@ bool CServiceItemList::UpdateTicketList(const std::map<std::string, std::tuple<s
 {
     for(std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
-        if (get<0>(it->second) == "DT") { // If op_return begins with DT (delete ticket)
+        // If op_return begins with DT (delete ticket) or if ticket has expired
+        if (get<0>(it->second) == "DT" || !is_before(get<4>(it->second)) ) {
             mapServiceTicketList::iterator itTicket = taddresses.find(it->first);
             // If key is found in ticket list
             if (itTicket != taddresses.end()) {
@@ -80,7 +81,8 @@ bool CServiceItemList::UpdateTicketListHeights()
 
     for(mapServiceTicketList::const_iterator it = taddresses.begin(); it!=taddresses.end(); it++)
     {
-        if (get<0>(it->second) == "DT") { // If op_return begins with DT (delete ticket)
+        // If op_return begins with DT (delete ticket) or if ticket has expired
+        if (get<0>(it->second) == "DT" || !is_before(get<4>(it->second))) {
             mapServiceTicketList::iterator itTicket = taddresses.find(it->first);
             // If key is found in ticket list
             if (itTicket != taddresses.end()) {

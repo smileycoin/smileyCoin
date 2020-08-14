@@ -159,7 +159,7 @@ Value createservice(const Array& params, bool fHelp)
     std::string serviceAddress = params[1].get_str();
     std::string serviceType = params[2].get_str();
 
-    // VANTAR CHECK FYRIR EF ADDRESSA ER NU ÞEGAR SERVICE OG LENGD OG EF TYPE ER 1-6
+    // VANTAR CHECK FYRIR LENGD
 
     CBitcoinAddress address(params[1].get_str());
     if (!address.IsValid()) {
@@ -243,16 +243,6 @@ Value deleteservice(const Array& params, bool fHelp)
     std::string serviceType = params[2].get_str();
 
     CBitcoinAddress address(params[1].get_str());
-
-    /*std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
-    ServiceList.GetServiceAddresses(services);
-    bool isService = false;
-    for(std::multiset< std::pair<std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
-        if (address.ToString() == it->first) {
-            isService = true;
-        }
-    }*/
-
     if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
     } else if (!IsMine(*pwalletMain, address.Get())) {
@@ -261,6 +251,8 @@ Value deleteservice(const Array& params, bool fHelp)
         throw runtime_error("Invalid Smileycoin service address");
     } else if (serviceType != "1" || serviceType != "2" || serviceType != "3"|| serviceType != "4"|| serviceType != "5" || serviceType != "6") {
         throw runtime_error("Invalid service type. Please choose a type between 1 - 6.");
+    } else if (serviceName.length() > 50) {
+        throw runtime_error("Service name cannot be more than 25 characters long.");
     }
 
     // Amount
@@ -285,6 +277,117 @@ Value deleteservice(const Array& params, bool fHelp)
     vector<unsigned char> data = ParseHexV(str[0], "Data");
 
     // Create op_return script in the form -> DS serviceName serviceAddress serviceType
+    vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
+
+    CWalletTx wtx;
+
+    EnsureWalletIsUnlocked();
+
+    // Send
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
+
+    return wtx.GetHash().GetHex();
+}
+
+Value createticket(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 6)
+        throw runtime_error(
+                "createticket \"servicename\" \"ticketlocation\" \"ticketname\" \"ticketdatetime\" \"ticketprice\" \"ticketaddress\" \n"
+                "\nCreate a new ticket on the blockchain. \n"
+                + HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1. \"servicename\"  (string, required) The service name associated with the new ticket.\n"
+                "2. \"ticketlocation\"   (string, required) The smileycoin ticket sales service address associated with the service. \n"
+                "3. \"ticketname\"    (string, required) The ticket name.\n"
+                "4. \"ticketdatetime\"    (datetime, required) The ticket date and time.\n"
+                "5. \"ticketprice\"    (numeric, required) The ticket price.\n"
+                "6. \"ticketaddress\"    (string, required) The smileycoin ticket address associated with the ticket.\n"
+
+                "\nDateTime format:\n"
+                "dd/MM/yyyyhh:mm \n \n"
+
+                "\nResult:\n"
+                "\"transactionid\"  (string) The transaction id.\n"
+                "\nExamples:\n"
+                + HelpExampleCli("createticket", "Paradiso Alfabakka Shining 22/08/202022:00 30 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleCli("createticket", "AirSmiley BSI Akureyri 10/12/202009:00 1500000 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleRpc("createticket", "Paradiso Kringla Alien 30/10/202023:00 40 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+        );
+
+    std::string serviceName = params[0].get_str();
+    std::string ticketLocation = params[1].get_str();
+    std::string ticketName = params[2].get_str();
+    std::string ticketDateTime= params[3].get_str();
+    std::string ticketPrice = params[4].get_str();
+    std::string ticketAddress = params[5].get_str();
+
+    // VANTAR CHECK FYRIR EF ADDRESSA ER NU ÞEGAR SERVICE OG LENGD OG EF TYPE ER 1-6
+
+    CBitcoinAddress address(params[5].get_str());
+    if (!address.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
+    } else if (ServiceItemList.IsTicket(ticketAddress)) {
+        throw runtime_error("The entered address is already on ticket list. Please use another address.");
+    } else if (!is_number(ticketPrice)) {
+        throw runtime_error("Price must be a number.");
+    } else if (!is_date(ticketDateTime)) {
+        throw runtime_error("Date and time must be in the format dd/MM/yyyyhh:mm (e.g. 22/08/202207:00)");
+    } else if (!is_before(ticketDateTime)) {
+        throw runtime_error("The entered ticket date and time has already expired.");
+    } else if (ticketLocation.length() > 20) {
+        throw runtime_error("Ticket location cannot be more than 20 characters long.");
+    } else if (ticketName.length() > 20) {
+        throw runtime_error("Ticket name cannot be more than 20 characters long.");
+    }
+
+    //is_number(hexToAscii(ticketValue)) && is_date(hexToAscii(ticketDateAndTime)) && is_before(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 && ticketName.length() <= 40
+
+    // Amount
+    int64_t nValue = 1*COIN;
+    int64_t DEFAULT_AMOUNT = 0;
+
+    vector<pair<CScript, int64_t> > vecSend;
+
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> myServices;
+    ServiceList.GetMyServiceAddresses(myServices);
+
+    std::string ticketServiceAddress = "";
+    // Send new ticket transaction to corresponding service address
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
+    {
+        if(serviceName == get<1>(it->second)) {
+            ticketServiceAddress = it->first;
+        }
+    }
+
+    if (!ServiceList.IsService(ticketServiceAddress)) {
+        throw runtime_error("The entered service name cannot be found on service list.");
+    }
+
+    // Parse Smileycoin address
+    CBitcoinAddress tServiceAddress(ticketServiceAddress);
+    CScript scriptPubKey;
+    scriptPubKey.SetDestination(tServiceAddress.Get());
+
+    // Pay 1 SMLY to official service address
+    vecSend.push_back(make_pair(scriptPubKey, nValue));
+
+    vector<string> str;
+    int64_t amount = 0;
+
+    std::string txData = HexStr("NT " + ticketLocation + " " + ticketName + " " + ticketDateTime + " " + ticketPrice + " " + ticketAddress, false);
+    str.push_back(txData);
+    vector<unsigned char> data = ParseHexV(str[0], "Data");
+
+    // Create op_return script in the form -> NT ticketLoc ticketName ticketDateTime ticketPrice ticketAddress
     vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
 
     CWalletTx wtx;
@@ -365,14 +468,6 @@ Value getticketlist(const Array& params, bool fHelp)
     if(!address.IsValid())
         throw runtime_error("Invalid Smileycoin address");
 
-    /*std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
-    ServiceList.GetServiceAddresses(services);
-    bool isService = false;
-    for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
-        if (address.ToString() == it->first) {
-            isService = true;
-        }
-    }*/
     if (!ServiceList.IsService(params[0].get_str()))
         throw runtime_error("Invalid Smileycoin service address");
 
@@ -384,9 +479,9 @@ Value getticketlist(const Array& params, bool fHelp)
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         std::string serviceAddress = get<1>(it->second);
-        if (serviceAddress == address.ToString()) {
-            //obj.push_back(Pair("Sent to: ", get<0>(it->second)));
-            // obj = NULL eða initialize-a objectið
+        std::string dateOfTicket = get<4>(it->second);
+
+        if (serviceAddress == address.ToString() && is_before(dateOfTicket)) {
             Object obj;
             obj.push_back(Pair("Name: ", get<3>(it->second)));
             obj.push_back(Pair("Location: ", get<2>(it->second)));
@@ -416,23 +511,15 @@ Value getubilist(const Array& params, bool fHelp)
     
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
-    //bool isService = false;
     bool isUbi = false;
     for(std::multiset< std::pair<std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
-        /*if (address.ToString() == get<1>(it->second)) {
-            isService = true;
-        }*/
         if (get<2>(it->second) == "2") {
             isUbi = true;
         }
     }
-    //if (!isService)
     if (!ServiceList.IsService(params[0].get_str()))
         throw runtime_error("Not a valid service address");
-    
-    //if (!IsMine(*pwalletMain, address.Get()))
-    //   throw runtime_error("Not your service address, permission denied");
-    
+
     if (!isUbi)
         throw runtime_error("Not a UBI address");
 

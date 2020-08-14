@@ -270,6 +270,27 @@ inline bool is_date(std::string s)
     return false;
 }
 
+inline bool is_before(std::string dateOfTicket)
+{
+    time_t now = time(NULL);
+    time_t tTicket;
+    int yy, month, dd, hh, mm;
+    struct tm whenTicket = {0};
+    const char *zTicket = dateOfTicket.c_str();
+
+    sscanf(zTicket, "%2d/%2d/%4d %2d:%2d", &dd, &month, &yy, &hh, &mm);
+    whenTicket.tm_mday = dd;
+    whenTicket.tm_mon = month - 1;
+    whenTicket.tm_year = yy - 1900;
+    whenTicket.tm_hour = hh;
+    whenTicket.tm_min = mm;
+    whenTicket.tm_isdst = -1;
+
+    tTicket = mktime(&whenTicket);
+
+    return tTicket > now;
+}
+
 inline std::string i64tostr(int64_t n)
 {
     return strprintf("%d", n);

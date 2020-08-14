@@ -18,6 +18,8 @@
 #include "sendcoinsdialog.h"
 #include "init.h"
 #include "servicelistdb.h"
+#include "serviceitemlistdb.h"
+#include "util.h"
 
 #include <qvalidatedlineedit.h>
 #include <wallet.h>
@@ -78,6 +80,13 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
     connect(ui->serviceName, SIGNAL(textChanged(const QString &)), this, SLOT(sNameCount(const QString &)));
     connect(ui->ticketName, SIGNAL(textChanged(const QString &)), this, SLOT(tNameCount(const QString &)));
     connect(ui->ticketLocation, SIGNAL(textChanged(const QString &)), this, SLOT(tLocationCount(const QString &)));
+
+    connect(ui->serviceName, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->serviceAddress, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->ticketName, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->ticketLocation, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->ticketPrice, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->ticketAddress, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
 }
 
 EditServiceDialog::~EditServiceDialog()
@@ -101,6 +110,16 @@ void EditServiceDialog::accept()
      {
          case NewService:
          {
+             if (ui->serviceName->text().isEmpty() || ui->serviceAddress->text().isEmpty()) {
+                 if (ui->serviceName->text().isEmpty()) {
+                     ui->serviceName->setStyleSheet(STYLE_INVALID);
+                 }
+                 if (ui->serviceAddress->text().isEmpty()) {
+                     ui->serviceAddress->setStyleSheet(STYLE_INVALID);
+                 }
+                 return;
+             }
+
              CBitcoinAddress sAddress = CBitcoinAddress(ui->serviceAddress->text().toStdString());
              if (!sAddress.IsValid()) {
                  QMessageBox::warning(this, windowTitle(),
@@ -109,23 +128,11 @@ void EditServiceDialog::accept()
                  return;
              }
 
-             /*if (!IsMine(*pwalletMain, sAddress.Get())) {
+             if (ServiceList.IsService(ui->serviceAddress->text().toStdString())) {
                  QMessageBox::warning(this, windowTitle(),
-                         tr("The entered address \"%1\" does not belong to this wallet. Please use one of your own addresses or create a new one.").arg(ui->serviceAddress->text()),
+                         tr("The entered address \"%1\" is already on service list. Please use another address.").arg(ui->serviceAddress->text()),
                          QMessageBox::Ok, QMessageBox::Ok);
                  return;
-             }*/
-
-             ServiceList.GetServiceAddresses(services);
-             for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
-             {
-                 // If service address already in list
-                 if(ui->serviceAddress->text().toStdString() == s->first) {
-                     QMessageBox::warning(this, windowTitle(),
-                             tr("The entered address \"%1\" is already on service list. Please use another address.").arg(ui->serviceAddress->text()),
-                             QMessageBox::Ok, QMessageBox::Ok);
-                     return;
-                 }
              }
 
              // Get new service name and convert to hex
@@ -249,6 +256,23 @@ void EditServiceDialog::accept()
          }
          case NewTicket:
          {
+             if (ui->ticketName->text().isEmpty() || ui->ticketLocation->text().isEmpty() || ui->ticketPrice->text().isEmpty() || ui->ticketAddress->text().isEmpty())
+             {
+                 if (ui->ticketName->text().isEmpty()) {
+                     ui->ticketName->setStyleSheet(STYLE_INVALID);
+                 }
+                 if (ui->ticketLocation->text().isEmpty()) {
+                     ui->ticketLocation->setStyleSheet(STYLE_INVALID);
+                 }
+                 if (ui->ticketPrice->text().isEmpty()) {
+                     ui->ticketPrice->setStyleSheet(STYLE_INVALID);
+                 }
+                 if (ui->ticketAddress->text().isEmpty()) {
+                     ui->ticketAddress->setStyleSheet(STYLE_INVALID);
+                 }
+                 return;
+             }
+
              CBitcoinAddress tAddress = CBitcoinAddress(ui->ticketAddress->text().toStdString());
              if (!tAddress.IsValid()) {
                  QMessageBox::warning(this, windowTitle(),
@@ -256,26 +280,24 @@ void EditServiceDialog::accept()
                          QMessageBox::Ok, QMessageBox::Ok);
                  return;
              }
-
-             /*if (!IsMine(*pwalletMain, tAddress.Get())) {
+             if (!is_number(ui->ticketPrice->text().toStdString())) {
+                 QMessageBox::warning(this, windowTitle(), "Ticket price must be a number.", QMessageBox::Ok,
+                         QMessageBox::Ok);
+                 return;
+             }
+             // Don't allow new ticket if date and time has already expired
+             if (!is_before(ui->ticketDateTime->dateTime().toString("dd/MM/yyyyhh:mm").toStdString())) {
                  QMessageBox::warning(this, windowTitle(),
-                         tr("The entered address \"%1\" does not belong to this wallet. Please use one of your own addresses or create a new one.").arg(ui->serviceAddress->text()),
+                         tr("The entered ticket date and time \"%1\" has already expired.").arg(ui->ticketDateTime->dateTime().toString("dd/MM/yyyyhh:mm")),
                          QMessageBox::Ok, QMessageBox::Ok);
                  return;
-             }*/
-
-             // ÞARF AÐ HAFA FYRIR TICKETS, NO DUPLICATES
-             /*ServiceList.GetServiceAddresses(services);
-             for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
-             {
-                 // If service address already in list
-                 if(ui->serviceAddress->text().toStdString() == s->first) {
-                     QMessageBox::warning(this, windowTitle(),
-                             tr("The entered address \"%1\" is already on service list. Please use another address.").arg(ui->serviceAddress->text()),
-                             QMessageBox::Ok, QMessageBox::Ok);
-                     return;
-                 }
-             }*/
+             }
+             if (ServiceItemList.IsTicket(ui->ticketAddress->text().toStdString())) {
+                 QMessageBox::warning(this, windowTitle(),
+                         tr("The entered address \"%1\" is already on ticket list. Please use another address.").arg(ui->ticketAddress->text()),
+                         QMessageBox::Ok, QMessageBox::Ok);
+                 return;
+             }
 
              QString rawTicketService = ui->ticketService->currentText();
              QString rawTicketLoc = ui->ticketLocation->text().toLatin1().toHex();
@@ -320,7 +342,7 @@ void EditServiceDialog::accept()
              // Start with n = 1 to get rid of spam
              issuer.amount = 1*COIN;
 
-             // Create op_return in the following form OP_RETURN = "NT ticketLoc ticketName ticketDate ticketTime ticketPrice ticketAddress"
+             // Create op_return in the following form OP_RETURN = "NT ticketLoc ticketName ticketDateTime ticketPrice ticketAddress"
              issuer.data = QString::fromStdString("4e5420") +
                               ticketLoc + QString::fromStdString("20") +
                               ticketName + QString::fromStdString("20") +
@@ -419,6 +441,11 @@ void EditServiceDialog::tNameCount(const QString & text) {
 }
 
 void EditServiceDialog::tLocationCount(const QString & text) {
+    QString text_label = QString("%1 characters left").arg(ui->ticketLocation->maxLength() - text.size());
+    ui->tCounterLoc->setText(text_label);
+}
+
+void EditServiceDialog::valueChanged(const QString & text) {
     QString text_label = QString("%1 characters left").arg(ui->ticketLocation->maxLength() - text.size());
     ui->tCounterLoc->setText(text_label);
 }

@@ -1916,8 +1916,8 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
                                         // if the ticket address is valid, the name and location are equal or less than 40,
                                         // date and time is on the right format and value is an integer then save it to the db
-                                        if (tAddress.IsValid() && is_number(hexToAscii(ticketValue)) && is_date(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 && ticketName.length() <= 40) {
-											std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
+                                        if (tAddress.IsValid() && is_number(hexToAscii(ticketValue)) && is_date(hexToAscii(ticketDateAndTime)) && is_before(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 && ticketName.length() <= 40) {
+                                            std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
 											if(!view.GetTicketList(asciiAddress, value))
 												return state.Abort(_("Failed to read ticket index"));
 											else {
@@ -2419,9 +2419,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         std::string asciiAddress = hexToAscii(ticketAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
 										// If the ticket address is valid then save it to the db
-										if (tAddress.IsValid() && is_number(hexToAscii(ticketValue)) && is_date(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 && ticketName.length() <= 40) {
-                                            LogPrintStr(" main2409 ALLT VALID");
-
+                                        if (tAddress.IsValid() && is_number(hexToAscii(ticketValue)) && is_date(hexToAscii(ticketDateAndTime)) && is_before(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 && ticketName.length() <= 40) {
                                             std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
 											value = std::make_tuple("NT", toAddress, hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateAndTime), hexToAscii(ticketValue));
 											assert(view.SetTicketList(asciiAddress, value));

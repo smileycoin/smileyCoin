@@ -70,6 +70,7 @@ private slots:
     void sNameCount(const QString & text);
     void tNameCount(const QString & text);
     void tLocationCount(const QString & text);
+    void valueChanged(const QString & text);
 
 private:
     Ui::EditServiceDialog *ui;
