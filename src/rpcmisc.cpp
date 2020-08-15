@@ -805,7 +805,7 @@ Value getubilist(const Array& params, bool fHelp)
 Value getdexlist(const Array& params, bool fHelp)
 {
 
-    if (fHelp || params.size() != 0)
+    if (fHelp || params.size() != 1)
         throw runtime_error("getdexlist \"address\"\n"
                             "Returns all DEX addresses that belong to the specified DEX service address\n"
                             );
@@ -827,7 +827,7 @@ Value getdexlist(const Array& params, bool fHelp)
 Value getnpolist(const Array& params, bool fHelp)
 {
 
-    if (fHelp || params.size() != 0)
+    if (fHelp || params.size() != 1)
         throw runtime_error("getnpolist\n"
                             "Returns all non profit organization addresses\n"
                             );
@@ -849,7 +849,7 @@ Value getnpolist(const Array& params, bool fHelp)
 Value getbooklist(const Array& params, bool fHelp)
 {
 
-    if (fHelp || params.size() != 0)
+    if (fHelp || params.size() != 1)
         throw runtime_error("getbooklist \"address\"\n"
                             "Returns all book chapters that belong to the specified book service address\n"
                             );
