@@ -315,6 +315,17 @@ bool CServiceItemList::GetUbiList(std::multiset<std::pair<std::string, std::tupl
     return true;
 }
 
+bool CServiceItemList::IsUbi(std::string address) {
+    for (std::map<std::string, std::tuple<std::string, std::string> >::const_iterator it = uaddresses.begin();it != uaddresses.end(); it++)
+    {
+        // If address found on UBI recipient list
+        if (address == it->first) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool CServiceItemList::UpdateDexList(const std::map<std::string, std::tuple<std::string, std::string, std::string> > &map)
 {
     for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
@@ -444,6 +455,17 @@ bool CServiceItemList::GetDexList(std::multiset<std::pair<std::string, std::tupl
     return true;
 }
 
+bool CServiceItemList::IsDex(std::string address) {
+    for (std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = daddresses.begin();it != daddresses.end(); it++)
+    {
+        // If address found on DEX list
+        if (address == it->first) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool CServiceItemList::UpdateBookList(const std::map<std::string, std::tuple<std::string, std::string, std::string> > &map)
 {
     for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
@@ -571,4 +593,15 @@ bool CServiceItemList::GetBookList(std::multiset<std::pair<std::string, std::tup
         retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
     }
     return true;
+}
+
+bool CServiceItemList::IsChapter(std::string address) {
+    for (std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = baddresses.begin();it != baddresses.end(); it++)
+    {
+        // If address found on book chapter list
+        if (address == it->first) {
+            return true;
+        }
+    }
+    return false;
 }

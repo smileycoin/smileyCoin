@@ -57,9 +57,13 @@ public:
     bool GetTicketList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> &retset) const;
     bool IsTicket(std::string address);
     bool GetUbiList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string>>> &retset) const;
+    bool IsUbi(std::string address);
     bool GetDexList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> &retset) const;
+    bool IsDex(std::string address);
     bool GetBookList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> &retset) const;
-    
+    bool IsChapter(std::string address);
+
+
     bool SetForked(const bool &fFork);
     bool IsForked(){return fForked;}
 

@@ -238,6 +238,9 @@ static const CRPCCommand vRPCCommands[] =
     { "ping",                   &ping,                   true,      false,      false },
 
     /* Block chain and UTXO */
+    { "adddex",                 &adddex,                 false,     false,      false },
+    { "addubi",                 &addubi,                 false,     false,      false },
+    { "addchapter",             &addchapter,             false,     false,      false },
     { "getaddressinfo",         &getaddressinfo,         false,     false,      false },
     { "getrichaddresses",       &getrichaddresses,       false,     false,      false },
     { "createservice",          &createservice,          false,     false,      false },

@@ -128,6 +128,269 @@ Value getrichaddresses(const Array& params, bool fHelp)
     return obj;
 }
 
+Value adddex(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 3)
+        throw runtime_error(
+                "adddex \"servicename\" \"dexaddress\" \"dexdescription\" \n"
+                "\n Add new DEX address to DEX service.\n"
+                + HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1. \"servicename\"  (string, required) The DEX service name associated with the new DEX address.\n"
+                "2. \"dexaddress\"  (string, required) The smileycoin DEX address associated with the DEX service.\n"
+                "3. \"dexdescription\"   (string, required) A short description of the DEX. \n"
+
+                "\nResult:\n"
+                "\"transactionid\"  (string) The transaction id.\n"
+                "\nExamples:\n"
+                + HelpExampleCli("adddex", "SmileyDEX 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd dexdescription")
+                + HelpExampleCli("adddex", "SmileyDEX 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd dexdescription")
+                + HelpExampleRpc("adddex", "SmileyDEX 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd dexdescription")
+        );
+
+    std::string serviceName = params[0].get_str();
+    std::string dexAddress = params[1].get_str();
+    std::string dexDescription = params[2].get_str();
+
+    CBitcoinAddress address(dexAddress);
+    if (!address.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
+    } else if (ServiceItemList.IsDex(dexAddress)) {
+        throw runtime_error("The entered address is already on DEX list. Please use another address.");
+    } else if (dexDescription.length() > 30) {
+        throw runtime_error("Dex description cannot be more than 30 characters long.");
+    }
+
+    // Amount
+    int64_t nValue = 1*COIN;
+    int64_t DEFAULT_AMOUNT = 0;
+
+    vector<pair<CScript, int64_t> > vecSend;
+
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> myServices;
+    ServiceList.GetMyServiceAddresses(myServices);
+
+    std::string dexServiceAddress = "";
+    // Send new ticket transaction to corresponding service address
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
+    {
+        if(serviceName == get<1>(it->second)) {
+            dexServiceAddress = it->first;
+        }
+    }
+
+    if (!ServiceList.IsService(dexServiceAddress)) {
+        throw runtime_error("The entered DEX service name cannot be found on service list.");
+    }
+
+    // Parse Smileycoin address
+    CBitcoinAddress dServiceAddress(dexServiceAddress);
+    CScript scriptPubKey;
+    scriptPubKey.SetDestination(dServiceAddress.Get());
+
+    // Pay 1 SMLY to own DEX service address
+    vecSend.push_back(make_pair(scriptPubKey, nValue));
+
+    vector<string> str;
+    int64_t amount = 0;
+
+    std::string txData = HexStr("ND " + dexAddress + " " + dexDescription, false);
+    str.push_back(txData);
+    vector<unsigned char> data = ParseHexV(str[0], "Data");
+
+    // Create op_return script in the form -> ND dexAddress dexDescription
+    vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
+
+    CWalletTx wtx;
+
+    EnsureWalletIsUnlocked();
+
+    // Send
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
+
+    return wtx.GetHash().GetHex();
+}
+
+Value addubi(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 2)
+        throw runtime_error(
+                "addubi \"servicename\" \"ubiaddress\" \n"
+                "\n Add new UBI recipient to UBI service.\n"
+                + HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1. \"servicename\"  (string, required) The UBI service name associated with the new UBI recipient address.\n"
+                "2. \"ubiaddress\"  (string, required) The smileycoin UBI recipient address associated with the UBI service.\n"
+
+                "\nResult:\n"
+                "\"transactionid\"  (string) The transaction id.\n"
+                "\nExamples:\n"
+                + HelpExampleCli("addubi", "SmileyUBI 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleCli("addubi", "SmileyUBI 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleRpc("addubi", "SmileyUBI 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+        );
+
+    std::string serviceName = params[0].get_str();
+    std::string ubiAddress = params[1].get_str();
+
+    CBitcoinAddress address(ubiAddress);
+    if (!address.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
+    } else if (ServiceItemList.IsUbi(ubiAddress)) {
+        throw runtime_error("The entered address is already on UBI recipient list. Please use another address.");
+    }
+
+    // Amount
+    int64_t nValue = 1*COIN;
+    int64_t DEFAULT_AMOUNT = 0;
+
+    vector<pair<CScript, int64_t> > vecSend;
+
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> myServices;
+    ServiceList.GetMyServiceAddresses(myServices);
+
+    std::string ubiServiceAddress = "";
+    // Send new ticket transaction to corresponding service address
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
+    {
+        if(serviceName == get<1>(it->second)) {
+            ubiServiceAddress = it->first;
+        }
+    }
+
+    if (!ServiceList.IsService(ubiServiceAddress)) {
+        throw runtime_error("The entered UBI service name cannot be found on service list.");
+    }
+
+    // Parse Smileycoin address
+    CBitcoinAddress uServiceAddress(ubiServiceAddress);
+    CScript scriptPubKey;
+    scriptPubKey.SetDestination(uServiceAddress.Get());
+
+    // Pay 1 SMLY to own UBI service address
+    vecSend.push_back(make_pair(scriptPubKey, nValue));
+
+    vector<string> str;
+    int64_t amount = 0;
+
+    std::string txData = HexStr("NU " + ubiAddress, false);
+    str.push_back(txData);
+    vector<unsigned char> data = ParseHexV(str[0], "Data");
+
+    // Create op_return script in the form -> NU ubiAddress
+    vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
+
+    CWalletTx wtx;
+
+    EnsureWalletIsUnlocked();
+
+    // Send
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
+
+    return wtx.GetHash().GetHex();
+}
+
+Value addchapter(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 3)
+        throw runtime_error(
+                "addchapter \"servicename\" \"chapternumber\" \"chapteraddress\" \n"
+                "\n Add new chapter to book chapter service.\n"
+                + HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1. \"servicename\"  (string, required) The book chapter service name associated with the new chapter address.\n"
+                "2. \"chapternumber\"  (string, required) The smileycoin chapter address associated with the book chapter service.\n"
+                "3. \"chapteraddress\"   (string, required) The smileycoin chapter address associated with the book chapter service. \n"
+
+                "\nResult:\n"
+                "\"transactionid\"  (string) The transaction id.\n"
+                "\nExamples:\n"
+                + HelpExampleCli("addchapter", "Dracula 1 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleCli("addchapter", "Dracula 2 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleRpc("addchapter", "Dracula 3 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+        );
+
+    std::string serviceName = params[0].get_str();
+    std::string chapterNum = params[1].get_str();
+    std::string chapterAddress = params[2].get_str();
+
+    CBitcoinAddress address(chapterAddress);
+    if (!address.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
+    } else if (ServiceItemList.IsChapter(chapterAddress)) {
+        throw runtime_error("The entered address is already on chapter list. Please use another address.");
+    }
+
+    // Amount
+    int64_t nValue = 1*COIN;
+    int64_t DEFAULT_AMOUNT = 0;
+
+    vector<pair<CScript, int64_t> > vecSend;
+
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> myServices;
+    ServiceList.GetMyServiceAddresses(myServices);
+
+    std::string bookServiceAddress = "";
+    // Send new chapter transaction to corresponding service address
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
+    {
+        if(serviceName == get<1>(it->second)) {
+            bookServiceAddress = it->first;
+        }
+    }
+
+    if (!ServiceList.IsService(bookServiceAddress)) {
+        throw runtime_error("The entered book chapter service name cannot be found on service list.");
+    }
+
+    // Parse Smileycoin address
+    CBitcoinAddress bServiceAddress(bookServiceAddress);
+    CScript scriptPubKey;
+    scriptPubKey.SetDestination(bServiceAddress.Get());
+
+    // Pay 1 SMLY to own book chapter service address
+    vecSend.push_back(make_pair(scriptPubKey, nValue));
+
+    vector<string> str;
+    int64_t amount = 0;
+
+    std::string txData = HexStr("NB " + chapterNum + " " + chapterAddress, false);
+    str.push_back(txData);
+    vector<unsigned char> data = ParseHexV(str[0], "Data");
+
+    // Create op_return script in the form -> NB chapterNum chapterAddress
+    vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
+
+    CWalletTx wtx;
+    EnsureWalletIsUnlocked();
+
+    // Send
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
+
+    return wtx.GetHash().GetHex();
+}
+
 Value createservice(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 3)
@@ -161,7 +424,7 @@ Value createservice(const Array& params, bool fHelp)
 
     // VANTAR CHECK FYRIR LENGD
 
-    CBitcoinAddress address(params[1].get_str());
+    CBitcoinAddress address(serviceAddress);
     if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
     } else if (ServiceList.IsService(serviceAddress)) {
@@ -242,7 +505,7 @@ Value deleteservice(const Array& params, bool fHelp)
     std::string serviceAddress = params[1].get_str();
     std::string serviceType = params[2].get_str();
 
-    CBitcoinAddress address(params[1].get_str());
+    CBitcoinAddress address(serviceAddress);
     if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
     } else if (!IsMine(*pwalletMain, address.Get())) {
@@ -331,7 +594,7 @@ Value createticket(const Array& params, bool fHelp)
 
     // VANTAR CHECK FYRIR EF ADDRESSA ER NU ÞEGAR SERVICE OG LENGD OG EF TYPE ER 1-6
 
-    CBitcoinAddress address(params[5].get_str());
+    CBitcoinAddress address(ticketAddress);
     if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
     } else if (ServiceItemList.IsTicket(ticketAddress)) {
@@ -347,8 +610,6 @@ Value createticket(const Array& params, bool fHelp)
     } else if (ticketName.length() > 20) {
         throw runtime_error("Ticket name cannot be more than 20 characters long.");
     }
-
-    //is_number(hexToAscii(ticketValue)) && is_date(hexToAscii(ticketDateAndTime)) && is_before(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 && ticketName.length() <= 40
 
     // Amount
     int64_t nValue = 1*COIN;
