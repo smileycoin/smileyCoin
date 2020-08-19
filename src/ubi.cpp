@@ -1,17 +1,13 @@
 #include "ubi.h"
 
 #include <algorithm>
-#include <deque>
-#include <iostream>
-#include <thread>
-#include <utility>
 #include <vector>
 
 #include <boost/filesystem.hpp>
-#include <boost/version.hpp>
 
 using namespace std;
 
+// guards nCurrentHeigth, vBatch and vRecipients
 CCriticalSection cs_ubi;
 
 // the height of vBatch, if the external blockheight changes then vBatch 
@@ -42,7 +38,6 @@ static boost::once_flag ubiInitFlag = BOOST_ONCE_INIT;
 
 namespace UBI
 {
-
 // read ~/.smileycoin/ubi_addresses and put them into vRecipients
 // it's alright if there is no file, then it behaves like -ubi=0
 static void InitCirculation()
@@ -75,11 +70,13 @@ vector<CScript> NextBatch(const unsigned int nHeight)
     boost::call_once(&InitCirculation, ubiInitFlag);
 
     LOCK(cs_ubi);
-    // probably called by a sister thread, no need to compute everything
-    // all over again for the same heigth
+    // multiple miners run at the same time on the same block so we only need to compute
+    // the vBatch once for each height, if the height is the same then return the same
+    // batch
     if (nHeight == nCurrentHeight)
         return vBatch;
 
+    // update our current height and compute the new vBatch
     nCurrentHeight = nHeight;
 
     // choose the recipients with the lowest lastpaid values.
@@ -91,11 +88,13 @@ vector<CScript> NextBatch(const unsigned int nHeight)
         // using our operator< get the iterator of the recipient in batch that
         // has been paid most recently
         auto it = min_element(vRecipients.begin(), vRecipients.end());
-        it->lastpaid = nHeight;
 
         CScript s;
         s.SetDestination(it->address.Get());
         vBatch[i] = s;
+
+        // mark it as paid
+        it->lastpaid = nHeight;
     }
 
     return vBatch;
@@ -108,7 +107,7 @@ int64_t GetUBIDividends(const int64_t nFees)
     if (vRecipients.empty())
         return 0;
 
-    return (int64_t)(0.9 * nFees) / (int64_t)min(nBatchSize, vRecipients.size());
+    return (int64_t)(9 * nFees / 10) / (int64_t)min(nBatchSize, vRecipients.size());
 }
 
 } // namespace UBI
