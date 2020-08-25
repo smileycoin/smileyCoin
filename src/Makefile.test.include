@@ -59,16 +59,16 @@ BITCOIN_TESTS += \
   test/rpc_wallet_tests.cpp
 endif
 
-test_test_bitcoin_SOURCES = $(BITCOIN_TESTS) $(JSON_TEST_FILES) $(RAW_TEST_FILES)
-test_test_bitcoin_CPPFLAGS = $(BITCOIN_INCLUDES) -I$(builddir)/test/ $(TESTDEFS)
-test_test_bitcoin_LDADD = $(LIBBITCOIN_SERVER) $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBLEVELDB) $(LIBMEMENV) \
+test_test_smileycoin_SOURCES = $(BITCOIN_TESTS) $(JSON_TEST_FILES) $(RAW_TEST_FILES)
+test_test_smileycoin_CPPFLAGS = $(BITCOIN_INCLUDES) -I$(builddir)/test/ $(TESTDEFS)
+test_test_smileycoin_LDADD = $(LIBBITCOIN_SERVER) $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBLEVELDB) $(LIBMEMENV) \
   $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB)
 if ENABLE_WALLET
-test_test_bitcoin_LDADD += $(LIBBITCOIN_WALLET)
+test_test_smileycoin_LDADD += $(LIBBITCOIN_WALLET)
 endif
-test_test_bitcoin_LDADD += $(BDB_LIBS)
+test_test_smileycoin_LDADD += $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS)
 
-nodist_test_test_bitcoin_SOURCES = $(GENERATED_TEST_FILES)
+nodist_test_test_smileycoin_SOURCES = $(GENERATED_TEST_FILES)
 
 $(BITCOIN_TESTS): $(GENERATED_TEST_FILES)
 
@@ -82,7 +82,7 @@ bitcoin_test_check: $(TEST_BINARY) FORCE
 	$(MAKE) check-TESTS TESTS=$^
 
 bitcoin_test_clean : FORCE
-	rm -f $(CLEAN_BITCOIN_TEST) $(test_test_bitcoin_OBJECTS) $(TEST_BINARY)
+	rm -f $(CLEAN_BITCOIN_TEST) $(test_test_smileycoin_OBJECTS) $(TEST_BINARY)
   
 %.json.h: %.json
 	@$(MKDIR_P) $(@D)

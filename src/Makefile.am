@@ -1,7 +1,4 @@
-AM_CPPFLAGS = $(INCLUDES)
 AM_LDFLAGS = $(PTHREAD_CFLAGS)
-
-AM_CPPFLAGS += -I$(builddir) -msse2
 
 if EMBEDDED_LEVELDB
 LEVELDB_CPPFLAGS += -I$(top_srcdir)/src/leveldb/include
@@ -18,7 +15,7 @@ $(LIBLEVELDB) $(LIBMEMENV):
 			OPT="$(CXXFLAGS) $(CPPFLAGS)"
 endif
 
-BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS)
+BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) $(CRYPTO_CFLAGS) $(SSL_FLAGS) -msse2
 
 noinst_LIBRARIES = \
   libbitcoin_server.a \
@@ -220,14 +217,17 @@ if TARGET_WINDOWS
 smileycoind_SOURCES += bitcoind-res.rc
 endif
 
-smileycoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS)
+smileycoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS)
 smileycoind_CPPFLAGS = $(BITCOIN_INCLUDES)
 
 # bitcoin-cli binary #
 smileycoin_cli_LDADD = \
   libbitcoin_cli.a \
   libbitcoin_common.a \
-  $(BOOST_LIBS)
+  $(BOOST_LIBS) \
+  $(SSL_LIBS) \
+  $(CRYPTO_LIBS)
+
 smileycoin_cli_SOURCES = bitcoin-cli.cpp
 smileycoin_cli_CPPFLAGS = $(BITCOIN_INCLUDES)
 #
