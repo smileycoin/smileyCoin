@@ -1,31 +1,17 @@
 AM_LDFLAGS = $(PTHREAD_CFLAGS) $(HARDENED_LDFLAGS)
 AM_CXXFLAGS = $(HARDENED_CXXFLAGS)
 AM_CPPFLAGS = $(HARDENED_CPPFLAGS)
-
-if EMBEDDED_LEVELDB
-LEVELDB_CPPFLAGS += -I$(top_srcdir)/src/leveldb/include
-LEVELDB_CPPFLAGS += -I$(top_srcdir)/src/leveldb/helpers/memenv
-LIBLEVELDB += $(top_builddir)/src/leveldb/libleveldb.a
-LIBMEMENV  += $(top_builddir)/src/leveldb/libmemenv.a
-
-# NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
-$(LIBLEVELDB): $(LIBMEMENV)
-
-$(LIBLEVELDB) $(LIBMEMENV):
-	@echo "Building LevelDB ..." && $(MAKE) -C $(@D) $(@F) CXX="$(CXX)" \
-		CC="$(CC)" PLATFORM=$(TARGET_OS) AR="$(AR)" $(LEVELDB_TARGET_FLAGS) \
-			OPT="$(AM_CXXFLAGS) $(PIE_FLAGS) $(CXXFLAGS) $(AM_CPPFLAGS) $(CPPFLAGS)"
-endif
+EXTRA_LIBRARIES =
 
 BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) $(CRYPTO_CFLAGS) $(SSL_FLAGS) -msse2
 
-noinst_LIBRARIES = \
+EXTRA_LIBRARIES += \
+	libbitcoin_common.a \
   libbitcoin_server.a \
-  libbitcoin_common.a \
   libbitcoin_cli.a
 if ENABLE_WALLET
 BITCOIN_INCLUDES += $(BDB_CPPFLAGS)
-noinst_LIBRARIES += libbitcoin_wallet.a
+EXTRA_LIBRARIES += libbitcoin_wallet.a
 endif
 
 bin_PROGRAMS =
@@ -259,10 +245,6 @@ clean-local:
 	@test -f $(WINDRES) && $(WINDRES) -i $< -o $@ || \
 		echo error: could not build $@
 
-.mm.o:
-	$(OBJC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-		$(CPPFLAGS) $(AM_CXXFLAGS) $(QT_INCLUDES) $(AM_CXXFLAGS) $(PIE_FLAGS) $(CXXFLAGS) -c -o $@ $<
-
 %.pb.cc %.pb.h: %.proto
 	test -f $(PROTOC) && $(PROTOC) --cpp_out=$(@D) --proto_path=$(abspath $(<D) $<)  || \
 		echo error: could not build $@
@@ -272,6 +254,10 @@ LIBBITCOIN_WALLET=libbitcoin_wallet.a
 LIBBITCOIN_COMMON=libbitcoin_common.a
 LIBBITCOIN_CLI=libbitcoin_cli.a
 LIBBITCOINQT=qt/libbitcoinqt.a
+
+if EMBEDDED_LEVELDB
+include Makefile.leveldb.include
+endif
 
 if ENABLE_TESTS
 include Makefile.test.include
