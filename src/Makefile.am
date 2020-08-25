@@ -232,15 +232,28 @@ smileycoin_cli_SOURCES += bitcoin-cli-res.rc
 endif
 
 
-CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
+CLEANFILES = $(EXTRA_LIBRARIES)
+CLEANFILES += *.gcda *.gcno
+CLEANFILES += compat/*.gcda compat/*.gcno
+CLEANFILES += consensus/*.gcda consensus/*.gcno
+CLEANFILES += crypto/*.gcda crypto/*.gcno
+CLEANFILES += policy/*.gcda policy/*.gcno
+CLEANFILES += primitives/*.gcda primitives/*.gcno
+CLEANFILES += script/*.gcda script/*.gcno
+CLEANFILES += support/*.gcda support/*.gcno
+CLEANFILES += univalue/*.gcda univalue/*.gcno
+CLEANFILES += wallet/*.gcda wallet/*.gcno
+CLEANFILES += wallet/test/*.gcda wallet/test/*.gcno
+CLEANFILES += zmq/*.gcda zmq/*.gcno
 
 DISTCLEANFILES = obj/build.h
 
-EXTRA_DIST = leveldb
+EXTRA_DIST = 
 
 clean-local:
-	-$(MAKE) -C leveldb clean
-	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno
+	-rm -f leveldb/*/*.gcda leveldb/*/*.gcno leveldb/helpers/memenv/*.gcda leveldb/helpers/memenv/*.gcno
+	-rm -f config.h
+
 .rc.o:
 	@test -f $(WINDRES) && $(WINDRES) -i $< -o $@ || \
 		echo error: could not build $@
