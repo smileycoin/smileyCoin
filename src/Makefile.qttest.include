@@ -12,8 +12,9 @@ TEST_QT_H = \
   qt/test/paymentrequestdata.h \
   qt/test/paymentservertests.h
 
-qt_test_test_smileycoin_qt_CPPFLAGS = $(BITCOIN_INCLUDES) $(BITCOIN_QT_INCLUDES) \
+qt_test_test_smileycoin_qt_CPPFLAGS = $(AM_CPPFLAGS)$(BITCOIN_INCLUDES) $(BITCOIN_QT_INCLUDES) \
   $(QT_INCLUDES) $(QT_TEST_INCLUDES)
+qt_test_test_smileycoin_qt_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 qt_test_test_smileycoin_qt_SOURCES = \
   qt/test/test_main.cpp \
