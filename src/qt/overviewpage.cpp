@@ -16,6 +16,7 @@
 
 #include <QAbstractItemDelegate>
 #include <QPainter>
+#include <QPainterPath>
 
 #define DECORATION_SIZE 64
 #define NUM_ITEMS 3
