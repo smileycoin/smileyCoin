@@ -58,8 +58,6 @@ ServicePage::ServicePage(QWidget *parent) :
 
     connect(ui->newService, SIGNAL(clicked()), this, SLOT(onNewServiceAction()));
     connect(ui->deleteService, SIGNAL(clicked()), this, SLOT(onDeleteServiceAction()));
-    //connect(ui->viewAllServices, SIGNAL(toggled(bool)), this, SLOT(onViewAllServices()));
-    //connect(ui->viewMyServices, SIGNAL(toggled(bool)), this, SLOT(onViewMyServices()));
 }
 
 ServicePage::~ServicePage()
@@ -79,7 +77,6 @@ void ServicePage::setServiceModel(ServiceTableModel *serviceModel) {
 
     ui->tableView->setModel(proxyModel);
     ui->tableView->sortByColumn(0, Qt::AscendingOrder);
-    //ui->tableView->verticalHeader()->setDefaultSectionSize(50);
 
     // Set column widths
 #if QT_VERSION < 0x050000
@@ -174,6 +171,8 @@ void ServicePage::onDeleteServiceAction() {
             serviceType = "5";
         } else if (rawServiceType == "DEX") {
             serviceType = "6";
+        } else if (rawServiceType == "Survey") {
+            serviceType = "7";
         }
 
         SendCoinsRecipient issuer;

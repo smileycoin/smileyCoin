@@ -408,7 +408,8 @@ Value createservice(const Array& params, bool fHelp)
                 "3 = Book Chapter \n"
                 "4 = Traceability \n"
                 "5 = Nonprofit Organization \n"
-                "6 = DEX \n \n"
+                "6 = DEX \n"
+                "7 = Survey \n \n"
 
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
@@ -491,7 +492,8 @@ Value deleteservice(const Array& params, bool fHelp)
                 "3 = Book Chapter \n"
                 "4 = Traceability \n"
                 "5 = Nonprofit Organization \n"
-                "6 = DEX \n \n"
+                "6 = DEX \n"
+                "7 = Survey \n \n"
 
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
@@ -680,6 +682,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     Array bservices; /* BookChapter */
     Array nservices; /* NPO */
     Array dservices; /* DEX */
+    Array sservices; /* Survey */
     Object name_address;
 
     std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
@@ -706,6 +709,10 @@ Value getserviceaddresses(const Array& params, bool fHelp)
             name_address.push_back(Pair("name", get<1>(s->second)));
             name_address.push_back(Pair("address", s->first));
             dservices.push_back(name_address);
+        } else if (get<2>(s->second) == "Survey") { // "7"
+            name_address.push_back(Pair("name", get<1>(s->second)));
+            name_address.push_back(Pair("address", s->first));
+            sservices.push_back(name_address);
         }
     }
 
@@ -713,6 +720,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     root.push_back(Pair("Book Chapter", bservices));
     root.push_back(Pair("Nonprofit Organization", nservices));
     root.push_back(Pair("DEX", dservices));
+    root.push_back(Pair("Survey", sservices));
 
     return root;
 }

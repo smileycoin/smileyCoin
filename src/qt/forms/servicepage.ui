@@ -63,10 +63,6 @@
                             <property name="text">
                                 <string>&amp;New Service</string>
                             </property>
-                            <property name="icon">
-                                <iconset resource="../bitcoin.qrc">
-                                    <normaloff>:/icons/add</normaloff>:/icons/add</iconset>
-                            </property>
                         </widget>
                     </item>
                     <item>
@@ -83,10 +79,6 @@
                             </property>
                             <property name="text">
                                 <string>&amp;Delete</string>
-                            </property>
-                            <property name="icon">
-                                <iconset resource="../bitcoin.qrc">
-                                    <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
                             </property>
                         </widget>
                     </item>

@@ -27,6 +27,8 @@
 #include <wallet.h>
 #include <QSortFilterProxyModel>
 #include <QIcon>
+#include <QPainter>
+#include <QStylePainter>
 
 TicketPage::TicketPage(QWidget *parent) :
         QDialog(parent),
@@ -55,10 +57,6 @@ TicketPage::TicketPage(QWidget *parent) :
         ui->newTicket->show();
         ui->deleteTicket->show();
     }
-
-    //ui->serviceLabel->setFixedWidth(100);
-    //ui->ticketService->setFixedWidth(150);
-    //ui->horizontalLayout->setSizeConstraint(QLayout::SetMinimumSize);
     ui->serviceLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
 
     // Connect signals for context menu actions
@@ -82,10 +80,9 @@ void TicketPage::setTicketModel(TicketTableModel *ticketModel) {
     proxyModel->setDynamicSortFilter(true);
     proxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
     proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
-
     ui->tableView->setModel(proxyModel);
+
     ui->tableView->sortByColumn(0, Qt::AscendingOrder);
-    //ui->tableView->verticalHeader()->setDefaultSectionSize(50);
 
     // Set column widths
 #if QT_VERSION < 0x050000
@@ -93,7 +90,6 @@ void TicketPage::setTicketModel(TicketTableModel *ticketModel) {
     ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Location, QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::DateTime, QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Price, QHeaderView::ResizeToContents);
-    ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Address, QHeaderView::Stretch);
     ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Service, QHeaderView::ResizeToContents);
 #else
     ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Name, QHeaderView::ResizeToContents);
@@ -106,6 +102,7 @@ void TicketPage::setTicketModel(TicketTableModel *ticketModel) {
 
     // Select row for newly created address
     connect(ticketModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(selectNewAddress(QModelIndex,int,int)));
+    //connect(buyButton, SIGNAL(clicked()), this, SLOT(onBuyClicked()));
 }
 
 void TicketPage::setWalletModel(WalletModel *walletModel) {
@@ -224,6 +221,82 @@ void TicketPage::onDeleteTicketAction() {
 
         QMessageBox::StandardButton confirmDelete = QMessageBox::question(this, tr("Confirm Ticket Deletion"),
                 deleteString, QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+
+        if (confirmDelete == QMessageBox::Yes) {
+            // now send the prepared transaction
+            WalletModel::SendCoinsReturn sendStatus = walletModel->sendCoins(currentTransaction);
+            processSendCoinsReturn(sendStatus);
+
+            if (sendStatus.status == WalletModel::OK) {
+                QDialog::accept();
+                CoinControlDialog::coinControl->UnSelectAll();
+            } else {
+                QDialog::reject();
+            }
+        }
+    }
+}
+
+void TicketPage::onBuyTicketAction() {
+    if(!walletModel)
+        return;
+
+    if(!ui->tableView->selectionModel())
+        return;
+
+    QModelIndexList selection = ui->tableView->selectionModel()->selectedRows();
+    if(!selection.isEmpty())
+    {
+        QModelIndex idx = selection.at(0);
+        int row = idx.row();
+
+        QString ticketName = idx.sibling(row, 0).data().toString();
+        QString ticketLoc = idx.sibling(row, 1).data().toString();
+        QString ticketDateTime = idx.sibling(row, 2).data().toString();
+        QString ticketValue = idx.sibling(row, 3).data().toString();
+        QString ticketAddress = idx.sibling(row, 4).data().toString();
+        QString ticketService = idx.sibling(row, 5).data().toString();
+
+        CBitcoinAddress tAddress = CBitcoinAddress(ticketAddress.toStdString());
+
+        SendCoinsRecipient issuer;
+        // Send delete service transaction to own ticket address
+        issuer.address = ticketAddress;
+        // Pay ticket amount to ticket address
+        issuer.amount = ticketValue.toInt()*COIN;
+
+        // Create op_return in the following form OP_RETURN = "BT ticketLocation ticketName ticketDateTime ticketValue ticketAddress"
+        issuer.data = QString::fromStdString("425420") +
+                      ticketLoc.toLatin1().toHex() + QString::fromStdString("20") +
+                      ticketName.toLatin1().toHex() + QString::fromStdString("20") +
+                      ticketDateTime.toLatin1().toHex() + QString::fromStdString("20") +
+                      ticketValue.toLatin1().toHex() + QString::fromStdString("20") +
+                      ticketAddress.toLatin1().toHex();
+
+        QList <SendCoinsRecipient> recipients;
+        recipients.append(issuer);
+
+        WalletModelTransaction currentTransaction(recipients);
+        WalletModel::SendCoinsReturn prepareStatus;
+        if (walletModel->getOptionsModel()->getCoinControlFeatures()) // coin control enabled
+            prepareStatus = walletModel->prepareTransaction(currentTransaction, CoinControlDialog::coinControl);
+        else
+            prepareStatus = walletModel->prepareTransaction(currentTransaction);
+
+        // process prepareStatus and on error generate message shown to user
+        processSendCoinsReturn(prepareStatus,
+                BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(),
+                        currentTransaction.getTransactionFee()));
+
+        QString buyString = tr("Are you sure you want to buy \"%1\"?").arg(ticketName);
+        buyString.append("<br /><br />");
+
+        buyString.append("<span style='font-weight:normal;'>");
+        buyString.append("This ticket will be deleted when the transaction has been confirmed. You can't undo this action.");
+        buyString.append("</span> ");
+
+        QMessageBox::StandardButton confirmDelete = QMessageBox::question(this, tr("Confirm Ticket Purchase"),
+                buyString, QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
 
         if (confirmDelete == QMessageBox::Yes) {
             // now send the prepared transaction

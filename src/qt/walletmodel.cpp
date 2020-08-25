@@ -282,7 +282,10 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
             if(isRegex(txData)) {
                 str.push_back(txData);
             }
-            
+
+            //            std::string encrypted = encryptmessage(rcp.address, txData);
+            //            str.push_back(encrypted);
+
             str.push_back(txData);
             vector<unsigned char> data = ParseHexV(str[0], "Data");
 

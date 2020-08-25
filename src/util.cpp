@@ -137,6 +137,7 @@ public:
         for (int i = 0; i < CRYPTO_num_locks(); i++)
             delete ppmutexOpenSSL[i];
         OPENSSL_free(ppmutexOpenSSL);
+        RAND_cleanup();
     }
 }
 instance_of_cinit;

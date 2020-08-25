@@ -46,6 +46,7 @@ BITCOIN_CORE_H = \
   serviceitemlistdb.h \
   hash.h \
   init.h \
+  jeeq.h \
   key.h \
   keystore.h \
   leveldbwrapper.h \
@@ -141,6 +142,7 @@ libbitcoin_wallet_a_SOURCES = \
   rpcwallet.cpp \
   wallet.cpp \
   walletdb.cpp \
+  jeeq.cpp \
   $(BITCOIN_CORE_H)
 
 libbitcoin_common_a_SOURCES = \

@@ -22,7 +22,6 @@
 #include <QVBoxLayout>
 #include <QDateTimeEdit>
 #include <QDateTime>
-#include <QTabWidget>
 #include <QTableView>
 #include <QScrollBar>
 #include <QTableWidget>
@@ -33,6 +32,7 @@
 #include <QMessageBox>
 #include <QTextTableFormat>
 #include <QRadioButton>
+#include <QStyledItemDelegate>
 
 
 class WalletModel;
@@ -78,6 +78,7 @@ private:
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> allServices;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> myServices;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string>>> myTickets;
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> tickets;
     QSortFilterProxyModel *proxyModel;
     QVBoxLayout *verticalLayout;
     QLineEdit *addressWidget;
@@ -87,6 +88,7 @@ private:
 private slots:
     void onNewTicketAction();
     void onDeleteTicketAction();
+    void onBuyTicketAction();
 
 signals:
     void doubleClicked(const QModelIndex&);

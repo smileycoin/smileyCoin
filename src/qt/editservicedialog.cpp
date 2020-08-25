@@ -46,6 +46,7 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             ui->serviceType->addItem("Traceability");
             ui->serviceType->addItem("Nonprofit Organization");
             ui->serviceType->addItem("DEX");
+            ui->serviceType->addItem("Survey");
 
             ui->serviceName->setMaxLength(25);
             ui->sCounterName->setText("25 characters left");
@@ -155,6 +156,8 @@ void EditServiceDialog::accept()
                  serviceType = "35";
              } else if (rawServiceType == "DEX") {
                  serviceType = "36";
+             } else if (rawServiceType == "Survey") {
+                 serviceType = "37";
              }
 
              std::vector<std::string> nameStr = splitString(rawServiceName.toStdString(), "20");

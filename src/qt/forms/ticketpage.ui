@@ -84,9 +84,22 @@
                             <property name="text">
                                 <string>&amp;New Ticket</string>
                             </property>
-                            <property name="icon">
-                                <iconset resource="../bitcoin.qrc">
-                                    <normaloff>:/icons/add</normaloff>:/icons/add</iconset>
+                        </widget>
+                    </item>
+                    <item>
+                        <widget class="QPushButton" name="buyTicket">
+                            <property name="font">
+                                <font>
+                                    <family>Helvetica</family>
+                                    <weight>50</weight>
+                                    <bold>false</bold>
+                                </font>
+                            </property>
+                            <property name="toolTip">
+                                <string>Buy the currently selected ticket</string>
+                            </property>
+                            <property name="text">
+                                <string>&amp;Buy</string>
                             </property>
                         </widget>
                     </item>
@@ -104,10 +117,6 @@
                             </property>
                             <property name="text">
                                 <string>&amp;Delete</string>
-                            </property>
-                            <property name="icon">
-                                <iconset resource="../bitcoin.qrc">
-                                    <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
                             </property>
                         </widget>
                     </item>

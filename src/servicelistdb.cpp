@@ -30,9 +30,6 @@ bool CServiceList::SetForked(const bool &fFork)
 
 bool CServiceList::UpdateServiceInfo(const std::map<std::string, std::tuple<std::string, std::string, std::string> > &map)
 {
-    /*std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > taddresses;
-    ServiceItemList.GetTicketList(taddresses);*/
-
     for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
         if (get<0>(it->second) == "DS") { // If op_return begins with DS (delete service)
@@ -40,14 +37,6 @@ bool CServiceList::UpdateServiceInfo(const std::map<std::string, std::tuple<std:
             // If key is found in service list
             if (itService != saddresses.end()) {
                 saddresses.erase(itService);
-
-                // Erase tickets associated with service address
-                /*ServiceList.GetTickets(it->first, taddresses);
-                for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator t = taddresses.begin(); t!=taddresses.end(); t++ )
-                {
-                    mapServiceTicketList::iterator itTicket = taddresses.find(t->first);
-                    taddresses.erase(itTicket);
-                }*/
             }
         } else if (get<0>(it->second) == "NS") { // If op_return begins with NS (new service)
             saddresses.insert(*it);
@@ -72,9 +61,6 @@ bool CServiceList::UpdateServiceAddressHeights()
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceInfo;
     mapServiceList mforkedAddresses;
 
-    /*std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > taddresses;
-    ServiceItemList.GetTicketList(taddresses);*/
-
     for(mapServiceList::const_iterator it = saddresses.begin(); it!=saddresses.end(); it++)
     {
         if (get<0>(it->second) == "DS") { // If op_return begins with DS
@@ -82,14 +68,6 @@ bool CServiceList::UpdateServiceAddressHeights()
             // If key is found in service list
             if (itService != saddresses.end()) {
                 saddresses.erase(itService);
-
-                // Erase tickets associated with service address
-                /*ServiceList.GetTickets(it->first, taddresses);
-                for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator t = taddresses.begin(); t!=taddresses.end(); t++ )
-                {
-                    mapServiceTicketList::iterator itTicket = taddresses.find(t->first);
-                    taddresses.erase(itTicket);
-                }*/
             }
         } else if (get<0>(it->second) == "NS") { // If op_return begins with NS
             saddresses.insert(*it);
@@ -128,6 +106,8 @@ bool CServiceList::GetServiceAddresses(std::multiset<std::pair<std::string, std:
             displayType = "Nonprofit Organization";
         } else if (get<2>(it->second) == "6") {
             displayType = "DEX";
+        } else if (get<2>(it->second) == "7") {
+            displayType = "Survey";
         } else {
             displayType = get<2>(it->second);
         }
@@ -153,6 +133,8 @@ bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<std::string, st
                 displayType = "Nonprofit Organization";
             } else if (get<2>(it->second) == "6") {
                 displayType = "DEX";
+            } else if (get<2>(it->second) == "7") {
+                displayType = "Survey";
             } else {
                 displayType = get<2>(it->second);
             }
