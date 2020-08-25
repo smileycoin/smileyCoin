@@ -3,8 +3,8 @@ AM_CPPFLAGS += -I$(top_srcdir)/src \
   -I$(top_builddir)/src/qt \
   $(PROTOBUF_CFLAGS) \
     $(QR_CFLAGS)
-bin_PROGRAMS += qt/test/test_bitcoin-qt
-TESTS += qt/test/test_bitcoin-qt
+bin_PROGRAMS += qt/test/test_smileycoin-qt
+TESTS += qt/test/test_smileycoin-qt
 
 TEST_QT_MOC_CPP = qt/test/moc_uritests.cpp
 
