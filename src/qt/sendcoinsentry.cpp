@@ -29,10 +29,8 @@ SendCoinsEntry::SendCoinsEntry(QWidget *parent) :
 #ifdef Q_OS_MAC
     ui->payToLayout->setSpacing(4);
 #endif
-#if QT_VERSION >= 0x040700
     ui->addAsLabel->setPlaceholderText(tr("Enter a label for this address to add it to your address book"));
     ui->addAsData->setPlaceholderText(tr("Enter a message to send with your transfer"));
-#endif
 
     // normal bitcoin address field
     GUIUtil::setupAddressWidget(ui->payTo, this);

@@ -47,14 +47,8 @@
 #include <QStyle>
 #include <QTimer>
 #include <QToolBar>
-#include <QVBoxLayout>
-
-#if QT_VERSION < 0x050000
-#include <QUrl>
-#include <QTextDocument>
-#else
 #include <QUrlQuery>
-#endif
+#include <QVBoxLayout>
 
 const QString BitcoinGUI::DEFAULT_WALLET = "~Default";
 
@@ -137,12 +131,6 @@ BitcoinGUI::BitcoinGUI(bool fIsTestnet, QWidget *parent) :
     }
     setWindowTitle(windowTitle);
 
-#if defined(Q_OS_MAC) && QT_VERSION < 0x050000
-    // This property is not implemented in Qt 5. Setting it has no effect.
-    // A replacement API (QtMacUnifiedToolBar) is available in QtMacExtras.
-    setUnifiedTitleAndToolBarOnMac(true);
-#endif
-
     rpcConsole = new RPCConsole(enableWallet ? this : 0);
 #ifdef ENABLE_WALLET
     if(enableWallet)
@@ -205,7 +193,7 @@ BitcoinGUI::BitcoinGUI(bool fIsTestnet, QWidget *parent) :
 
     // Override style sheet for progress bar for styles that have a segmented progress bar,
     // as they make the text unreadable (workaround for issue #1071)
-    // See https://qt-project.org/doc/qt-4.8/gallery.html
+    // See https://doc.qt.io/doc/qt-5/gallery.html
     QString curStyle = QApplication::style()->metaObject()->className();
     if(curStyle == "QWindowsStyle" || curStyle == "QWindowsXPStyle")
     {
