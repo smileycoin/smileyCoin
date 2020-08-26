@@ -6,8 +6,8 @@ EXTRA_LIBRARIES =
 BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) $(CRYPTO_CFLAGS) $(SSL_FLAGS) -msse2
 
 EXTRA_LIBRARIES += \
-  libbitcoin_common.a \
   libbitcoin_server.a \
+  libbitcoin_common.a \
   libbitcoin_cli.a
 if ENABLE_WALLET
 BITCOIN_INCLUDES += $(BDB_CPPFLAGS)
