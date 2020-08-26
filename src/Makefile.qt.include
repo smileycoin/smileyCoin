@@ -305,7 +305,7 @@ qt_smileycoin_qt_LDADD += $(LIBBITCOIN_WALLET)
 endif
 qt_smileycoin_qt_LDADD += $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBLEVELDB) $(LIBMEMENV) \
   $(BOOST_LIBS) $(QT_LIBS) $(QT_DBUS_LIBS) $(QR_LIBS) $(PROTOBUF_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS)
-qt_smileycoin_qt_LDFLAGS = $(QT_LDFLAGS)
+qt_smileycoin_qt_LDFLAGS = $(AM_LDFLAGS) $(QT_LDFLAGS)
 
 #locale/foo.ts -> locale/foo.qm
 QT_QM=$(QT_TS:.ts=.qm)
