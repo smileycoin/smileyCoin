@@ -103,9 +103,9 @@ JSON_H = \
   json/json_spirit_writer_template.h
 
 obj/build.h: FORCE
-	@$(MKDIR_P) $(abs_top_builddir)/src/obj
-	@$(top_srcdir)/misc/share/genbuild.sh $(abs_top_builddir)/src/obj/build.h \
-	  $(abs_top_srcdir)
+	@$(MKDIR_P) $(builddir)/src/obj
+	@$(top_srcdir)/misc/share/genbuild.sh "$(abs_top_builddir)/src/obj/build.h" \
+	  "$(abs_top_srcdir)"
 version.o: obj/build.h
 
 libbitcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS)
