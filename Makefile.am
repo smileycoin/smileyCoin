@@ -11,9 +11,9 @@ desktop_DATA = debian/smileycoin-qt.desktop
 appicondir=$(datadir)/icons/hicolor/scalable/apps
 appicon_DATA = media/svg/smileycoin.svg
 
-BITCOIND_BIN=$(top_builddir)/src/smileycoind$(EXEEXT)
-BITCOIN_QT_BIN=$(top_builddir)/src/qt/smileycoin-qt$(EXEEXT)
-BITCOIN_CLI_BIN=$(top_builddir)/src/smileycoin-cli$(EXEEXT)
+BITCOIND_BIN=$(top_builddir)/src/$(BITCOIN_DAEMON_NAME)$(EXEEXT)
+BITCOIN_QT_BIN=$(top_builddir)/src/qt/$(BITCOIN_GUI_NAME)$(EXEEXT)
+BITCOIN_CLI_BIN=$(top_builddir)/src/$(BITCOIN_CLI_NAME)$(EXEEXT)
 BITCOIN_WIN_INSTALLER=$(PACKAGE)-$(PACKAGE_VERSION)-win$(WINDOWS_BITS)-setup$(EXEEXT)
 
 OSX_APP=Smileycoin-Qt.app
