@@ -21,6 +21,8 @@
 #include "wallet.h"
 #include "walletdb.h" // for BackupWallet
 #include "regex.h"
+#include "../jeeq.h"
+#include "init.cpp"
 
 #include <stdint.h>
 
@@ -191,7 +193,6 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
     QList<SendCoinsRecipient> recipients = transaction.getRecipients();
     std::vector<std::pair<CScript, int64_t> > vecSend;
     int64_t DEFAULT_AMOUNT = 0;
-    std::string txData = "";
 
     if(recipients.empty())
     {
@@ -239,8 +240,57 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
             CScript scriptPubKey;
             scriptPubKey.SetDestination(CBitcoinAddress(rcp.address.toStdString()).Get());
 
-            if (rcp.data.length() > 0) {
-                txData = rcp.data.toStdString();
+            if(rcp.data.length() > 0) {
+                vector<string> str;
+                int64_t amount = 0;
+                if(isRegex(rcp.data.toStdString())) {
+                    str.push_back(rcp.data.toStdString());
+                } else {
+                    CBitcoinAddress addr(rcp.address.toStdString());
+                    if (!addr.IsValid()) {
+                        LogPrintStr("Invalid address");
+                        //throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
+                    }
+                    if (addr.IsScript()) {
+                        LogPrintStr("Address must be a P2PKH address");
+                        //throw JSONRPCError(RPC_TYPE_ERROR, "Address must be a P2PKH address");
+                    }
+
+                    CKeyID keyID;
+                    if (!addr.GetKeyID(keyID)) {
+                        LogPrintStr("Address does not refer to key");
+                        //throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
+                    }
+                    CKey key;
+                    CPubKey pubkey;
+                    // if the key is in our wallet, we use it, else we search the blockchain
+                    if (pwalletMain->GetKey(keyID, key))
+                    {
+                        pubkey = key.GetPubKey();
+                    }
+                    else
+                    {
+                        pubkey = Jeeq::SearchForPubKey(addr);
+                        if (!pubkey.IsValid()) {
+                            LogPrintStr("The address has not been spent on the blockchain so its public key is unavailable");
+                            //throw JSONRPCError(RPC_TYPE_ERROR, "The address has not been spent on the blockchain so its public key is unavailable");
+                        }
+                    }
+                    vector<uint8_t> vchEnc;
+                    vchEnc = Jeeq::EncryptMessage(pubkey, rcp.data.toStdString());
+                    if (vchEnc.empty()) {
+                        LogPrintStr("Could not encrypt message");
+                        //throw JSONRPCError(RPC_MISC_ERROR, "Could not encrypt message");
+                    }
+                    std::string encrypted = EncodeBase64(&vchEnc[0], vchEnc.size());
+
+                    QString asciiEncoded = QString::fromStdString(encrypted);
+                    QString hexEncoded = asciiEncoded.toLatin1().toHex();
+
+                    str.push_back(hexEncoded.toStdString());
+                }
+                vector<unsigned char> data = ParseHexV(str[0], "Data");
+                vecSend.push_back(std::pair<CScript, int64_t>(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
             }
 
             vecSend.push_back(std::pair<CScript, int64_t>(scriptPubKey, rcp.amount));
@@ -275,22 +325,6 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
 
         CWalletTx *newTx = transaction.getTransaction();
         CReserveKey *keyChange = transaction.getPossibleKeyChange();
-
-        if(txData.length() > 0) {
-            vector<string> str;
-            int64_t amount = 0;
-            if(isRegex(txData)) {
-                str.push_back(txData);
-            }
-
-            //            std::string encrypted = encryptmessage(rcp.address, txData);
-            //            str.push_back(encrypted);
-
-            str.push_back(txData);
-            vector<unsigned char> data = ParseHexV(str[0], "Data");
-
-            vecSend.push_back(std::pair<CScript, int64_t>(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
-        }
 
         bool fCreated = wallet->CreateTransaction(vecSend, *newTx, *keyChange, nFeeRequired, strFailReason, coinControl);
         transaction.setTransactionFee(nFeeRequired);

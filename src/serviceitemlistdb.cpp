@@ -49,7 +49,6 @@ bool CServiceItemList::UpdateTicketList(const std::map<std::string, std::tuple<s
 {
     for(std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
-        LogPrintStr("1: " + get<0>(it->second) + " : " + it->first);
         // If op_return begins with DT (delete ticket) or if ticket has expired
         if (get<0>(it->second) == "DT" || !is_before(get<4>(it->second)) ) {
             mapServiceTicketList::iterator itTicket = taddresses.find(it->first);
@@ -82,8 +81,6 @@ bool CServiceItemList::UpdateTicketListHeights()
 
     for(mapServiceTicketList::const_iterator it = taddresses.begin(); it!=taddresses.end(); it++)
     {
-        LogPrintStr("2: " + get<0>(it->second) + " : " + it->first);
-
         // If op_return begins with DT (delete ticket) or if ticket has expired
         if (get<0>(it->second) == "DT" || !is_before(get<4>(it->second))) {
             mapServiceTicketList::iterator itTicket = taddresses.find(it->first);
@@ -181,8 +178,6 @@ bool CServiceItemList::GetTicketList(std::multiset<std::pair<std::string, std::t
 bool CServiceItemList::IsTicket(std::string address) {
     for (std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = taddresses.begin();it != taddresses.end(); it++)
     {
-        LogPrintStr("3: " + get<0>(it->second) + " : " + it->first + " : " + address);
-
         // If address found on ticket list
         if (address == it->first) {
             return true;

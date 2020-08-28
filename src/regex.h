@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <regex>
 #include <stdint.h>
 // #include <boost/regex.hpp>
@@ -12,7 +13,8 @@ bool isRegex(const string& txData) {
     // Ef strengurinn byrjar á "ACCEPT offer "(í hex) 
     // og ef strengurinn er 90 á lengd
     // þá skoðum við txid sem kemur þar á eftir
-    
+
+    LogPrintStr(" 1 i regex: "+txData);
     if (txData.rfind("414343455054206f6666657220", 0) == 0 && txData.length() == 90) {
         // náum í txid-ið eða þá 64 stafi sem eru á eftir "ACCEPT offer "
         std::string txid = txData.substr(26, 64);
@@ -25,25 +27,34 @@ bool isRegex(const string& txData) {
             return false;
         }
     }
-    
 
     std::vector<std::string> lines;
-    std::string line;
-    ifstream file("file.txt");
-    while (std::getline(file, line))
+    string filename = "/Users/freyja/Documents/mittSmiley/smileyCoin/src/file.txt"; // could come from command line.
+    ifstream infile(filename.c_str());
+    if (!infile.is_open())
     {
-        if (line.empty())
-            break;
+        return 0;
+    }
+
+    string line;
+    while (getline(infile, line))
+    {
+        istringstream iss(line);
+        ostringstream oss;
         lines.push_back(line);
     }
 
     for (int i = 0; i < lines.size(); i++) {
         std::string strengur = lines[i];
         std::regex expr(strengur);
+
         if (std::regex_match(txData, expr)) {
             return true;
         }
-        // send the data encrypted
-        return false;
     }
+    // send the data encrypted
+    return false;
+
+    infile.close();
+
 }

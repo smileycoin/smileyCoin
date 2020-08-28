@@ -148,8 +148,6 @@ void ServicePage::onDeleteServiceAction() {
 
         QString serviceName = idx.sibling(row, 0).data().toString();
         QString serviceAddress = idx.sibling(row, 1).data().toString();
-        QString rawServiceType = idx.sibling(row, 2).data().toString();
-        QString serviceType = "";
 
         CBitcoinAddress sAddress = CBitcoinAddress(serviceAddress.toStdString());
         if (!IsMine(*pwalletMain, sAddress.Get())) {
@@ -159,33 +157,14 @@ void ServicePage::onDeleteServiceAction() {
             return;
         }
 
-        if (rawServiceType == "Ticket Sales") {
-            serviceType = "1";
-        } else if (rawServiceType == "UBI") {
-            serviceType = "2";
-        } else if (rawServiceType == "Book Chapter") {
-            serviceType = "3";
-        } else if (rawServiceType == "Traceability") {
-            serviceType = "4";
-        } else if (rawServiceType == "Nonprofit Organization") {
-            serviceType = "5";
-        } else if (rawServiceType == "DEX") {
-            serviceType = "6";
-        } else if (rawServiceType == "Survey") {
-            serviceType = "7";
-        }
-
         SendCoinsRecipient issuer;
         // Send delete service transaction to own service address
         issuer.address = serviceAddress;
         // Start with n = 1 to get rid of spam
-        issuer.amount = 100000000;
+        issuer.amount = 1*COIN;
 
-        // Create op_return in the following form OP_RETURN = "DS serviceName serviceAddress serviceType"
-        issuer.data = QString::fromStdString("445320") +
-                      serviceName.toLatin1().toHex() + QString::fromStdString("20") +
-                      serviceAddress.toLatin1().toHex() + QString::fromStdString("20") +
-                      serviceType.toLatin1().toHex();
+        // Create op_return in the following form OP_RETURN = "DS serviceAddress"
+        issuer.data = QString::fromStdString("445320") + serviceAddress.toLatin1().toHex();
 
         QList <SendCoinsRecipient> recipients;
         recipients.append(issuer);

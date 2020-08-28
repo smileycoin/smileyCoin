@@ -159,9 +159,6 @@ void TicketPage::onDeleteTicketAction() {
         int row = idx.row();
 
         QString ticketName = idx.sibling(row, 0).data().toString();
-        QString ticketLoc = idx.sibling(row, 1).data().toString();
-        QString ticketDateTime = idx.sibling(row, 2).data().toString();
-        QString ticketValue = idx.sibling(row, 3).data().toString();
         QString ticketAddress = idx.sibling(row, 4).data().toString();
         QString ticketService = idx.sibling(row, 5).data().toString();
 
@@ -189,13 +186,8 @@ void TicketPage::onDeleteTicketAction() {
         // Start with n = 1 to get rid of spam
         issuer.amount = 1*COIN;
 
-        // Create op_return in the following form OP_RETURN = "DT ticketLocation ticketName ticketDateTime ticketValue ticketAddress"
-        issuer.data = QString::fromStdString("445420") +
-                      ticketLoc.toLatin1().toHex() + QString::fromStdString("20") +
-                      ticketName.toLatin1().toHex() + QString::fromStdString("20") +
-                      ticketDateTime.toLatin1().toHex() + QString::fromStdString("20") +
-                      ticketValue.toLatin1().toHex() + QString::fromStdString("20") +
-                      ticketAddress.toLatin1().toHex();
+        // Create op_return in the following form OP_RETURN = "DT ticketAddress"
+        issuer.data = QString::fromStdString("445420") + ticketAddress.toLatin1().toHex();
 
         QList <SendCoinsRecipient> recipients;
         recipients.append(issuer);

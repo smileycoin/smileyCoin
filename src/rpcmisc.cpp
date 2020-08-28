@@ -430,8 +430,8 @@ Value createservice(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
     } else if (ServiceList.IsService(serviceAddress)) {
         throw runtime_error("The entered address is already on service list. Please use another address.");
-    } else if (serviceType != "1" || serviceType != "2" || serviceType != "3"|| serviceType != "4"|| serviceType != "5" || serviceType != "6") {
-        throw runtime_error("Invalid service type. Please choose a type between 1 - 6.");
+    } else if (serviceType != "1" || serviceType != "2" || serviceType != "3"|| serviceType != "4"|| serviceType != "5" || serviceType != "6" || serviceType != "7") {
+        throw runtime_error("Invalid service type. Please choose a type between 1 - 7.");
     }
 
     // Amount
@@ -477,35 +477,23 @@ Value createservice(const Array& params, bool fHelp)
 
 Value deleteservice(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() != 3)
+    if (fHelp || params.size() != 1)
         throw runtime_error(
-                "deleteservice \"servicename\" \"serviceaddress\" \"servicetype\" \n"
+                "deleteservice \"serviceaddress\" \n"
                 "\nThis service will be deleted when the transaction has been confirmed if you are the service owner. You can't undo this action.\n"
                 + HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1. \"servicename\"  (string, required) The service name associated with the service.\n"
-                "2. \"serviceaddress\"   (string, required) The smileycoin service address associated with the service. \n"
-                "3. \"servicetype\"    (numeric, required) The service type.\n"
-                "\nService types:\n"
-                "1 = Ticket Sales \n"
-                "2 = UBI \n"
-                "3 = Book Chapter \n"
-                "4 = Traceability \n"
-                "5 = Nonprofit Organization \n"
-                "6 = DEX \n"
-                "7 = Survey \n \n"
+                "1. \"serviceaddress\"   (string, required) The smileycoin service address associated with the service. \n"
 
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
                 "\nExamples:\n"
-                + HelpExampleCli("deleteservice", "Cinema 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd 1")
-                + HelpExampleCli("deleteservice", "Dracula 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd 3")
-                + HelpExampleRpc("deleteservice", "UNICEF 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd 5")
+                + HelpExampleCli("deleteservice", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleCli("deleteservice", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleRpc("deleteservice", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
         );
 
-    std::string serviceName = params[0].get_str();
-    std::string serviceAddress = params[1].get_str();
-    std::string serviceType = params[2].get_str();
+    std::string serviceAddress = params[0].get_str();
 
     CBitcoinAddress address(serviceAddress);
     if (!address.IsValid()) {
@@ -514,10 +502,6 @@ Value deleteservice(const Array& params, bool fHelp)
         throw runtime_error("Permission denied. The service address is not owned by you.");
     } else if (!ServiceList.IsService(serviceAddress)) {
         throw runtime_error("Invalid Smileycoin service address");
-    } else if (serviceType != "1" || serviceType != "2" || serviceType != "3"|| serviceType != "4"|| serviceType != "5" || serviceType != "6") {
-        throw runtime_error("Invalid service type. Please choose a type between 1 - 6.");
-    } else if (serviceName.length() > 50) {
-        throw runtime_error("Service name cannot be more than 25 characters long.");
     }
 
     // Amount
@@ -537,11 +521,11 @@ Value deleteservice(const Array& params, bool fHelp)
     vector<string> str;
     int64_t amount = 0;
 
-    std::string txData = HexStr("DS " + serviceName + " " + serviceAddress + " " + serviceType, false);
+    std::string txData = HexStr("DS " + serviceAddress, false);
     str.push_back(txData);
     vector<unsigned char> data = ParseHexV(str[0], "Data");
 
-    // Create op_return script in the form -> DS serviceName serviceAddress serviceType
+    // Create op_return script in the form -> DS serviceAddress
     vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
 
     CWalletTx wtx;
