@@ -38,7 +38,7 @@ jobs:
     - name: make check
       run: make check
 
-  ubuntu_:
+  ubuntu_xpile_win:
     runs-on: ubuntu-20.04
     steps:
     - name: dependencies
@@ -50,7 +50,7 @@ jobs:
     - name: depends
       run: cd depends && make HOST=x86_64-w64-mingw32
     - name: configure
-      run: ./autogen.sh && CONFIG_SITE=$PWD/depends/x86_64-w64-ming32/share/config.site ./configure --prefix=/
+      run: ./autogen.sh && CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/
     - name: make
       run: make
     - name: make check
