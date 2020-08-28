@@ -43,23 +43,12 @@ bool CServiceList::SetForked(const bool &fFork)
 
 bool CServiceList::UpdateServiceInfo(const std::map<CScript, std::tuple<std::string, std::string, std::string> > &map)
 {
-    //Prenta ut allar services i database
-    /*for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::iterator it = maddresses.begin(); it != maddresses.end(); it++)
-    {
-        LogPrintStr(" maddresses it->first: " + it->first.ToString() + " : " + HexStr(it->first));
-        LogPrintStr(" maddresses it->second: " + get<0>(it->second) + " : " + get<1>(it->second) + " : " + get<2>(it->second));
-    }*/
-
     for(std::map<CScript, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
-        LogPrintStr(" it->first: " + it->first.ToString());
-
         std::string hexStr = HexStr(it->first);
         std::string hexData = hexStr.substr(4, hexStr.size());
 
-        if (hexData.substr(0, 22) == "64656c2073657276696365") { // if op_return begins with delete service
-            LogPrintStr("BYRJAR A DELETE SERVICE");
-
+        if (hexData.substr(0, 22) == "64656c2073657276696365") { // If op_return begins with delete service
             CScript serviceScript;
             std::string txData = "new service " + get<0>(it->second) + " " + get<1>(it->second) + " " + get<2>(it->second); //original service script
             std::string hexData = HexStr(txData);
@@ -68,17 +57,14 @@ bool CServiceList::UpdateServiceInfo(const std::map<CScript, std::tuple<std::str
 
             LogPrintStr(" str[0]: " + str[0]);
             vector<unsigned char> data = ParseHex(str[0]);
-            serviceScript << OP_RETURN << data; // bætir þetta við 6a41 a undan?
+            serviceScript << OP_RETURN << data;
 
             mapServiceScriptPubKeys::iterator itService = maddresses.find(serviceScript);
-            LogPrintStr("serviceScript: " + serviceScript.ToString() + " : " + HexStr(serviceScript));
-
-            if (itService != maddresses.end()) { // ef addressan er nu thegar a listanum
-                LogPrintStr(" addressan er nu thegar a service listanum ");
+            // If key is found in service list
+            if (itService != maddresses.end()) {
                 maddresses.erase(itService);
             }
-        } else if (hexData.substr(0, 22) == "6e65772073657276696365") { // if op_return begins with new service
-            LogPrintStr(" byrjar a new service servicelistdb ");
+        } else if (hexData.substr(0, 22) == "6e65772073657276696365") { // If op_return begins with new service
             maddresses.insert(*it);
         }
     }
@@ -119,20 +105,10 @@ bool CServiceList::UpdateServiceAddressHeights()
 
     for(mapServiceScriptPubKeys::const_iterator it = maddresses.begin(); it!=maddresses.end(); it++)
     {
-        /*CScript script = it->first;
-        opcodetype opcode;
-        CScript::const_iterator pc = script.begin();
-
-        if(script.GetOp(pc, opcode) && opcode == OP_RETURN) {
-            maddresses.insert(*it);
-        }*/
-
         std::string hexStr = HexStr(it->first);
         std::string hexData = hexStr.substr(4, hexStr.size());
 
-        if (hexData.substr(0, 22) == "64656c2073657276696365") { // if op_return begins with del service
-            LogPrintStr("BYRJAR A DELETE SERVICEservicelistdb: " + hexData);
-
+        if (hexData.substr(0, 22) == "64656c2073657276696365") { // If op_return begins with del service
             CScript serviceScript;
             std::string txData = "new service " + get<0>(it->second) + " " + get<1>(it->second) + " " + get<2>(it->second); //original service script
             vector<string> str;
@@ -142,15 +118,11 @@ bool CServiceList::UpdateServiceAddressHeights()
             serviceScript << OP_RETURN << data;
 
             mapServiceScriptPubKeys::iterator itService = maddresses.find(serviceScript);
-            if (itService != maddresses.end()) { // ef addressan er nu thegar a listanum
-                LogPrintStr(" addressan er nu thegar a service listanum ");
+            // If key is found in service list
+            if (itService != maddresses.end()) {
                 maddresses.erase(itService);
-            } else {
-                LogPrintStr(" addressan er ekki a service listanum ");
             }
-        } //else if (hexStr.substr(0, 22) == "6e65772073657276696365") { // if op_return begins with new service
-        else {
-            LogPrintStr(" byrjar ekki a del service servicelistdb: " + hexData);
+        } else if (hexStr.substr(0, 22) == "6e65772073657276696365") { // If op_return begins with new service
             maddresses.insert(*it);
         }
     }

@@ -46,23 +46,17 @@ void static BatchWriteAddressInfo(CLevelDBBatch &batch, const CScript &key, cons
 }
 
 void static BatchWriteServiceInfo(CLevelDBBatch &batch, const CScript &key, const std::tuple<std::string, std::string, std::string> &value) {
-
-    LogPrintStr(" keyTXDB: " + key.ToString());
-
     std::string hexStr = HexStr(key);
     std::string hexData = hexStr.substr(4, hexStr.size());
 
     // If op_return begins with "del service"
     if (hexData.substr(0, 22) == "64656c2073657276696365") {
-        LogPrintStr("BYRJAR A DELETE SERVICE TXDB");
-
         CScript serviceScript;
         std::string txData = "new service " + get<0>(value) + " " + get<1>(value) + " " + get<2>(value); //original service script
         std::string hexData = HexStr(txData);
         vector<string> str;
         str.push_back(hexData);
 
-        LogPrintStr(" str[0]: " + str[0]);
         vector<unsigned char> data = ParseHex(str[0]);
         serviceScript << OP_RETURN << data;
 

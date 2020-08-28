@@ -59,28 +59,6 @@ public:
             LOCK(wallet->cs_wallet);
             std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
 
-            /*
-            std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> myServices;
-            std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> allServices;
-            ServiceList.GetServiceAddresses(allServices);
-            for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator
-                    it = allServices.begin(); it!=allServices.end(); it++ )
-            {
-                cachedServiceTable.append(ServiceTableEntry(QString::fromStdString(get<0>(it->second)),
-                        QString::fromStdString(get<1>(it->second)),
-                        QString::fromStdString(get<2>(it->second))));
-            }
-
-            ServiceList.GetMyServiceAddresses(myServices);
-            for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator
-                    it = myServices.begin(); it!=myServices.end(); it++ )
-            {
-                cachedServiceTable.append(ServiceTableEntry(QString::fromStdString(get<0>(it->second)),
-                        QString::fromStdString(get<1>(it->second)),
-                        QString::fromStdString(get<2>(it->second))));
-            }*/
-
-
             if (viewAll) {
                 ServiceList.GetServiceAddresses(retset);
                 for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator
@@ -285,57 +263,6 @@ QString ServiceTableModel::addRow(const QString &name, const QString &address, c
     std::string strAddress = address.toStdString();
     std::string strType = type.toStdString();
 
-    //editStatus = OK;
-
-    /*if(type == Send)
-    {
-        if(!walletModel->validateAddress(address))
-        {
-            editStatus = INVALID_ADDRESS;
-            return QString();
-        }
-        // Check for duplicate addresses
-        {
-            LOCK(wallet->cs_wallet);
-            if(wallet->mapAddressBook.count(CBitcoinAddress(strAddress).Get()))
-            {
-                editStatus = DUPLICATE_ADDRESS;
-                return QString();
-            }
-        }
-    }
-    else if(type == Receive)
-    {
-        // Generate a new address to associate with given label
-        CPubKey newKey;
-        if(!wallet->GetKeyFromPool(newKey))
-        {
-            WalletModel::UnlockContext ctx(walletModel->requestUnlock());
-            if(!ctx.isValid())
-            {
-                // Unlock wallet failed or was cancelled
-                editStatus = WALLET_UNLOCK_FAILURE;
-                return QString();
-            }
-            if(!wallet->GetKeyFromPool(newKey))
-            {
-                editStatus = KEY_GENERATION_FAILURE;
-                return QString();
-            }
-        }
-        strAddress = CBitcoinAddress(newKey.GetID()).ToString();
-    }
-    else
-    {
-        return QString();
-    }*/
-
-    // Add entry
-    /*{
-        LOCK(wallet->cs_wallet);
-        wallet->SetAddressBook(CBitcoinAddress(strAddress).Get(), strLabel,
-                               (type == Send ? "send" : "receive"));
-    }*/
     return QString::fromStdString(strAddress);
 }
 
