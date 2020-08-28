@@ -66,7 +66,9 @@ void static BatchWriteServiceInfo(CLevelDBBatch &batch, const std::string &key, 
         ServiceList.GetTickets(key, taddresses);
         for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = taddresses.begin(); it!=taddresses.end(); it++ )
         {
-            batch.Erase(make_pair(DB_SERVICETICKETLIST, it->first));
+            if (it->first == key) {
+                batch.Erase(make_pair(DB_SERVICETICKETLIST, it->first));
+            }
         }
     } else if (get<0>(value) == "NS") { // If op_return begins with NS (new service)
         batch.Write(make_pair(DB_SERVICEINFO, key), value);
