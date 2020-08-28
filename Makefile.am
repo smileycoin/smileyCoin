@@ -11,9 +11,6 @@ desktop_DATA = debian/smileycoin-qt.desktop
 appicondir=$(datadir)/icons/hicolor/scalable/apps
 appicon_DATA = media/svg/smileycoin.svg
 
-
-GZIP_ENV="-9n"
-
 BITCOIND_BIN=$(top_builddir)/src/smileycoind$(EXEEXT)
 BITCOIN_QT_BIN=$(top_builddir)/src/qt/smileycoin-qt$(EXEEXT)
 BITCOIN_CLI_BIN=$(top_builddir)/src/smileycoin-cli$(EXEEXT)
@@ -45,16 +42,7 @@ COVERAGE_INFO = baseline_filtered_combined.info baseline.info block_test.info \
   leveldb_baseline_filtered.info test_bitcoin_coverage.info test_bitcoin.info
 
 dist-hook:
-	-$(MAKE) -C $(top_distdir)/src/leveldb clean
 	-$(GIT) archive --format=tar HEAD -- src/version.cpp | $(AMTAR) -C $(top_distdir) -xf -
-
-distcheck-hook:
-	$(MKDIR_P) $(top_distdir)/_build/src/leveldb
-	cp -rf $(top_srcdir)/src/leveldb/* $(top_distdir)/_build/src/leveldb/
-	-$(MAKE) -C $(top_distdir)/_build/src/leveldb clean
-
-distcleancheck:
-	@:
 
 $(BITCOIN_WIN_INSTALLER): $(BITCOIND_BIN) $(BITCOIN_QT_BIN) $(BITCOIN_CLI_BIN)
 	$(MKDIR_P) $(top_builddir)/release

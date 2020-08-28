@@ -1,4 +1,3 @@
-
 #ifndef BITCOIN_JEEQ_H
 #define BITCOIN_JEEQ_H
 
@@ -12,3 +11,4 @@ CPubKey SearchForPubKey(CBitcoinAddress addr);
 }
 
 #endif
+

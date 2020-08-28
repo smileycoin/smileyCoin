@@ -16,7 +16,7 @@ const std::string CLIENT_NAME("Satoshi");
 
 // First, include build.h if requested
 #ifdef HAVE_BUILD_INFO
-#    include "build.h"
+#    include <obj/build.h>
 #endif
 
 #define BUILD_DESC_FROM_RELEASE(maj,min,rev,build) \

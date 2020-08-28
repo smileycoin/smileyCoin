@@ -145,7 +145,7 @@ static int read_private_header(size_t *message_length, const uint8_t *dec)
  *      ctx, bignum context
  */
 static int read_public_header(const EC_GROUP *group, const uint8_t *enc,
-                              const uint8_t* our_pubkey, BN_CTX *ctx)
+        const uint8_t* our_pubkey, BN_CTX *ctx)
 {
     if (enc[0] != 0x6a)     return 0;
     if (enc[1] != 0x6a)     return 0;
@@ -267,7 +267,7 @@ static int y_from_x(const EC_GROUP *group, BIGNUM *y, size_t *offset, const BIGN
  *          msg_len, length of the message to be encrypted
  */
 static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
-                                const uint8_t *msg, const size_t msg_len)
+        const uint8_t *msg, const size_t msg_len)
 {
     BN_CTX *ctx = BN_CTX_new();
     /* our secp256k1 curve and bitcoin generator
@@ -361,7 +361,7 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
     *enc_len = enc_loc;
     ret = enc;
 
-    err:
+err:
     if (ERR_peek_error())
     {
         unsigned long e = 0;
@@ -461,7 +461,7 @@ static uint8_t *decrypt_message(size_t *dec_len, const uint8_t *privkey, const u
     memcpy(ret, &r[PRIVHEADER_LEN], size);
     *dec_len = size;
 
-    err:
+err:
     if (ERR_peek_error())
     {
         unsigned long e = 0;
@@ -523,7 +523,7 @@ string DecryptMessage(const CKey privkey, const vector<uint8_t> enc)
     size_t dec_len = 0;
     CPubKey pubkey = privkey.GetPubKey();
     uint8_t *bdec = decrypt_message(&dec_len, privkey.begin(), pubkey.begin(),
-            enc.data(), enc.size());
+                      enc.data(), enc.size());
     if (bdec == NULL || dec_len == 0)
         return string();
 

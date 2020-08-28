@@ -460,23 +460,23 @@ Value encryptmessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-                "encryptmessage \"smileycoinaddress\" \"message\"\n"
-                "\nEncrypt a message with the public key of an address"
-                + HelpRequiringPassphrase() + "\n"
-                                              "\nArguments:\n"
-                                              "1. \"smileycoinaddress\"  (string, required) The smileycoin address to use for the public key.\n"
-                                              "2. \"message\"            (string, required) The message to encrypt.\n"
-                                              "\nResult:\n"
-                                              "\"signature\"             (string) The encrypted message encoded in base 64\n"
-                                              "\nExamples:\n"
-                                              "\nUnlock the wallet for 30 seconds\n"
-                + HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
-                "\nEncrypt the message\n"
-                + HelpExampleCli("encryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"my message\"") +
-                "\nDecrypt the message\n"
-                + HelpExampleCli("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"?\"") +
-                "\nAs json rpc\n"
-                + HelpExampleRpc("encryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", \"my message\"")
+            "encryptmessage \"smileycoinaddress\" \"message\"\n"
+            "\nEncrypt a message with the public key of an address"
+            + HelpRequiringPassphrase() + "\n"
+            "\nArguments:\n"
+            "1. \"smileycoinaddress\"  (string, required) The smileycoin address to use for the public key.\n"
+            "2. \"message\"            (string, required) The message to encrypt.\n"
+            "\nResult:\n"
+            "\"signature\"             (string) The encrypted message encoded in base 64\n"
+            "\nExamples:\n"
+            "\nUnlock the wallet for 30 seconds\n"
+            + HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
+            "\nEncrypt the message\n"
+            + HelpExampleCli("encryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"my message\"") +
+            "\nDecrypt the message\n"
+            + HelpExampleCli("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"?\"") +
+            "\nAs json rpc\n"
+            + HelpExampleRpc("encryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", \"my message\"")
         );
 
     EnsureWalletIsUnlocked();
@@ -529,23 +529,23 @@ Value decryptmessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-                "decryptmessage \"smileycoinaddress\" \"message\"\n"
-                "\ndecrypt a message with the public key of an address"
-                + HelpRequiringPassphrase() + "\n"
-                                              "\nArguments:\n"
-                                              "1. \"smileycoinaddress\"  (string, required) The smileycoin address to use for the public key.\n"
-                                              "2. \"message\"            (string, required) The message to decrypt.\n"
-                                              "\nResult:\n"
-                                              "\"signature\"             (string) The decrypted message encoded in base 64\n"
-                                              "\nExamples:\n"
-                                              "\nUnlock the wallet for 30 seconds\n"
-                + HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
-                "\ndecrypt the message\n"
-                + HelpExampleCli("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"my message\"") +
-                "\nDecrypt the message\n"
-                + HelpExampleCli("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"?\"") +
-                "\nAs json rpc\n"
-                + HelpExampleRpc("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", \"my message\"")
+            "decryptmessage \"smileycoinaddress\" \"message\"\n"
+            "\ndecrypt a message with the public key of an address"
+            + HelpRequiringPassphrase() + "\n"
+            "\nArguments:\n"
+            "1. \"smileycoinaddress\"  (string, required) The smileycoin address to use for the public key.\n"
+            "2. \"message\"            (string, required) The message to decrypt.\n"
+            "\nResult:\n"
+            "\"signature\"             (string) The decrypted message encoded in base 64\n"
+            "\nExamples:\n"
+            "\nUnlock the wallet for 30 seconds\n"
+            + HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
+            "\ndecrypt the message\n"
+            + HelpExampleCli("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"my message\"") +
+            "\nDecrypt the message\n"
+            + HelpExampleCli("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"?\"") +
+            "\nAs json rpc\n"
+            + HelpExampleRpc("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", \"my message\"")
         );
 
     EnsureWalletIsUnlocked();
