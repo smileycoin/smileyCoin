@@ -68,6 +68,7 @@ if ENABLE_WALLET
 test_test_smileycoin_LDADD += $(LIBBITCOIN_WALLET)
 endif
 test_test_smileycoin_LDADD += $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS)
+test_test_smileycoin_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS)
 
 nodist_test_test_smileycoin_SOURCES = $(GENERATED_TEST_FILES)
 

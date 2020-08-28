@@ -214,6 +214,7 @@ endif
 smileycoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS)
 smileycoind_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 smileycoind_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+smileycoind_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS)
 
 # bitcoin-cli binary #
 smileycoin_cli_LDADD = \
@@ -231,7 +232,7 @@ smileycoin_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 if TARGET_WINDOWS
 smileycoin_cli_SOURCES += bitcoin-cli-res.rc
 endif
-
+smileycoin_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS)
 
 CLEANFILES = $(EXTRA_LIBRARIES)
 CLEANFILES += *.gcda *.gcno
