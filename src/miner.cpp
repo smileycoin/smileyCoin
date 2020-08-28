@@ -114,7 +114,7 @@ static unsigned int GetMaxBlockSize(unsigned int height)
 CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
 {
     // Create new block
-  auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
+    std::unique_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
   if(!pblocktemplate.get())
   return NULL;
   CBlock *pblock = &pblocktemplate->block; // pointer for convenience
@@ -593,7 +593,7 @@ void static BitcoinMiner(CWallet *pwallet)
     unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
     CBlockIndex* pindexPrev = chainActive.Tip();
 
-    auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey, ALGO_SHA256D));
+    std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey, ALGO_SHA256D));
     if (!pblocktemplate.get())
     {
       MilliSleep(1000);
@@ -729,7 +729,7 @@ void static BitcoinMiner(CWallet *pwallet)
       unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
       CBlockIndex* pindexPrev = chainActive.Tip();
 
-      auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey, ALGO_SCRYPT));
+      std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey, ALGO_SCRYPT));
       if (!pblocktemplate.get())
       {
         MilliSleep(1000);
@@ -869,7 +869,7 @@ void static BitcoinMiner(CWallet *pwallet)
       unsigned int nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
       CBlockIndex* pindexPrev = chainActive.Tip();
 
-      auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey, algo));
+      std::unique_ptr<CBlockTemplate> pblocktemplate(CreateNewBlockWithKey(reservekey, algo));
       if (!pblocktemplate.get())
       {
         MilliSleep(1000);
