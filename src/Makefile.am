@@ -104,7 +104,7 @@ JSON_H = \
 
 obj/build.h: FORCE
 	@$(MKDIR_P) $(builddir)/obj
-	@$(top_srcdir)/misc/share/genbuild.sh "$(abs_top_builddir)/src/obj/build.h" \
+	@$(top_srcdir)/share/genbuild.sh "$(abs_top_builddir)/src/obj/build.h" \
 	  "$(abs_top_srcdir)"
 libbitcoin_common_a-version.$(OBJEXT): obj/build.h
 
