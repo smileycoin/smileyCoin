@@ -243,8 +243,6 @@ void TicketPage::onBuyTicketAction() {
         int row = idx.row();
 
         QString ticketName = idx.sibling(row, 0).data().toString();
-        QString ticketLoc = idx.sibling(row, 1).data().toString();
-        QString ticketDateTime = idx.sibling(row, 2).data().toString();
         QString ticketValue = idx.sibling(row, 3).data().toString();
         QString ticketAddress = idx.sibling(row, 4).data().toString();
         QString ticketService = idx.sibling(row, 5).data().toString();
@@ -257,13 +255,8 @@ void TicketPage::onBuyTicketAction() {
         // Pay ticket amount to ticket address
         issuer.amount = ticketValue.toInt()*COIN;
 
-        // Create op_return in the following form OP_RETURN = "BT ticketLocation ticketName ticketDateTime ticketValue ticketAddress"
-        issuer.data = QString::fromStdString("425420") +
-                      ticketLoc.toLatin1().toHex() + QString::fromStdString("20") +
-                      ticketName.toLatin1().toHex() + QString::fromStdString("20") +
-                      ticketDateTime.toLatin1().toHex() + QString::fromStdString("20") +
-                      ticketValue.toLatin1().toHex() + QString::fromStdString("20") +
-                      ticketAddress.toLatin1().toHex();
+        // Create op_return in the following form OP_RETURN = "BT ticketAddress"
+        issuer.data = QString::fromStdString("425420") + ticketAddress.toLatin1().toHex();
 
         QList <SendCoinsRecipient> recipients;
         recipients.append(issuer);

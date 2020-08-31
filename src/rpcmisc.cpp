@@ -654,6 +654,80 @@ Value createticket(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
+Value buyticket(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+                "buyticket \"ticketaddress\" \n"
+                "\nBuy a ticket on the blockchain. \n"
+                + HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1. \"ticketaddress\"    (string, required) The smileycoin ticket address associated with the ticket.\n"
+
+                "\nResult:\n"
+                "\"transactionid\"  (string) The transaction id.\n"
+                "\nExamples:\n"
+                + HelpExampleCli("buyticket", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleRpc("buyticket", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+        );
+
+    std::string ticketAddress = params[0].get_str();
+
+    CBitcoinAddress address(ticketAddress);
+    if (!address.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
+    } else if (!ServiceItemList.IsTicket(ticketAddress)) {
+        throw runtime_error("The entered address is not on ticket list. Please use correct ticket address.");
+    }
+
+    // Amount on ticket
+    int64_t DEFAULT_AMOUNT = 0;
+    vector<pair<CScript, int64_t> > vecSend;
+
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> tickets;
+    ServiceItemList.GetTicketList(tickets);
+
+    std::string ticketValue = "";
+    // Get ticket value
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = tickets.begin(); it!=tickets.end(); it++ )
+    {
+        if (ticketAddress == it->first) {
+            ticketValue = get<5>(it->second);
+        }
+    }
+
+    // Parse Smileycoin address
+    CScript scriptPubKey;
+    scriptPubKey.SetDestination(address.Get());
+    vecSend.push_back(make_pair(scriptPubKey, std::stoi(ticketValue)*COIN));
+
+    vector<string> str;
+    int64_t amount = 0;
+
+    std::string txData = HexStr("BT " + ticketAddress, false);
+    str.push_back(txData);
+    vector<unsigned char> data = ParseHexV(str[0], "Data");
+
+    // Create op_return script in the form -> NT ticketLoc ticketName ticketDateTime ticketPrice ticketAddress
+    vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
+
+    CWalletTx wtx;
+
+    EnsureWalletIsUnlocked();
+
+    // Send
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
+
+    return wtx.GetHash().GetHex();
+}
+
 Value getserviceaddresses(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
