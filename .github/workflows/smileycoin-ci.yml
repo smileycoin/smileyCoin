@@ -10,11 +10,11 @@ jobs:
   ubuntu_no_gui:
     runs-on: ubuntu-20.04
     steps:
+    - uses: actions/checkout@v2
     - name: dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential libdb5.3++-dev libboost-all-dev libssl-dev libtool autoconf pkg-config
-    - uses: actions/checkout@v2
     - name: configure
       run: ./autogen.sh && ./configure --with-gui=no
     - name: make
@@ -25,12 +25,12 @@ jobs:
   ubuntu_gui:
     runs-on: ubuntu-20.04
     steps:
+    - uses: actions/checkout@v2
     - name: dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential libdb5.3++-dev libboost-all-dev libssl-dev libtool autoconf pkg-config
         sudo apt-get install -y libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler
-    - uses: actions/checkout@v2
     - name: configure
       run: ./autogen.sh && ./configure
     - name: make
@@ -41,13 +41,20 @@ jobs:
   ubuntu_xpile_win:
     runs-on: ubuntu-20.04
     steps:
+    - uses: actions/checkout@v2
     - name: dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential libtool autotools-dev automake autoconf pkg-config bsdmainutils curl git
         sudo apt-get install -y g++-mingw-w64-x86-64
-    - uses: actions/checkout@v2
-    - name: depends
+    - name: cache depends
+      id: cache-depends
+      uses: actions/cache@v2
+      with:
+        path: depends
+        key: depends-${{ hashFiles('**/depends/built/x86_64-w64-mingw32/*/*.tar.gz.hash') }}
+    - name: compile depends
+      if: steps.cache-depends.outputs.cache-hit != 'true'
       run: cd depends && make HOST=x86_64-w64-mingw32
     - name: configure
       run: ./autogen.sh && CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/
