@@ -38,6 +38,74 @@
 
 using namespace boost::endian;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+/* ignore negative */
+static int bn2binpad(const BIGNUM *a, unsigned char *to, int tolen)
+{
+    int n;
+    size_t i, lasti, j, atop, mask;
+    BN_ULONG l;
+
+    /*
+     * In case |a| is fixed-top, BN_num_bytes can return bogus length,
+     * but it's assumed that fixed-top inputs ought to be "nominated"
+     * even for padded output, so it works out...
+     */
+    n = BN_num_bytes(a);
+    if (tolen == -1) {
+        tolen = n;
+    } else if (tolen < n) {     /* uncommon/unlike case */
+        BIGNUM temp = *a;
+
+        bn_correct_top(&temp);
+        n = BN_num_bytes(&temp);
+        if (tolen < n)
+            return -1;
+    }
+
+    /* Swipe through whole available data and don't give away padded zero. */
+    atop = a->dmax * BN_BYTES;
+    if (atop == 0) {
+        OPENSSL_cleanse(to, tolen);
+        return tolen;
+    }
+
+    lasti = atop - 1;
+    atop = a->top * BN_BYTES;
+    for (i = 0, j = 0, to += tolen; j < (size_t)tolen; j++) {
+        l = a->d[i / BN_BYTES];
+        mask = 0 - ((j - atop) >> (8 * sizeof(i) - 1));
+        *--to = (unsigned char)(l >> (8 * (i % BN_BYTES)) & mask);
+        i += (i - lasti) >> (8 * sizeof(i) - 1); /* stay on last limb */
+    }
+
+    return tolen;
+}
+
+int BN_bn2binpad(const BIGNUM *a, unsigned char *to, int tolen)
+{
+    if (tolen < 0)
+        return -1;
+    return bn2binpad(a, to, tolen);
+}
+
+/*  Obviously not  */
+void OPENSSL_clear_free(void *str, size_t num)
+{
+    memset(str, '\0', sizeof(char) * num);
+    free(str);
+}
+
+static void *OPENSSL_zalloc(size_t num)
+{
+    void *ret = OPENSSL_malloc(num);
+
+    if (ret != NULL)
+        memset(ret, 0, num);
+    return ret;
+}
+
+#endif
 /* return:  secp256k1 curve with the bitcoin generator, order and cofactor
  * in:      ctx, bignum context
  */
@@ -369,7 +437,12 @@ err:
             LogPrintf("encrypt_message %s: %s", ERR_func_error_string(e), ERR_reason_error_string(e));
     }
 
+    #if OPENSSL_VERSION_NUMBER < 0x10100000L
+    memset(m, '\0', chunk_count * CHUNK_SIZE);
+    free(m);
+    #else
     OPENSSL_clear_free(m, chunk_count * CHUNK_SIZE);
+    #endif
     BN_free(rand);
     BN_free(rand_range);
     BN_free(Mx);
@@ -480,7 +553,12 @@ err:
     BN_free(Mx);
     BN_clear_free(bn_privkey);
 
+    #if OPENSSL_VERSION_NUMBER < 0x10100000L
+    memset(r, '\0', r_loc);
+    free(r);
+    #else
     OPENSSL_clear_free(r, r_loc);
+    #endif
 
     EC_GROUP_free(group);
     BN_CTX_free(ctx);
