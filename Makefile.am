@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I build-aux/m4
 SUBDIRS = src
-.PHONY: deploy
+.PHONY: deploy FORCE
 
 man_MANS=debian/manpages/smileycoin-qt.1 \
          debian/manpages/smileycoin.conf.5 \
@@ -52,8 +52,8 @@ $(BITCOIN_WIN_INSTALLER): all-recursive
 	@test -f $(MAKENSIS) && $(MAKENSIS) -V2 $(top_builddir)/share/setup.nsi -X'OutFile "$@"' || \
 	  echo error: could not build $@
 
-$(BITCOIND_BIN) $(BITCOIN_QT_BIN) $(BITCOIN_CLI_BIN):
-	make -C $(dir $@) $(notdir $@)
+$(if $(findstring src/,$(MAKECMDGOALS)),$(MAKECMDGOALS), none): FORCE
+	$(MAKE) -C src $(patsubst src/%,%,$@)
 
 $(OSX_APP)/Contents/PkgInfo:
 	$(MKDIR_P) $(@D)
