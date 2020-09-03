@@ -1,8 +1,10 @@
 package=openssl
-$(package)_version=1.0.1k
-$(package)_download_path=https://www.openssl.org/source
+$(package)_nversion=1.0.2
+$(package)_patchlevel=u
+$(package)_version=$($(package)_nversion)$($(package)_patchlevel)
+$(package)_download_path=https://www.openssl.org/source/old/$($(package)_nversion)/
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=8f9faeaebad088e772f4ef5e38252d472be4d878c6b3a2718c10a4fcebe7a41c
+$(package)_sha256_hash=ecd0c6ffb493dd06707d38b14bb4d8c2288bb7033735606569d8f90f89669d16
 
 define $(package)_set_vars
 $(package)_config_env=AR="$($(package)_ar)" RANLIB="$($(package)_ranlib)" CC="$($(package)_cc)"
@@ -65,7 +67,8 @@ define $(package)_preprocess_cmds
 endef
 
 define $(package)_config_cmds
-  ./Configure $($(package)_config_opts)
+  ./Configure $($(package)_config_opts) && \
+  $(MAKE) depend
 endef
 
 define $(package)_build_cmds

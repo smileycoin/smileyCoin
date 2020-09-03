@@ -36,7 +36,8 @@ src/bitcoin-config.h
 src/bitcoin-config.h.in
 src/stamp-h1
 src/obj
-misc/share/qt/Info.plist
+share/setup.nsi
+share/qt/Info.plist
 
 src/qt/*.moc
 src/qt/moc_*.cpp
@@ -100,9 +101,9 @@ coverage_percent.txt
 linux-coverage-build
 linux-build
 win32-build
-misc/qa/pull-tester/run-smileycoind-for-test.sh
-misc/qa/pull-tester/build-tests.sh
-misc/qa/pull-tester/run-bitcoind-for-test.sh
+qa/pull-tester/run-smileycoind-for-test.sh
+qa/pull-tester/build-tests.sh
+qa/pull-tester/run-bitcoind-for-test.sh
 
 !src/leveldb*/Makefile
 *.ipch

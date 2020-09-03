@@ -1,4 +1,4 @@
-AM_LDFLAGS = $(PTHREAD_CFLAGS) $(HARDENED_LDFLAGS)
+AM_LDFLAGS = $(PTHREAD_CFLAGS) $(HARDENED_LDFLAGS) $(LIBTOOL_LDFLAGS)
 AM_CXXFLAGS = $(HARDENED_CXXFLAGS)
 AM_CPPFLAGS = $(HARDENED_CPPFLAGS)
 EXTRA_LIBRARIES =
@@ -104,7 +104,7 @@ JSON_H = \
 
 obj/build.h: FORCE
 	@$(MKDIR_P) $(builddir)/obj
-	@$(top_srcdir)/misc/share/genbuild.sh "$(abs_top_builddir)/src/obj/build.h" \
+	@$(top_srcdir)/share/genbuild.sh "$(abs_top_builddir)/src/obj/build.h" \
 	  "$(abs_top_srcdir)"
 libbitcoin_common_a-version.$(OBJEXT): obj/build.h
 
@@ -214,6 +214,7 @@ endif
 smileycoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS)
 smileycoind_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 smileycoind_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+smileycoind_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS)
 
 # bitcoin-cli binary #
 smileycoin_cli_LDADD = \
@@ -231,7 +232,7 @@ smileycoin_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 if TARGET_WINDOWS
 smileycoin_cli_SOURCES += bitcoin-cli-res.rc
 endif
-
+smileycoin_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS)
 
 CLEANFILES = $(EXTRA_LIBRARIES)
 CLEANFILES += *.gcda *.gcno
