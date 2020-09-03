@@ -35,9 +35,6 @@ AM_MAINTAINER_MODE([enable])
 dnl make the compilation flags quiet unless V=1 is used
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
-dnl Require C++11 compiler (no GNU extensions)
-AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory])
-
 dnl Compiler checks (here for libtool).
 if test "x${CXXFLAGS+set}" = "xset"; then
   CXXFLAGS_overridden=yes
@@ -55,6 +52,18 @@ case $host in
     lt_cv_deplibs_check_method="pass_all"
   ;;
 esac
+dnl Require C++11 compiler (no GNU extensions)
+AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory])
+
+dnl Unless the user specified OBJCXX, force it to be the same as CXX. This ensures
+dnl that we get the same -std flags for both.
+m4_ifdef([AC_PROG_OBJCXX],[
+if test "x${OBJCXX+set}" = "x"; then
+   OBJCXX="${CXX}"
+fi
+AC_PROG_OBJCXX
+])
+
 dnl Libtool init checks.
 LT_INIT([pic-only])
 
