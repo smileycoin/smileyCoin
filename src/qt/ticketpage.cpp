@@ -63,6 +63,7 @@ TicketPage::TicketPage(QWidget *parent) :
     connect(ui->newTicket, SIGNAL(clicked()), this, SLOT(onNewTicketAction()));
     connect(ui->deleteTicket, SIGNAL(clicked()), this, SLOT(onDeleteTicketAction()));
     connect(ui->ticketService, SIGNAL(activated(QString)), this, SLOT(chooseService(QString)));
+    connect(ui->buyTicket, SIGNAL(clicked()), this, SLOT(onBuyTicketAction()));
 }
 
 TicketPage::~TicketPage()
@@ -102,7 +103,6 @@ void TicketPage::setTicketModel(TicketTableModel *ticketModel) {
 
     // Select row for newly created address
     connect(ticketModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(selectNewAddress(QModelIndex,int,int)));
-    //connect(buyButton, SIGNAL(clicked()), this, SLOT(onBuyClicked()));
 }
 
 void TicketPage::setWalletModel(WalletModel *walletModel) {

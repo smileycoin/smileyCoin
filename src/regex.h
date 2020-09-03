@@ -4,17 +4,18 @@
 #include <sstream>
 #include <regex>
 #include <stdint.h>
-// #include <boost/regex.hpp>
+//#include <filesystem>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 
 using namespace std;
 using namespace boost;
+namespace fs = boost::filesystem;
 
 bool isRegex(const string& txData) {
     // Ef strengurinn byrjar á "ACCEPT offer "(í hex) 
     // og ef strengurinn er 90 á lengd
     // þá skoðum við txid sem kemur þar á eftir
-
-    LogPrintStr(" 1 i regex: "+txData);
     if (txData.rfind("414343455054206f6666657220", 0) == 0 && txData.length() == 90) {
         // náum í txid-ið eða þá 64 stafi sem eru á eftir "ACCEPT offer "
         std::string txid = txData.substr(26, 64);
@@ -29,11 +30,11 @@ bool isRegex(const string& txData) {
     }
 
     std::vector<std::string> lines;
-    string filename = "/Users/freyja/Documents/mittSmiley/smileyCoin/src/file.txt"; // could come from command line.
+    string filename = "./smileyCoin/src/regex.txt"; //virkar ef smileyCoin er i working directory?
     ifstream infile(filename.c_str());
     if (!infile.is_open())
     {
-        return 0;
+        return false;
     }
 
     string line;
@@ -49,6 +50,8 @@ bool isRegex(const string& txData) {
         std::regex expr(strengur);
 
         if (std::regex_match(txData, expr)) {
+            LogPrintStr(" 8 i regex: " + txData);
+
             return true;
         }
     }
