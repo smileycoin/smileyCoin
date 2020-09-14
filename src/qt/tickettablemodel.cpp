@@ -10,6 +10,8 @@
 #include "base58.h"
 #include "wallet.h"
 #include "servicelistdb.h"
+#include "serviceitemlistdb.h"
+
 
 #include <QFont>
 
@@ -50,27 +52,48 @@ public:
     CWallet *wallet;
     QList<TicketTableEntry> cachedTicketTable;
     TicketTableModel *parent;
+    std::string serviceFilter;
 
 
-    TicketTablePriv(CWallet *wallet, TicketTableModel *parent):
-            wallet(wallet), parent(parent) {}
+    TicketTablePriv(std::string serviceFilter, CWallet *wallet, TicketTableModel *parent):
+            serviceFilter(serviceFilter), wallet(wallet), parent(parent) {}
 
     void refreshTicketTable()
     {
         cachedTicketTable.clear();
         {
             LOCK(wallet->cs_wallet);
-            std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> retset;
-            ServiceList.GetServiceAddressInfo(retset);
-            for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator
-                        it = retset.begin(); it!=retset.end(); it++ )
+
+            QString serviceName;
+            std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
+            ServiceList.GetServiceAddresses(services);
+
+            std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> tickets;
+            ServiceItemList.GetTicketList(tickets);
+            for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator
+                        t = tickets.begin(); t!=tickets.end(); t++ )
             {
-                cachedTicketTable.append(TicketTableEntry(QString::fromStdString(get<2>(it->second)),
-                                                            QString::fromStdString(get<1>(it->second)),
-                                                            QString::fromStdString(get<3>(it->second)),
-                                                            QString::fromStdString(get<4>(it->second)),
-                                                            QString::fromStdString(get<5>(it->second)),
-                                                            QString::fromStdString(get<0>(it->second))));
+                for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
+                {
+                    // Display corresponding service name instead of address
+                    if (QString::fromStdString(get<1>(t->second)) == QString::fromStdString(s->first) && is_before(get<4>(t->second))) {
+                        if (serviceFilter == "All") {
+                            cachedTicketTable.append(TicketTableEntry(QString::fromStdString(get<3>(t->second)),
+                                    QString::fromStdString(get<2>(t->second)),
+                                    QString::fromStdString(get<4>(t->second)),
+                                    QString::fromStdString(get<5>(t->second)),
+                                    QString::fromStdString(t->first),
+                                    QString::fromStdString(get<1>(s->second))));
+                        } else if (serviceFilter == get<1>(s->second)) { // If dropdown selection matches service name
+                            cachedTicketTable.append(TicketTableEntry(QString::fromStdString(get<3>(t->second)),
+                                    QString::fromStdString(get<2>(t->second)),
+                                    QString::fromStdString(get<4>(t->second)),
+                                    QString::fromStdString(get<5>(t->second)),
+                                    QString::fromStdString(t->first),
+                                    QString::fromStdString(get<1>(s->second))));
+                        }
+                    }
+                }
             }
         }
         // qLowerBound() and qUpperBound() require our cachedAddressTable list to be sorted in asc order
@@ -101,19 +124,7 @@ public:
                     break;
                 }
                 parent->beginInsertRows(QModelIndex(), lowerIndex, lowerIndex);
-
-                // Birta service address nafn i toflu
-                QString serviceName;
-                std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> services;
-                ServiceList.GetServiceAddresses(services);
-                for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ )
-                {
-                    if (service == QString::fromStdString(get<1>(it->second))) {
-                        serviceName = QString::fromStdString(get<0>(it->second));
-                    }
-                }
-
-                cachedTicketTable.insert(lowerIndex, TicketTableEntry(name, location, datetime, price, address, serviceName));
+                cachedTicketTable.insert(lowerIndex, TicketTableEntry(name, location, datetime, price, address, service));
                 parent->endInsertRows();
                 break;
             }
@@ -167,11 +178,11 @@ public:
 
 };
 
-TicketTableModel::TicketTableModel(CWallet *wallet, WalletModel *parent) :
-        QAbstractTableModel(parent),walletModel(parent),wallet(wallet),priv(0)
+TicketTableModel::TicketTableModel(std::string serviceFilter, CWallet *wallet, WalletModel *parent) :
+        QAbstractTableModel(parent),walletModel(parent),wallet(wallet), serviceFilter(serviceFilter), priv(0)
 {
     columns << tr("Name") << tr("Location") << tr("Date and time") << tr("Price") << tr("Address") << tr("Service");
-    priv = new TicketTablePriv(wallet, this);
+    priv = new TicketTablePriv(serviceFilter, wallet, this);
     priv->refreshTicketTable();
 }
 

@@ -57,25 +57,23 @@ public:
         cachedServiceTable.clear();
         {
             LOCK(wallet->cs_wallet);
-            std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> retset;
+            std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> retset;
 
             if (viewAll) {
                 ServiceList.GetServiceAddresses(retset);
-                for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator
+                for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator
                 it = retset.begin(); it!=retset.end(); it++ )
                 {
-                    cachedServiceTable.append(ServiceTableEntry(QString::fromStdString(get<0>(it->second)),
-                                                                QString::fromStdString(get<1>(it->second)),
-                                                                QString::fromStdString(get<2>(it->second))));
+                    cachedServiceTable.append(ServiceTableEntry(QString::fromStdString(get<1>(it->second)),
+                            QString::fromStdString(it->first), QString::fromStdString(get<2>(it->second))));
                 }
             } else {
                 ServiceList.GetMyServiceAddresses(retset);
-                for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator
+                for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator
                 it = retset.begin(); it!=retset.end(); it++ )
                 {
-                    cachedServiceTable.append(ServiceTableEntry(QString::fromStdString(get<0>(it->second)),
-                                                                QString::fromStdString(get<1>(it->second)),
-                                                                QString::fromStdString(get<2>(it->second))));
+                    cachedServiceTable.append(ServiceTableEntry(QString::fromStdString(get<1>(it->second)),
+                            QString::fromStdString(it->first), QString::fromStdString(get<2>(it->second))));
                 }
             }
         }

@@ -44,6 +44,7 @@ BITCOIN_CORE_H = \
   db.h \
   richlistdb.h \
   servicelistdb.h \
+  serviceitemlistdb.h \
   hash.h \
   init.h \
   jeeq.h \
@@ -125,6 +126,7 @@ libbitcoin_server_a_SOURCES = \
   noui.cpp \
   richlistdb.cpp \
   servicelistdb.cpp \
+  serviceitemlistdb.cpp \
   rpcblockchain.cpp \
   rpcmining.cpp \
   rpcmisc.cpp \
