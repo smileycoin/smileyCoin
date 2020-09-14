@@ -243,7 +243,10 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
             if(rcp.data.length() > 0) {
                 vector<string> str;
                 int64_t amount = 0;
-                if(isRegex(rcp.data.toStdString())) {
+                str.push_back(rcp.data.toStdString());
+
+                // Encrypt the data if it's not in regex file
+                /*if(isRegex(rcp.data.toStdString())) {
                     str.push_back(rcp.data.toStdString());
                 } else {
                     CBitcoinAddress addr(rcp.address.toStdString());
@@ -288,7 +291,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
                     QString hexEncoded = asciiEncoded.toLatin1().toHex();
 
                     str.push_back(hexEncoded.toStdString());
-                }
+                }*/
                 vector<unsigned char> data = ParseHexV(str[0], "Data");
                 vecSend.push_back(std::pair<CScript, int64_t>(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
             }
