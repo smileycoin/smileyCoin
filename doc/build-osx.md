@@ -43,7 +43,7 @@ Instructions: MacPorts
 
 Installing the dependencies using MacPorts is very straightforward.
 
-    sudo port install boost db53@+no_java openssl miniupnpc autoconf pkgconfig automake
+    sudo port install boost db53@+no_java openssl miniupnpc autoconf pkgconfig automake libtool
 
 Optional: install Qt4
 
@@ -101,7 +101,7 @@ smileycoind/smileycoin-cli binaries are not included in the Smileycoin-Qt.app bu
 If you are building `smileycoind` or `Smileycoin-Qt` for others, your build machine should be set up
 as follows for maximum compatibility:
 
-We haven't found a way to make the Qt compatible with older osx than the current... these following flags probably won't do anything. 
+We haven't found a way to make the Qt compatible with older osx than the current... these following flags probably won't do anything.
 
 All dependencies should be compiled with these flags:
 
@@ -118,8 +118,8 @@ For MacPorts, that means editing your macports.conf and setting
 ... and then uninstalling and re-installing, or simply rebuilding, all ports.
 
 Download and install this: qt-opensource-mac-x64-clang-5.4.0.dmg
-Run the following: 
-    
+Run the following:
+
     cd ~/Qt5.4.0/5.4/clang_64/include
     for MODULE in $(find ../lib -type d -name Headers); do ln -s $MODULE $(echo $MODULE | cut -d"/" -f3 | cut -d"." -f1) ; done
     export CXXFLAGS=-std=c++11
