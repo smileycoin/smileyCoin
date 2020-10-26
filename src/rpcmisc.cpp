@@ -831,11 +831,11 @@ Value getubilist(const Array& params, bool fHelp)
         throw runtime_error("getubilist \"address\"\n"
                             "Returns all UBI recipient addresses that belong to the specified UBI service address\n"
                             );
-    
+
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
     if(!address.IsValid())
         throw runtime_error("Not a valid Smileycoin address");
-    
+
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
     bool isUbi = false;
@@ -856,7 +856,7 @@ Value getubilist(const Array& params, bool fHelp)
     ServiceItemList.GetUbiList(info);
 
     int i = 0;
-    
+
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         std::string toAddress = get<1>(it->second);
@@ -864,7 +864,7 @@ Value getubilist(const Array& params, bool fHelp)
             obj.push_back(Pair("UBI Recipient Address: ", it->first));
         }
     }
-    
+
     return obj;
 }
 
@@ -875,18 +875,18 @@ Value getdexlist(const Array& params, bool fHelp)
         throw runtime_error("getdexlist \"address\"\n"
                             "Returns all DEX addresses that belong to the specified DEX service address\n"
                             );
-    
+
     Object obj;
     std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> info;
 
     ServiceItemList.GetDexList(info);
-    
+
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         obj.push_back(Pair("DEX Address: ", it->first));
         obj.push_back(Pair("Description: ", get<2>(it->second)));
     }
-    
+
     return obj;
 }
 
@@ -897,18 +897,18 @@ Value getnpolist(const Array& params, bool fHelp)
         throw runtime_error("getnpolist\n"
                             "Returns all non profit organization addresses\n"
                             );
-    
+
     Object obj;
     /*std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> info;
 
     ServiceItemList.GetNpoList(info);
-    
+
     for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         obj.push_back(Pair("Npo name: ", get<1>(it->second)));
         obj.push_back(Pair("Npo address: ", get<2>(it->second)));
     }*/
-    
+
     return obj;
 }
 
@@ -919,18 +919,18 @@ Value getbooklist(const Array& params, bool fHelp)
         throw runtime_error("getbooklist \"address\"\n"
                             "Returns all book chapters that belong to the specified book service address\n"
                             );
-    
+
     Object obj;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> info;
     ServiceItemList.GetBookList(info);
-    
+
     //TODO bæta við book name, book author og year
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         obj.push_back(Pair("Chapter Number: ", get<2>(it->second)));
         obj.push_back(Pair("Chapter Address: ", it->first));
     }
-    
+
     return obj;
 }
 
@@ -944,7 +944,7 @@ Value getaddressinfo(const Array& params, bool fHelp)
     if(!address.IsValid())
         throw runtime_error("Invalid Smileycoin address");
     Object obj;
-    CScript key;    
+    CScript key;
     key.SetDestination(address.Get());
     std::pair<int64_t, int> value;
     if(!pcoinsTip->GetAddressInfo(key, value))
@@ -952,7 +952,7 @@ Value getaddressinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("Balance", ValueFromAmount(value.first)));
     obj.push_back(Pair("Height", value.second));
 
-    return obj; 
+    return obj;
 }
 
 #ifdef ENABLE_WALLET
@@ -1191,6 +1191,21 @@ Value verifymessage(const Array& params, bool fHelp)
         return false;
 
     return (pubkey.GetID() == keyID);
+}
+
+Value shouldIStayOrShouldIGo(const Array& params, bool fHelp) {
+  if (fHelp || params.size() != 0) {
+    throw runtime_error(
+      "shouldIStayOrShouldIGo"
+    );
+  }
+
+  Array stayOrGo;
+
+  stayOrGo.push_back("You should stay!");
+  stayOrGo.push_back("You should go!");
+
+  return stayOrGo[rand() % stayOrGo.size()];
 }
 
 #pragma clang diagnostic pop
