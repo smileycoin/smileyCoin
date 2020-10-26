@@ -333,7 +333,7 @@ static const CRPCCommand vRPCCommands[] =
     { "setgenerate",            &setgenerate,            true,      true,       false },
 
     /* Optional Commands tied to verkefni 9*/
-    {"randomAddress",           &ranndomAddress,         true,      false,      false },
+    {"randomAddress",           &randomAddress,         true,      false,      false },
 #endif // ENABLE_WALLET
 };
 
