@@ -331,6 +331,9 @@ static const CRPCCommand vRPCCommands[] =
     { "gethashespersec",        &gethashespersec,        true,      false,      false },
     { "getwork",                &getwork,                true,      false,      true  },
     { "setgenerate",            &setgenerate,            true,      true,       false },
+
+    /* Optional Commands tied to verkefni 9*/
+    {"randomAddress",           &ranndomAddress,         true,      false,      false },
 #endif // ENABLE_WALLET
 };
 

@@ -22,6 +22,11 @@
 
 #include <stdint.h>
 
+//Verkefni 9 - Defined libraries
+#include <iostream>
+#include <ctime>
+#include <unistd.h>
+
 #include <boost/assign/list_of.hpp>
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
@@ -1191,6 +1196,27 @@ Value verifymessage(const Array& params, bool fHelp)
         return false;
 
     return (pubkey.GetID() == keyID);
+}
+/*Program generates random string of length 34*/
+Value randomAddress(const Array& params, bool fHelp){
+    if(fHelp || params.size() != 1){
+        throw runtime_error(
+            "No params needed\n returns random hash"
+        )
+    }
+
+    const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    
+    string digest = ""; //Empty digest
+    srand(time(0)); //setting seed
+
+    /*Random digest*/
+    for(i = 0; i < 34; i++){
+        int randChar = rand()%len(alphabet);
+        digest.append(alphabet[randChar]);
+    }
+
+    return digest;
 }
 
 #pragma clang diagnostic pop
