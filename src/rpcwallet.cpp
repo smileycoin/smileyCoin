@@ -358,6 +358,41 @@ Value sendtoaddress(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
+
+Value gamble(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 1 || params.size() > 2)
+        throw runtime_error(
+            "gamble \"amount\" \n"
+            "\nGamble your life away with the given amount.\n The amount is a real and is rounded to the nearest 0.00000001\n"
+            + HelpRequiringPassphrase() +
+            "\nArguments:\n"
+            "1. \"amount\"  (numeric, required) The amount in SMLY to gamble. eg 10 SMLY\n"
+            "\nResult:\n"
+            "\"transactionid\"  (string) The transaction id.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("gamble", "10")
+            + HelpExampleRpc("gamble", "10")
+        );
+
+    CBitcoinAddress address("BEtZyyYqDXqmRJJ45nnL15cuASfiXg9Yik");
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
+
+    // Gamble
+    int64_t nAmount = AmountFromValue(params[0]);
+
+    CWalletTx wtx;
+    EnsureWalletIsUnlocked();
+
+    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx);
+    if (strError != "")
+        throw JSONRPCError(RPC_WALLET_ERROR, strError);
+
+    return wtx.GetHash().GetHex();
+}
+
+
 Value listaddressgroupings(const Array& params, bool fHelp)
 {
     if (fHelp)
