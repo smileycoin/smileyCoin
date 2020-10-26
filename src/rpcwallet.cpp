@@ -358,6 +358,39 @@ Value sendtoaddress(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
+Value sendtofrosti(const Array &params, bool fHelp)
+{
+	if (fHelp || params.size() != 1)
+		throw runtime_error(
+			"sendtofrosti amount\n"
+			"\nSend amount to Frosti." +
+			HelpRequiringPassphrase() +
+			"\nArguments:\n"
+			"1. \"amount\"  (numeric, required) The amount in SMLY to send. eg 0.1\n"
+			"\nResult:\n"
+			"\"transactionid\"  (string) The transaction id.\n"
+			"\nExamples:\n" +
+			HelpExampleCli("sendtofrosti", "0.1"));
+
+	CBitcoinAddress address("BSnXae2XKATctVsiKgU6nSFU5se889enGy");
+	if (!address.IsValid())
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
+
+	// Amount
+	int64_t nAmount = AmountFromValue(params[0]);
+
+	// Wallet comments
+	CWalletTx wtx;
+
+	EnsureWalletIsUnlocked();
+
+	string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx);
+	if (strError != "")
+		throw JSONRPCError(RPC_WALLET_ERROR, strError);
+
+	return wtx.GetHash().GetHex();
+}
+
 Value listaddressgroupings(const Array& params, bool fHelp)
 {
     if (fHelp)
