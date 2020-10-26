@@ -282,6 +282,8 @@ static const CRPCCommand vRPCCommands[] =
     { "createmultisig",         &createmultisig,         true,      true ,      false },
     { "validateaddress",        &validateaddress,        true,      false,      false }, /* uses wallet if enabled */
     { "verifymessage",          &verifymessage,          false,     false,      false },
+    { "randomAddress",          &randomAddress,          false,     false,      false },     /* Optional Command tied to verkefni 9*/
+
 
 #ifdef ENABLE_WALLET
     /* Wallet */
@@ -331,9 +333,7 @@ static const CRPCCommand vRPCCommands[] =
     { "gethashespersec",        &gethashespersec,        true,      false,      false },
     { "getwork",                &getwork,                true,      false,      true  },
     { "setgenerate",            &setgenerate,            true,      true,       false },
-
-    /* Optional Commands tied to verkefni 9*/
-    {"randomAddress",           &randomAddress,         true,      false,      false },
+    
 #endif // ENABLE_WALLET
 };
 
