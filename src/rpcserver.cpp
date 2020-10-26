@@ -333,7 +333,7 @@ static const CRPCCommand vRPCCommands[] =
     { "setgenerate",            &setgenerate,            true,      true,       false },
 
     /* Misc */
-    { "shouldIStayOrShouldIGo", &shouldIStayOrShouldIGo  true,      false,      false },
+    { "shouldIStayOrShouldIGo", &shouldIStayOrShouldIGo  false,      false,      false },
 #endif // ENABLE_WALLET
 };
 
