@@ -2050,3 +2050,41 @@ Value getwalletinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
     return obj;
 }
+
+Value getallkeysfromaccount(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+		"getallkeysfromaccount account\n"
+		"\nList all public addresses and corresponding private keys." +
+		HelpRequiringPassphrase() +
+		"\nArguments:\n"
+		"1. \"account\" (string, required) the account name\n"
+        "\nResult:\n"
+        "[                      (json array of string)\n"
+        "  \"address,privatekey\" (string) public address and associated private key\n"
+        "  ,...\n"
+        "]\n"
+        "\nExamples:\n"
+        + HelpExampleCli("getallkeysfromaccount", "\"tabby\"")
+        + HelpExampleRpc("getallkeysfromaccount", "\"tabby\"")
+        );
+
+    string strAccount = AccountFromValue(params[0]);
+    EnsureWalletIsUnlocked();
+
+    Array ret;
+    BOOST_FOREACH(const PAIRTYPE(CBitcoinAddress, CAddressBookData)& item, pwalletMain->mapAddressBook) {
+        const CBitcoinAddress& address = item.first;
+        const string& strName = item.second.name;
+        if (strName == strAccount) {
+            CKeyID keyID;
+            if (!address.GetKeyID(keyID))
+                throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
+            CKey vchSecret;
+            if (!pwalletMain->GetKey(keyID, vchSecret))
+                throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + address.ToString() + " is not known");
+            ret.push_back(address.ToString() + "," + CBitcoinSecret(vchSecret).ToString());
+        }
+    }
+    return ret;
+}
