@@ -3,6 +3,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "string"
 #include "base58.h"
 #include "init.h"
 #include "main.h"
@@ -486,6 +487,33 @@ Value verifymessage(const Array& params, bool fHelp)
         return false;
 
     return (pubkey.GetID() == keyID);
+}
+
+Value gethex(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+	    "gethex \"string\" \n"
+	    "\n Returns the hex value for a given ascii input string.\n"
+	    "\n Arguments: \n"
+	    "\n 1. \"string\" (string, required) The input string in ascii encoding to be converted to hex code.\n"
+
+	    "\n Result: \n"
+	    "\n \"hex\" (string)  The hex code of the input.\n"
+        );
+
+    string strInput = params[0].get_str();
+
+    static const char hex_digits[] = "0123456789ABCDEF";
+
+    std::string output;
+    output.reserve(strInput.length()*2);
+    for (unsigned char c : strInput)
+    {
+        output.push_back(hex_digits[c >> 4]);
+	output.push_back(hex_digits[c & 15]);
+    }
+    return output;
 }
 
 #pragma clang diagnostic pop
