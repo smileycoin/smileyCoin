@@ -12,8 +12,10 @@
 #include "wallet.h"
 #include "walletdb.h"
 #include "jeeq.h"
+#include "time.h"
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #include <boost/assign/list_of.hpp>
 #include "json/json_spirit_utils.h"
@@ -2050,3 +2052,26 @@ Value getwalletinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
     return obj;
 }
+
+Value getrandnum(Const Array& params, bool fHelp) {
+  if (fHelp || params.size() != 0)
+      throw runtime_error(
+          "getrandnum\n"
+          "Returns a random number between 1 and 10\n"
+          "\nResult:\n"
+          "{\n"
+          "  \"number\": (numeric) random number between 1 and 10\n"
+          "}\n"
+          "\nExamples:\n"
+          + HelpExampleCli("getwalletinfo", "")
+          + HelpExampleRpc("getwalletinfo", "")
+      );
+
+      Object obj;
+      int randnum = 0;
+      srand( time( NULL ) );
+      random_integer = rand()%10+1;
+      obj.push_back(Pair("number", random_integer));
+
+      return obj;
+      }
