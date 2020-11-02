@@ -14,6 +14,8 @@
 #include "jeeq.h"
 
 #include <stdint.h>
+#include <stdlib.h>  
+#include <time.h>
 
 #include <boost/assign/list_of.hpp>
 #include "json/json_spirit_utils.h"
@@ -2048,5 +2050,45 @@ Value getwalletinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("keypoolsize",   (int)pwalletMain->GetKeyPoolSize()));
     if (pwalletMain->IsCrypted())
         obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
+    return obj;
+}
+
+Value getquote(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "getquote\n"
+            "Returns a quote of random to the user.\n"
+            "\nResult:\n"
+            "{\n"
+            "  \"quote\": xxxxx,     (numeric) Random quote\n"
+            "}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getquote", "")
+            + HelpExampleRpc("getquote", "")
+        );
+
+    srand (time(NULL));
+    int rand = rand() % 5 + 1;
+
+    Object obj;
+    rand = math
+    switch(rand) {
+        case 1:
+            obj.push_back(Pair("quote", "Random quote 1");
+            break;
+        case 2:
+            obj.push_back(Pair("quote", "Random quote 2");
+            break;
+        case 3:
+            obj.push_back(Pair("quote", "Random quote 3");
+            break;
+        case 4:
+            obj.push_back(Pair("quote", "Random quote 4");
+            break;
+        case 5:
+            obj.push_back(Pair("quote", "Random quote 5");
+            break;
+    }
     return obj;
 }
