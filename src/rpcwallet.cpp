@@ -2050,3 +2050,14 @@ Value getwalletinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
     return obj;
 }
+
+Value randomNumer(const Array% params, bool fHelp){
+    if(fHelp || params.size() !=0){
+        throw_runtime_error("randomNumer");
+    }
+    
+    Object object;
+    v1 = rand() %100+1;
+    obj.push_back("number", v1);
+    return obj;
+}
