@@ -22,6 +22,9 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <regex>
+#include <algorithm>
+#include <cctype>
 
 #ifndef WIN32
 #include <sys/resource.h>
@@ -210,8 +213,83 @@ void runCommand(std::string strCommand);
 
 
 
+// Split string into vector of words defined by a specific delimiter
+inline std::vector<std::string> splitString(const std::string& str, const std::string& delim)
+{
+    std::vector<std::string> tokens;
+    size_t prev = 0, pos = 0;
+    do
+    {
+        pos = str.find(delim, prev);
+        if (pos == std::string::npos) pos = str.length();
+        std::string token = str.substr(prev, pos-prev);
+        if (!token.empty()) tokens.push_back(token);
+        prev = pos + delim.length();
+    }
+    while (pos < str.length() && prev < str.length());
+    return tokens;
+}
 
+// Convert hexadecimal string to ASCII string
+inline std::string hexToAscii(std::string dataStr)
+{
+    std::string asciiData;
+    for (std::string::size_type i = 0; i < dataStr.length(); i += 2)
+    {
+        std::string byte = dataStr.substr(i, 2);
+        // Write a dot(.) if the hex code stands for a control command
+        if (byte == "00" || byte == "01" || byte == "02" || byte == "03" || byte == "04" ||
+            byte == "05" || byte == "06" || byte == "07" || byte == "08" || byte == "09" ||
+            byte == "0a" || byte == "0b" || byte == "0c" || byte == "0d" || byte == "0e" ||
+            byte == "0f" || byte == "10" || byte == "11" || byte == "12" || byte == "13" ||
+            byte == "14" || byte == "15" || byte == "16" || byte == "17" || byte == "18" ||
+            byte == "19" || byte == "1a" || byte == "1b" || byte == "1c" || byte == "1d" ||
+            byte == "1e" || byte == "1f" || byte == "20" || byte == "7f")
+        {
+            byte = "2e";
+        }
+        char chr = (char) (int) strtol(byte.c_str(), NULL, 16);
+        asciiData.push_back(chr);
+    }
+    return asciiData;
+}
 
+inline bool is_number(std::string s)
+{
+    return !s.empty() && std::find_if(s.begin(), 
+        s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
+}
+
+inline bool is_date(std::string s)
+{
+    std::string date = "([1-9]|([012][0-9])|(3[01]))\/([0]{0,1}[1-9]|1[012])\/[0-9]{4}(([01]{0,1}[0-9])|(2[0-4])):[0-5][0-9]";
+    std::regex expr(date);
+    if (std::regex_match(s, expr)) {
+        return true;
+    }
+    return false;
+}
+
+inline bool is_before(std::string dateOfTicket)
+{
+    time_t now = time(NULL);
+    time_t tTicket;
+    int yy, month, dd, hh, mm;
+    struct tm whenTicket = {0};
+    const char *zTicket = dateOfTicket.c_str();
+
+    sscanf(zTicket, "%2d/%2d/%4d %2d:%2d", &dd, &month, &yy, &hh, &mm);
+    whenTicket.tm_mday = dd;
+    whenTicket.tm_mon = month - 1;
+    whenTicket.tm_year = yy - 1900;
+    whenTicket.tm_hour = hh;
+    whenTicket.tm_min = mm;
+    whenTicket.tm_isdst = -1;
+
+    tTicket = mktime(&whenTicket);
+
+    return tTicket > now;
+}
 
 inline std::string i64tostr(int64_t n)
 {

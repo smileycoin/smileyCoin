@@ -133,7 +133,20 @@ extern json_spirit::Value importprivkey(const json_spirit::Array& params, bool f
 extern json_spirit::Value dumpwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value importwallet(const json_spirit::Array& params, bool fHelp);
 
+extern json_spirit::Value adddex(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value addubi(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value addchapter(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getrichaddresses(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value createservice(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value createticket(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value buyticket(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value deleteservice(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getserviceaddresses(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getticketlist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getubilist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getdexlist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getnpolist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getbooklist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getaddressinfo(const json_spirit::Array& params, bool fHelp); //in rpcmisc.cpp
 extern json_spirit::Value getgenerate(const json_spirit::Array& params, bool fHelp); // in rpcmining.cpp
 extern json_spirit::Value setgenerate(const json_spirit::Array& params, bool fHelp);

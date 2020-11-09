@@ -1411,6 +1411,7 @@ boost::filesystem::path GetTempPath() {
 
 void runCommand(std::string strCommand)
 {
+    LogPrintStr(" WALLET-NOTIFY WALLET-NOTIFY util.cpp 1412 ");
     int nErr = ::system(strCommand.c_str());
     if (nErr)
         LogPrintf("runCommand error: system(%s) returned %d\n", strCommand, nErr);

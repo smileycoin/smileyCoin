@@ -17,9 +17,6 @@
 #include <QMouseEvent>
 #include <QPixmap>
 #include <QMenu>
-#if QT_VERSION < 0x050000
-#include <QUrl>
-#endif
 
 #if defined(HAVE_CONFIG_H)
 #include "bitcoin-config.h" /* for USE_QRCODE */

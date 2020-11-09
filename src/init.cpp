@@ -20,6 +20,8 @@
 #include "ui_interface.h"
 #include "util.h"
 #include "richlistdb.h"
+#include "servicelistdb.h"
+#include "serviceitemlistdb.h"
 
 #ifdef ENABLE_WALLET
 #include "db.h"
@@ -58,6 +60,8 @@ CWallet* pwalletMain;
 #endif
 
 CRichList RichList;
+CServiceList ServiceList;
+CServiceItemList ServiceItemList;
 
 // Used to pass flags to the Bind() function
 enum BindFlags {
@@ -290,7 +294,7 @@ std::string HelpMessage(HelpMessageMode hmm)
     strUsage += "  -mintxfee=<amt>        " + _("Fees smaller than this are considered zero fee (for transaction creation) (default:") + " " + FormatMoney(CTransaction::nMinTxFee) + ")" + "\n";
     strUsage += "  -minrelaytxfee=<amt>   " + _("Fees smaller than this are considered zero fee (for relaying) (default:") + " " + FormatMoney(CTransaction::nMinRelayTxFee) + ")" + "\n";
     strUsage += "  -printtoconsole        " + _("Send trace/debug info to console instead of debug.log file") + "\n";
-    strUsage += "  -datacarriersize       " + strprintf(_("Maximum size of data in data carrier transactions we relay and mine (default: %u)"), MAX_OP_RETURN_RELAY) + "\n";
+    strUsage += "  -datacarriersize=<n>   " + strprintf(_("Maximum size of data in data carrier transactions we relay and mine (default: %u)"), MAX_OP_RETURN_RELAY) + "\n";
     if (GetBoolArg("-help-debug", false))
     {
         strUsage += "  -printblock=<hash>     " + _("Print block on startup, if found in block index") + "\n";
@@ -861,9 +865,65 @@ bool AppInit2(boost::thread_group& threadGroup)
                     break;
                 }
 
+                if (!InitServiceList(*pcoinsdbview)) {
+                    strLoadError = _("Error initializing service list. You need to rebuild the database using -reindex");
+                    break;
+                }
+
+                
+                if (!InitServiceTicketList(*pcoinsdbview)) {
+                    strLoadError = _("Error initializing service ticket list. You need to rebuild the database using -reindex");
+                    break;
+                }
+
+                if (!InitServiceUbiList(*pcoinsdbview)) {
+                    strLoadError = _("Error initializing service ubi list. You need to rebuild the database using -reindex");
+                    break;
+                }
+
+                if (!InitServiceDexList(*pcoinsdbview)) {
+                    strLoadError = _("Error initializing service dex list. You need to rebuild the database using -reindex");
+                    break;
+                }
+                
+                if (!InitServiceBookList(*pcoinsdbview)) {
+                    strLoadError = _("Error initializing service book list. You need to rebuild the database using -reindex");
+                    break;
+                }
+
                  // Reading rich addresses into memory
                 if(!pcoinsdbview -> GetRichAddresses(RichList)) {
                     strLoadError = _("Error loading rich list");
+                    break;
+                }
+
+                // Reading service addresses into memory
+                if(!pcoinsdbview -> GetServiceAddresses(ServiceList)) {
+                    strLoadError = _("Error loading service list");
+                    break;
+                }
+
+                // Reading ticket addresses into memory
+                if(!pcoinsdbview -> GetTicketList(ServiceItemList)) {
+                    strLoadError = _("Error loading service ticket list");
+                    break;
+                }
+                
+                // Reading ubi recipient addresses into memory
+                if(!pcoinsdbview -> GetUbiList(ServiceItemList)) {
+                    strLoadError = _("Error loading service ubi list");
+                    break;
+                }
+                
+                // Reading dex addresses into memory
+                if(!pcoinsdbview -> GetDexList(ServiceItemList)) {
+                    strLoadError = _("Error loading service dex list");
+                    break;
+                }
+                
+                // Reading book chapter addresses into memory
+                if(!pcoinsdbview -> GetBookList(ServiceItemList)) {
+                    strLoadError = _("Error loading service book list");
                     break;
                 }
 
@@ -886,6 +946,41 @@ bool AppInit2(boost::thread_group& threadGroup)
                     RichList.SetForked(fFork);
                 }
 
+                if(!pblocktree -> ReadServiceListFork(fFork)) {
+                    strLoadError = _("Error reading service list fork status");
+                    break;
+                } else {
+                    ServiceList.SetForked(fFork);
+                }
+
+                if(!pblocktree -> ReadServiceTicketListFork(fFork)) {
+                    strLoadError = _("Error reading service ticket list fork status");
+                    break;
+                } else {
+                    ServiceItemList.SetForked(fFork);
+                }
+                
+                if(!pblocktree -> ReadServiceUbiListFork(fFork)) {
+                    strLoadError = _("Error reading service ubi list fork status");
+                    break;
+                } else {
+                    ServiceItemList.SetForked(fFork);
+                }
+                
+                if(!pblocktree -> ReadServiceDexListFork(fFork)) {
+                    strLoadError = _("Error reading service dex list fork status");
+                    break;
+                } else {
+                    ServiceItemList.SetForked(fFork);
+                }
+                
+                if(!pblocktree -> ReadServiceBookListFork(fFork)) {
+                    strLoadError = _("Error reading service book chapter list fork status");
+                    break;
+                } else {
+                    ServiceItemList.SetForked(fFork);
+                }
+
                 uiInterface.InitMessage(_("Verifying blocks..."));
                 if (!VerifyDB(GetArg("-checklevel", 3),
                               GetArg("-checkblocks", 288))) {
@@ -900,6 +995,56 @@ bool AppInit2(boost::thread_group& threadGroup)
                     }
                     else {
                         RichList.SetForked(false);
+                    }
+                }
+
+                if(fFork) {
+                    if(!ServiceList.UpdateServiceAddressHeights()) {
+                        strLoadError = _("Error rollbacking service list heights");
+                        break;
+                    }
+                    else {
+                        ServiceList.SetForked(false);
+                    }
+                }
+                
+                if(fFork) {
+                    if(!ServiceItemList.UpdateTicketListHeights()) {
+                        strLoadError = _("Error rollbacking ticket list heights");
+                        break;
+                    }
+                    else {
+                        ServiceItemList.SetForked(false);
+                    }
+                }
+                
+                if(fFork) {
+                    if(!ServiceItemList.UpdateUbiListHeights()) {
+                        strLoadError = _("Error rollbacking ubi list heights");
+                        break;
+                    }
+                    else {
+                        ServiceItemList.SetForked(false);
+                    }
+                }
+                
+                if(fFork) {
+                    if(!ServiceItemList.UpdateDexListHeights()) {
+                        strLoadError = _("Error rollbacking dex list heights");
+                        break;
+                    }
+                    else {
+                        ServiceItemList.SetForked(false);
+                    }
+                }
+
+                if(fFork) {
+                    if(!ServiceItemList.UpdateBookListHeights()) {
+                        strLoadError = _("Error rollbacking book chapter list heights");
+                        break;
+                    }
+                    else {
+                        ServiceItemList.SetForked(false);
                     }
                 }
 

@@ -5,6 +5,8 @@
 #include "walletview.h"
 
 #include "addressbookpage.h"
+#include "servicepage.h"
+#include "ticketpage.h"
 #include "askpassphrasedialog.h"
 #include "bitcoingui.h"
 #include "clientmodel.h"
@@ -17,6 +19,10 @@
 #include "transactiontablemodel.h"
 #include "transactionview.h"
 #include "walletmodel.h"
+#include "init.h"
+#include "servicelistdb.h"
+#include "servicetablemodel.h"
+#include "tickettablemodel.h"
 
 #include "ui_interface.h"
 
@@ -27,6 +33,7 @@
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <wallet.h>
 
 WalletView::WalletView(QWidget *parent):
     QStackedWidget(parent),
@@ -59,11 +66,21 @@ WalletView::WalletView(QWidget *parent):
     //addressBookPage->setAttribute(Qt::WA_DeleteOnClose);
     //addressBookPage->setModel(walletModel->getAddressTableModel());
 
+    servicePage = new ServicePage(this);
+    //servicePage->setServiceModel(walletModel->getServiceTableModel());
+    servicePage->setWindowFlags(Qt::Widget);
+
+    ticketPage = new TicketPage(this);
+    //ticketPage->setTicketModel(walletModel->getTicketTableModel());
+    ticketPage->setWindowFlags(Qt::Widget);
+
     addWidget(overviewPage);
     addWidget(transactionsPage);
     addWidget(receiveCoinsPage);
     addWidget(sendCoinsPage);
     addWidget(addressBookPage);
+    addWidget(servicePage);
+    addWidget(ticketPage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
@@ -165,6 +182,25 @@ void WalletView::gotoOverviewPage()
 void WalletView::gotoHistoryPage()
 {
     setCurrentWidget(transactionsPage);
+}
+
+void WalletView::gotoServicePage()
+{
+    servicePage->setWalletModel(walletModel);
+
+    ServiceTableModel *serviceModel = new ServiceTableModel(true, pwalletMain, walletModel);
+    servicePage->setServiceModel(serviceModel);
+
+    setCurrentWidget(servicePage);
+}
+
+void WalletView::gotoTicketPage() {
+    ticketPage->setWalletModel(walletModel);
+
+    TicketTableModel *ticketModel = new TicketTableModel("All", pwalletMain, walletModel);
+    ticketPage->setTicketModel(ticketModel);
+
+    setCurrentWidget(ticketPage);
 }
 
 void WalletView::gotoReceiveCoinsPage()

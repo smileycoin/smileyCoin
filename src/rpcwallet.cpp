@@ -512,7 +512,7 @@ Value encryptmessage(const Array& params, bool fHelp)
     {
         pubkey = Jeeq::SearchForPubKey(addr);
         if (!pubkey.IsValid())
-            throw JSONRPCError(RPC_TYPE_ERROR, 
+            throw JSONRPCError(RPC_TYPE_ERROR,
                     "The address has not been spent on the blockchain so its public key is unavailable");
 
     }

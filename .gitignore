@@ -9,19 +9,35 @@ src/smileycoin-cli
 src/test/test_smileycoin
 src/qt/test/test_smileycoin-qt
 
+#autoreconf
 Makefile.in
 aclocal.m4
 autom4te.cache/
+build-aux/config.guess
+build-aux/config.sub
+build-aux/depcomp
+build-aux/install-sh
+build-aux/ltmain.sh
+build-aux/m4/libtool.m4
+build-aux/m4/lt~obsolete.m4
+build-aux/m4/ltoptions.m4
+build-aux/m4/ltsugar.m4
+build-aux/m4/ltversion.m4
+build-aux/missing
+build-aux/compile
+build-aux/test-driver
 config.log
 config.status
 configure
+libtool
 src/smileycoin-config.h
 src/smileycoin-config.h.in
 src/bitcoin-config.h
 src/bitcoin-config.h.in
-src/build-aux/
 src/stamp-h1
-misc/share/qt/Info.plist
+src/obj
+share/setup.nsi
+share/qt/Info.plist
 
 src/qt/*.moc
 src/qt/moc_*.cpp
@@ -85,9 +101,9 @@ coverage_percent.txt
 linux-coverage-build
 linux-build
 win32-build
-misc/qa/pull-tester/run-smileycoind-for-test.sh
-misc/qa/pull-tester/build-tests.sh
-misc/qa/pull-tester/run-bitcoind-for-test.sh
+qa/pull-tester/run-smileycoind-for-test.sh
+qa/pull-tester/build-tests.sh
+qa/pull-tester/run-bitcoind-for-test.sh
 
 !src/leveldb*/Makefile
 *.ipch

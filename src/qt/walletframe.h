@@ -52,6 +52,10 @@ public slots:
     void gotoOverviewPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
+    /** Switch to service page */
+    void gotoServicePage();
+    /** Switch to ticket page */
+    void gotoTicketPage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
