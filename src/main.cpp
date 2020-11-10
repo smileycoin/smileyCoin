@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 // junk comment line 3
 // junk comment line 4
+// junk comment line 5
 
 #include "main.h"
 
