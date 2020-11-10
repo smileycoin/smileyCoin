@@ -405,6 +405,21 @@ Value listaddressgroupings(const Array& params, bool fHelp)
     return jsonGroupings;
 }
 
+/* Fallið tekið ekki inn viðfang en skilar hrósi. */
+Value getCompliment(const Array& params, bool fHelp) {
+            if (fHelp || params.size() != 0) {
+                    throw runtime_error("getCompliment \n"
+        "thað tharf ekki að setja vidfang. There is no need for parameter. \n");
+            }
+            string compliments[5] = {
+            "thu ert frabaer/ You are great",
+            "thu ert fyndin/ You are funny",
+            "thu ert skemmtileg manneskja/ You are a fun person",
+            "thu ert gafud mannerskja/ you are a smart person",
+            "thu ert yndisleg manneskja/ you are a wonderful person"};
+            return compliments[rand() % 5];
+}
+
 Value signmessage(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
