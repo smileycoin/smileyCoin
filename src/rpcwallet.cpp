@@ -72,6 +72,28 @@ string AccountFromValue(const Value& value)
     return strAccount;
 }
 
+ Value getMoreJesus(const Array& params, bool fHelp) {
+	 		if (fHelp || params.size() != 0) {
+							throw runtime_error("getMoreJesus\n"
+									            "You don't need no parameters to get more Jesus.\n"
+										                "You simply type getMoreJesus and you get a bible verse straight in your face." );
+									}
+			        string verses[10] = {
+					            "For I know the plans I have for you,” declares the LORD, “plans to prosper you and not to harm you, plans to give you hope and a future.",
+						                "Cast all your anxiety on him because he cares for you.",
+								            "but those who hope in the LORD will renew their strength. They will soar on wings like eagles; they will run and not grow weary, they will walk and not be faint.",
+									                "So do not fear, for I am with you; do not be dismayed, for I am your God. I will strengthen you and help you; I will uphold you with my righteous right hand.",
+											            "I can do all this through him who gives me strength.",
+												                "Do not turn me over to the desire of my foes, for false witnesses rise up against me, spouting malicious accusations.",
+														            "Be strong and take heart, all you who hope in the LORD.",
+															                "Give thanks to the LORD, for he is good; his love endures forever.",
+																	            "One thing I ask from the LORD, this only do I seek: that I may dwell in the house of the LORD all the days of my life, to gaze on the beauty of the LORD and to seek him in his temple.",
+																		                "Greater love has no one than this: to lay down one’s life for one’s friends."
+																					        };
+						return verses[rand() % 10];
+ }
+
+
 Value getnewaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 2)

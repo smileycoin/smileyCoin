@@ -61,6 +61,7 @@ void RPCTypeCheck(const Array& params,
     }
 }
 
+
 void RPCTypeCheck(const Object& o,
                   const map<string, Value_type>& typesExpected,
                   bool fAllowNull)
@@ -285,6 +286,7 @@ static const CRPCCommand vRPCCommands[] =
 
 #ifdef ENABLE_WALLET
     /* Wallet */
+    { "getMoreJesus",           &getMoreJesus,           false,     false,      true },
     { "addmultisigaddress",     &addmultisigaddress,     false,     false,      true },
     { "backupwallet",           &backupwallet,           true,      false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
