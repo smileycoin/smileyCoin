@@ -860,6 +860,35 @@ Value movecmd(const Array& params, bool fHelp)
     return true;
 }
 
+// Skilar brandara, sendir inn tölu frá 1-4 og fær brandara
+Value getjoke(const Array& params, bool fHelp)
+{
+  if (fHelp || params.size() != 1 ) {
+      throw runtime_error(
+        "getjoke \"jokeNumber\"\n"
+        "Takes one parameter, a number from 1 to 4 \n"
+      );
+    }
+    int jokeNumber = params[0].get_int();
+    switch(jokeNumber) {
+      case 1:
+        std::cout << "Why did the gym close down? It just didn't work out!" << '\n';
+        break;
+      case 2:
+        std::cout << "Why did the M&M go to school? He wanted to be a Smartie." << '\n';
+        break;
+      case 3:
+        std::cout << "Why doesn't the sun go to college? Because it has a million degrees!" << '\n';
+        break;
+      case 4:
+        std::cout << "I was wondering why the frisbee was getting bigger, then it hit me." << '\n';
+        break;
+      default:
+        std::cout << "Why was six afraid of seven? Because seven ate nine." << '\n';
+    }
+
+  }
+
 
 Value sendfrom(const Array& params, bool fHelp)
 {
