@@ -13,6 +13,7 @@
 #include "richlistdb.h"
 #include "servicelistdb.h"
 #include "serviceitemlistdb.h"
+#include "jeeq.h"
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"
 #ifdef ENABLE_WALLET
@@ -1138,7 +1139,7 @@ Value createmultisig(const Array& params, bool fHelp)
     result.push_back(Pair("address", address.ToString()));
     result.push_back(Pair("redeemScript", HexStr(inner.begin(), inner.end())));
 
-    return result;
+        return result;
 }
 
 Value verifymessage(const Array& params, bool fHelp)
@@ -1191,6 +1192,74 @@ Value verifymessage(const Array& params, bool fHelp)
         return false;
 
     return (pubkey.GetID() == keyID);
+}
+
+Value sendcodedmessage(const Array &params, bool fHelp)
+{
+	if (fHelp || params.size() != 3)
+		throw runtime_error(
+			"sendcodedmessage \"publickey\" \"value\" \"message\"\n"
+			"\nSend an encrypted message\n"
+			"\nArguments:\n"
+			"1. \"publickey\"          (string, required) Hex encoded public key for encryptnh. Derives address \n"
+            ".  \"value\"              (number, required) The amount of coins to be sent along with the message \n"
+			"2. \"message\"            (string, required) The message that was signed.\n"
+			"\nResult:\n"
+			"hex            (string) The transaction hash in hex.\n"
+			"\nExamples:\n"
+			"\nUnlock the wallet for 30 seconds\n" +
+			HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
+			"\nSend the message\n" + HelpExampleCli("sendcodedmessage", "\"03d9f7c799c1fb80334ba8244bd73061917a3f2f5fd20ac9549d6992cb45ae52c4\" \"100\" \"my message\""));
+
+	string strPubKeyHex = params[0].get_str();
+    double value = params[1].get_real();
+	string strMessage = params[2].get_str();
+
+	if (!IsHex(strPubKeyHex))
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a valid hex format for public key");
+
+	const CPubKey pubKey(ParseHex(strPubKeyHex));
+	if ( !pubKey.IsFullyValid() )
+		throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a valid public key hex");
+
+    // Encrypt message using the public key
+	using namespace Jeeq;
+	std::vector<uint8_t> encryptedMessage = EncryptMessage(pubKey, strMessage);
+
+    // OP_RETURN data can not be over 80 bytes
+    if (encryptedMessage.size() > 80)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Message is too long");
+
+    // Address to send to
+	CBitcoinAddress address(pubKey.GetID());
+    // Build transaction outputs
+    CScript scriptPubKey;
+    CScript messageScript;
+    scriptPubKey.SetDestination(address.Get());
+    messageScript << OP_RETURN << encryptedMessage;
+
+
+    EnsureWalletIsUnlocked();
+
+    // Prepare parameters for CreateTransaction()x
+    vector<pair<CScript, int64_t>> sendVec;
+    sendVec.push_back(make_pair(scriptPubKey, AmountFromValue(value)));
+    sendVec.push_back(make_pair(messageScript, 0));
+
+
+    CWalletTx wtx;
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+
+    // Create and send tranasction
+    bool fCreated = pwalletMain->CreateTransaction(sendVec, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Committing transaction failed.");
+
+    return wtx.GetHash().GetHex();
 }
 
 #pragma clang diagnostic pop
