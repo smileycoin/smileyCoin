@@ -328,12 +328,12 @@ static const CRPCCommand vRPCCommands[] =
     { "walletlock",             &walletlock,             true,      false,      true },
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
     { "walletpassphrase",       &walletpassphrase,       true,      false,      true },
+    { "sendencryptedmessage",   &sendencryptedmessage,   true,      false,      true },
 
     /* Wallet-enabled mining */
     { "getgenerate",            &getgenerate,            true,      false,      false },
     { "gethashespersec",        &gethashespersec,        true,      false,      false },
     { "setgenerate",            &setgenerate,            true,      true,       false },
-    { "sendtoteitur",           &sendtoteitur,            false,     false,      true  },
 #endif // ENABLE_WALLET
 };
 

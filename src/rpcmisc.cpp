@@ -13,6 +13,7 @@
 #include "richlistdb.h"
 #include "servicelistdb.h"
 #include "serviceitemlistdb.h"
+#include "jeeq.h"
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"
 #ifdef ENABLE_WALLET
@@ -930,11 +931,11 @@ Value getubilist(const Array& params, bool fHelp)
         throw runtime_error("getubilist \"address\"\n"
                             "Returns all UBI recipient addresses that belong to the specified UBI service address\n"
                             );
-    
+
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
     if(!address.IsValid())
         throw runtime_error("Not a valid Smileycoin address");
-    
+
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
     bool isUbi = false;
@@ -955,7 +956,7 @@ Value getubilist(const Array& params, bool fHelp)
     ServiceItemList.GetUbiList(info);
 
     int i = 0;
-    
+
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         std::string toAddress = get<1>(it->second);
@@ -963,7 +964,7 @@ Value getubilist(const Array& params, bool fHelp)
             obj.push_back(Pair("UBI Recipient Address: ", it->first));
         }
     }
-    
+
     return obj;
 }
 
@@ -974,18 +975,18 @@ Value getdexlist(const Array& params, bool fHelp)
         throw runtime_error("getdexlist \"address\"\n"
                             "Returns all DEX addresses that belong to the specified DEX service address\n"
                             );
-    
+
     Object obj;
     std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> info;
 
     ServiceItemList.GetDexList(info);
-    
+
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         obj.push_back(Pair("DEX Address: ", it->first));
         obj.push_back(Pair("Description: ", get<2>(it->second)));
     }
-    
+
     return obj;
 }
 
@@ -996,7 +997,7 @@ Value getbooklist(const Array& params, bool fHelp)
         throw runtime_error("getbooklist \"address\"\n"
                             "Returns all book chapters that belong to the specified book service address\n"
                             );
-    
+
     Object obj;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> info;
     ServiceItemList.GetBookList(info);
@@ -1008,6 +1009,16 @@ Value getbooklist(const Array& params, bool fHelp)
         obj.push_back(Pair("Chapter Address: ", it->first));
     }
     
+    /*std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> info;
+
+    ServiceItemList.GetNpoList(info);
+
+    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    {
+        obj.push_back(Pair("Npo name: ", get<1>(it->second)));
+        obj.push_back(Pair("Npo address: ", get<2>(it->second)));
+    }*/
+
     return obj;
 }
 
@@ -1037,7 +1048,7 @@ Value getnpolist(const Array& params, bool fHelp)
             obj.push_back(Pair("Non-profit address: ", it->first));
         }
     }
-    
+
     return obj;
 }
 
@@ -1051,7 +1062,7 @@ Value getaddressinfo(const Array& params, bool fHelp)
     if(!address.IsValid())
         throw runtime_error("Invalid Smileycoin address");
     Object obj;
-    CScript key;    
+    CScript key;
     key.SetDestination(address.Get());
     std::pair<int64_t, int> value;
     if(!pcoinsTip->GetAddressInfo(key, value))
@@ -1059,7 +1070,7 @@ Value getaddressinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("Balance", ValueFromAmount(value.first)));
     obj.push_back(Pair("Height", value.second));
 
-    return obj; 
+    return obj;
 }
 
 #ifdef ENABLE_WALLET
@@ -1245,7 +1256,7 @@ Value createmultisig(const Array& params, bool fHelp)
     result.push_back(Pair("address", address.ToString()));
     result.push_back(Pair("redeemScript", HexStr(inner.begin(), inner.end())));
 
-    return result;
+        return result;
 }
 
 Value verifymessage(const Array& params, bool fHelp)
@@ -1300,4 +1311,96 @@ Value verifymessage(const Array& params, bool fHelp)
     return (pubkey.GetID() == keyID);
 }
 
+Value sendencryptedmessage(const Array &params, bool fHelp)
+{
+	if (fHelp || params.size() != 3)
+		throw runtime_error(
+			"sendencryptedmessage \"address\" \"value\" \"message\"\n"
+			"\nSend an encrypted message\n"
+			"\nArguments:\n"
+			"1. \"address\"            (string, required) Spent smileycoin address used to encrypt the message. \n"
+            ".  \"value\"              (number, required) The amount of coins to be sent along with the message. \n"
+			"2. \"message\"            (string, required) The message to encrypt.\n"
+			"\nResult:\n"
+			"hex            (string) The transaction hash in hex.\n"
+			"\nExamples:\n"
+			"\nUnlock the wallet for 30 seconds\n" +
+			HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
+			"\nSend the message\n" + HelpExampleCli("sendencryptedmessage", "\"03d9f7c799c1fb80334ba8244bd73061917a3f2f5fd20ac9549d6992cb45ae52c4\" \"100\" \"my message\""));
+
+	string strAddress = params[0].get_str();
+    double value = params[1].get_real();
+	string strMessage = params[2].get_str();
+
+    EnsureWalletIsUnlocked();
+
+    if (!fTxIndex)
+        throw JSONRPCError(RPC_MISC_ERROR, "Transaction indexing (txindex=1) must be set");
+
+    if (strMessage.empty())
+        throw JSONRPCError(RPC_TYPE_ERROR, "No message to encrypt");
+
+    CBitcoinAddress addr(strAddress);
+    if (!addr.IsValid())
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
+    if (addr.IsScript())
+        throw JSONRPCError(RPC_TYPE_ERROR, "Address must be a P2PKH address");
+
+
+    CKeyID keyID;
+    if (!addr.GetKeyID(keyID))
+        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
+
+    CKey key;
+    CPubKey pubkey;
+    // if the key is in our wallet, we use it, else we search the blockchain
+    if (pwalletMain->GetKey(keyID, key))
+    {
+        pubkey = key.GetPubKey();
+    }
+    else
+    {
+        pubkey = Jeeq::SearchForPubKey(addr);
+        if (!pubkey.IsValid())
+            throw JSONRPCError(RPC_TYPE_ERROR,
+                    "The address has not been spent on the blockchain so its public key is unavailable");
+
+    }
+
+    vector<uint8_t> vchEnc;
+    vchEnc = Jeeq::EncryptMessage(pubkey, strMessage);
+    if (vchEnc.empty())
+        throw JSONRPCError(RPC_MISC_ERROR, "Could not encrypt message");
+
+    // OP_RETURN data can not be over 80 bytes
+    if (vchEnc.size() > 80)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The message must be 32 bytes or less");
+
+    // Build transaction outputs
+    CScript scriptPubKey;
+    CScript messageScript;
+    scriptPubKey.SetDestination(addr.Get());
+    messageScript << OP_RETURN << vchEnc;
+
+    // Prepare parameters for CreateTransaction()x
+    vector<pair<CScript, int64_t>> sendVec;
+    sendVec.push_back(make_pair(scriptPubKey, AmountFromValue(value)));
+    sendVec.push_back(make_pair(messageScript, 0));
+
+    CWalletTx wtx;
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+
+    // Create and send tranasction
+    bool fCreated = pwalletMain->CreateTransaction(sendVec, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Committing transaction failed.");
+
+    return wtx.GetHash().GetHex();
+}
+
 #pragma clang diagnostic pop
+

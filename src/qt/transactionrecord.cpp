@@ -7,6 +7,8 @@
 #include "base58.h"
 #include "wallet.h"
 #include "guiutil.h"
+#include "encryptionutils.h"
+#include "jeeq.h"
 
 #include <stdint.h>
 
@@ -38,6 +40,10 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
     uint256 hash = wtx.GetHash();
     std::map<std::string, std::string> mapValue = wtx.mapValue;
 
+    bool txDataExists = false;
+    bool txDataIsEncrypted = false;
+    std::string txData;
+
     if (nNet > 0 || wtx.IsCoinBase())
     {
         //
@@ -58,15 +64,30 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                     // Check if data exists in transaction
                     std::string hexString = HexStr(txout2.scriptPubKey);
                     if (hexString.substr(0, 2) == "6a") {
-                        sub.data += hexString.substr(4, hexString.size());
+                        txDataExists = true;
+                        txData = hexString.substr(4, hexString.size());
+                        if (txData.substr(0, 8) == "6a6a0000") // 6a6a0000 start of jeeq encryption header
+                            txDataIsEncrypted = true;
                     }
                 }
 
                 if (ExtractDestination(txout.scriptPubKey, address) && IsMine(*wallet, address))
                 {
                     // Received by Bitcoin Address
+                    CBitcoinAddress addr(address);
                     sub.type = TransactionRecord::RecvWithAddress;
-                    sub.address = CBitcoinAddress(address).ToString();
+                    sub.address = addr.ToString();
+
+                    // Add data. Decrypt it if needed.
+                    if (txDataExists) {
+                        if (txDataIsEncrypted) {
+                            std::string decryptedData;
+                            if (decryptData(txData, addr, wallet, decryptedData))
+                                sub.data += decryptedData;
+                        } else {
+                            sub.data += txData;
+                        }
+                    }
                 }
                 else
                 {
@@ -109,22 +130,31 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             //
             int64_t nTxFee = nDebit - wtx.GetValueOut();
 
+            for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++) {
+                const CTxOut &txout2 = wtx.vout[nOut];
+                // Check if data exists in transaction
+                std::string hexString = HexStr(txout2.scriptPubKey);
+                if (hexString.substr(0, 2) == "6a") {
+                    txDataExists = true;
+                    txData = hexString.substr(4, hexString.size());
+                    if (txData.substr(0, 8) == "6a6a0000")
+                        txDataIsEncrypted = true;
+                }
+            }
+
             for (unsigned int nOut = 0; nOut < wtx.vout.size(); nOut++)
             {
                 const CTxOut& txout = wtx.vout[nOut];
                 TransactionRecord sub(hash, nTime);
                 sub.idx = parts.size();
 
-                // Check if data exists in transaction
-                std::string hexString = HexStr(txout.scriptPubKey);
-                if (hexString.substr(0, 2) == "6a") {
-                    sub.data += hexString.substr(4, hexString.size());
-                }
-
-                if(wallet->IsMine(txout))
+                bool sentToSelf = false;
+                bool isMine = wallet->IsMine(txout);
+                if(isMine && !txDataIsEncrypted)
                 {
                     // Ignore parts sent to self, as this is usually the change
                     // from a transaction sent back to our own address.
+                    // If data is encrypted we need the address.
                     continue;
                 }
 
@@ -132,17 +162,38 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                 if (ExtractDestination(txout.scriptPubKey, address))
                 {
                     // Sent to Bitcoin Address
+                    CBitcoinAddress addr(address);
                     sub.type = TransactionRecord::SendToAddress;
-                    sub.address = CBitcoinAddress(address).ToString();
+                    sub.address = addr.ToString();
+
+
+                    if  (txDataExists) {
+                        if (txDataIsEncrypted) {
+                            std::string decryptedData;
+                            if (decryptData(txData, addr, wallet, decryptedData))
+                            {
+                                sentToSelf = true;
+                                sub.data += decryptedData;
+                            }
+                            else if (isMine)
+                            {
+                                // We don't need to record change.
+                                continue;
+                            }
+                        } else
+                            sub.data += txData;
+                    }
                 }
                 else
                 {
+                    if (txDataExists) continue; // Transaction with data has already been recorded
                     // Sent to IP, or other non-address transaction like OP_EVAL
                     sub.type = TransactionRecord::SendToOther;
                     sub.address = mapValue["to"];
                 }
 
                 int64_t nValue = txout.nValue;
+                if (sentToSelf) nValue = 0;
                 /* Add fee to first output */
                 if (nTxFee > 0)
                 {

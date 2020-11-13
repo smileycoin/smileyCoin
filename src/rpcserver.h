@@ -150,6 +150,7 @@ extern json_spirit::Value getdexlist(const json_spirit::Array& params, bool fHel
 extern json_spirit::Value getnpolist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getbooklist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getaddressinfo(const json_spirit::Array& params, bool fHelp); //in rpcmisc.cpp
+extern json_spirit::Value sendencryptedmessage(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getgenerate(const json_spirit::Array& params, bool fHelp); // in rpcmining.cpp
 extern json_spirit::Value setgenerate(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getnetworkhashps(const json_spirit::Array& params, bool fHelp);
@@ -197,7 +198,6 @@ extern json_spirit::Value getinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getwalletinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getblockchaininfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getnetworkinfo(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value sendtoteitur(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value getrawtransaction(const json_spirit::Array& params, bool fHelp); // in rcprawtransaction.cpp
 extern json_spirit::Value listunspent(const json_spirit::Array& params, bool fHelp);

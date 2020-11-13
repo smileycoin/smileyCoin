@@ -8,6 +8,7 @@
 #include "addressbookpage.h"
 #include "addresstablemodel.h"
 #include "guiutil.h"
+#include "encryptionutils.h"
 #include "optionsmodel.h"
 #include "walletmodel.h"
 #include "ui_interface.h"
@@ -33,11 +34,13 @@ SendCoinsEntry::SendCoinsEntry(QWidget *parent) :
     ui->addAsData->setPlaceholderText(tr("Enter a message to send with your transfer"));
 
     // normal bitcoin address field
-    GUIUtil::setupAddressWidget(ui->payTo, this);
+    GUIUtil::setupSendAddressWidget(ui->payTo, this);
     // just a label for displaying bitcoin address(es)
     ui->payTo_is->setFont(GUIUtil::bitcoinAddressFont());
     ui->addAsData2->addItem("HEX");
     ui->addAsData2->addItem("ASCII");
+    ui->addAsEncrypted->addItem("Unencrypted");
+    ui->addAsEncrypted->addItem("Encrypted");
 }
 
 SendCoinsEntry::~SendCoinsEntry()
@@ -122,6 +125,8 @@ bool SendCoinsEntry::validate()
     if (!model)
         return false;
 
+    bool isPubKey = validatePublicKeyFromHexStr(ui->payTo->text().toStdString());
+    bool isAddress = model->validateAddress(ui->payTo->text());
     // Check input validity
     bool retval = true;
 
@@ -129,10 +134,30 @@ bool SendCoinsEntry::validate()
     if (recipient.paymentRequest.IsInitialized())
         return retval;
 
-    if (!model->validateAddress(ui->payTo->text()))
+    if (!isPubKey && !isAddress)
     {
         ui->payTo->setValid(false);
         retval = false;
+    }
+
+    if (ui->addAsEncrypted->currentText() == "Encrypted" && isAddress) {
+        QMessageBox::critical(0, tr("Public key was rejected!"), tr("Data encryption requires public key instead of address"));
+        retval = false;
+    }
+
+    if (ui->addAsEncrypted->currentText() == "Encrypted" && isPubKey) {
+        std::string encryptedString;
+        if (encryptString(
+            hexToAscii(ui->addAsData->text().toStdString()),
+            ui->payTo->text().toStdString(),
+            encryptedString)
+        ) {
+            if (encryptedString.size() > 160 /* Max 80 bytes * 2 for the hex format */) {
+                QMessageBox::critical(0, tr("Data input was rejected!"),
+                              tr("The data input is to long for encryption"));
+                retval = false;
+            }
+        }
     }
 
     if (!ui->payAmount->validate())
@@ -163,16 +188,44 @@ SendCoinsRecipient SendCoinsEntry::getValue()
         return recipient;
 
     // Normal payment
-    recipient.address = ui->payTo->text();
+    if (validatePublicKeyFromHexStr(ui->payTo->text().toStdString())) {
+        recipient.address = QString::fromStdString(addressFromPublicKey(ui->payTo->text().toStdString()));
+    } else {
+        recipient.address = ui->payTo->text();
+    }
     recipient.label = ui->addAsLabel->text();
     recipient.amount = ui->payAmount->value();
     recipient.message = ui->messageTextLabel->text();
 
     if(ui->addAsData2->currentText() == "ASCII") {
         QString asciiData = ui->addAsData->text();
-        recipient.data = asciiData.toLatin1().toHex();
+
+        if (ui->addAsEncrypted->currentText() == "Encrypted")  {
+            // Encrypt the data before setting it onto recipient object
+            std::string pubKeyHex = ui->payTo->text().toStdString();
+            std::string encryptedHexString;
+            if (encryptString(asciiData.toStdString(), pubKeyHex, encryptedHexString)){
+                recipient.data = QString::fromStdString(encryptedHexString);
+            }
+        } else {
+            // Send data unencrypted
+            recipient.data = asciiData.toLatin1().toHex();
+        }
     } else {
-        recipient.data = ui->addAsData->text();
+        if (ui->addAsEncrypted->currentText() == "Encrypted")  {
+            // Encrypt the data before setting it onto recipient object
+            QString asciiData = ui->addAsData->text();
+            std::string pubKeyHex = ui->payTo->text().toStdString();
+            std::string asciiHex = hexToAscii(asciiData.toStdString());
+            std::string encryptedHexString;
+            if (encryptString(asciiHex, pubKeyHex, encryptedHexString)){
+                recipient.data = QString::fromStdString(encryptedHexString);
+            }
+        } else {
+            // Send data unencrypted
+            recipient.data = ui->addAsData->text();
+        }
+
     }
 
     return recipient;
