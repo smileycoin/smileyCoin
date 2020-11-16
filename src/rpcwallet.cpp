@@ -583,7 +583,7 @@ int64_t GetAccountBalance(const string& strAccount, int nMinDepth)
     return GetAccountBalance(walletdb, strAccount, nMinDepth);
 }
 
-Value getbalance(const Array& params, bool fHelp)
+Value getRandomNumber(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
         throw runtime_error(
@@ -592,7 +592,7 @@ Value getbalance(const Array& params, bool fHelp)
             "Random number from 1-99999"
         );
     int randomNum = rand() % 1000000;
-    
+
     return randomNum;
 }
 
