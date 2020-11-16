@@ -42,6 +42,7 @@ BITCOIN_CORE_H = \
   core.h \
   crypter.h \
   db.h \
+  encryptionutils.h \
   richlistdb.h \
   servicelistdb.h \
   serviceitemlistdb.h \
@@ -148,6 +149,7 @@ libbitcoin_wallet_a_SOURCES = \
   wallet.cpp \
   walletdb.cpp \
   jeeq.cpp \
+  encryptionutils.cpp \
   $(BITCOIN_CORE_H)
 
 libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)

@@ -7,6 +7,7 @@
 #include "base58.h"
 #include "wallet.h"
 #include "guiutil.h"
+#include "encryptionutils.h"
 #include "jeeq.h"
 
 #include <stdint.h>
@@ -23,30 +24,6 @@ bool TransactionRecord::showTransaction(const CWalletTx &wtx)
             return false;
         }
     }
-    return true;
-}
-
-/* 
-    Try and decrypt data encrypted by public key 
-*/
-bool _decryptData(std::string txData, CBitcoinAddress address, const CWallet *wallet, std::string &decryptedData) {
-    CKeyID keyID;
-    if (!address.GetKeyID(keyID))
-        return false;
-
-    CKey vchSecret;
-    if (!wallet->GetKey(keyID, vchSecret))
-        return false;
-
-    if (!IsHex(txData))
-        return false;
-
-    std::string decryptedString = Jeeq::DecryptMessage(vchSecret, ParseHex(txData));
-
-    if (decryptedString.length() == 0)
-        return false;
-
-    decryptedData = HexStr(decryptedString);
     return true;
 }
 
@@ -105,7 +82,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                     if (txDataExists) {
                         if (txDataIsEncrypted) {
                             std::string decryptedData;
-                            if (_decryptData(txData, addr, wallet, decryptedData))
+                            if (decryptData(txData, addr, wallet, decryptedData))
                                 sub.data += decryptedData;
                         } else {
                             sub.data += txData;
@@ -139,7 +116,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             fAllToMe = fAllToMe && wallet->IsMine(txout);
 
         if (fAllFromMe && fAllToMe)
-        {   
+        {
             // Payment to self
             int64_t nChange = wtx.GetChange();
 
@@ -171,34 +148,34 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                 TransactionRecord sub(hash, nTime);
                 sub.idx = parts.size();
 
-                bool sentToSelf = false;                
+                bool sentToSelf = false;
                 bool isMine = wallet->IsMine(txout);
                 if(isMine && !txDataIsEncrypted)
                 {
                     // Ignore parts sent to self, as this is usually the change
-                    // from a transaction sent back to our own address. 
+                    // from a transaction sent back to our own address.
                     // If data is encrypted we need the address.
                     continue;
                 }
-                
+
                 CTxDestination address;
                 if (ExtractDestination(txout.scriptPubKey, address))
                 {
                     // Sent to Bitcoin Address
                     CBitcoinAddress addr(address);
                     sub.type = TransactionRecord::SendToAddress;
-                    sub.address = addr.ToString();  
-                    
+                    sub.address = addr.ToString();
+
 
                     if  (txDataExists) {
                         if (txDataIsEncrypted) {
                             std::string decryptedData;
-                            if (_decryptData(txData, addr, wallet, decryptedData))
-                            {   
+                            if (decryptData(txData, addr, wallet, decryptedData))
+                            {
                                 sentToSelf = true;
                                 sub.data += decryptedData;
                             }
-                            else if (isMine) 
+                            else if (isMine)
                             {
                                 // We don't need to record change.
                                 continue;

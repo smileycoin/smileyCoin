@@ -157,6 +157,13 @@
        </property>
        </widget>
       </item>
+      <item>
+       <widget class="QComboBox" name="addAsEncrypted">
+       <property name="toolTip">
+        <string>Data can be sent encrypted by receivers public key.</string>
+       </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item row="3" column="0">
@@ -703,6 +710,9 @@
     </item>
     <item>
      <widget class="QComboBox" name="addAsData2_is"/>
+    </item>
+    <item>
+     <widget class="QComboBox" name="addAsEncrypted_is"/>
     </item>
    </layout>
    </item>
@@ -1265,6 +1275,9 @@
       </item>
       <item>
        <widget class="QComboBox" name="addAsData2_s"/>
+      </item>
+      <item>
+       <widget class="QComboBox" name="addAsEncrypted_s"/>
       </item>
      </layout>
     </item>
