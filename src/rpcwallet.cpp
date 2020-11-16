@@ -2050,3 +2050,57 @@ Value getwalletinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
     return obj;
 }
+
+Value getproverb(const Array& params, bool fHelp) {
+    if(fHelp || params.size() != 0) {
+        throw runtime_error(
+            "getproverb\n"
+            "Returns a random proverb\n"
+            "No parameters are required\n"
+        );
+    }
+    string proverb;
+    switch(rand() % 10) {
+        case 0: {
+            proverb = "A bad workman always blames his tools.";
+            break;
+        }
+        case 1: {
+            proverb = "Actions speak louder than words.";
+            break;
+        }
+        case 2: {
+            proverb = "A journey of thousand miles begins with a single step.";
+            break;
+        }
+        case 3: {
+            proverb = "Beauty is in the eye of the beholder.";
+            break;
+        }
+        case 4: {
+            proverb = "Don’t put the cart before the horse.";
+            break;
+        }
+        case 5: {
+            proverb = "Fortune favors the brave.";
+            break;
+        }
+        case 6: {
+            proverb = "If it ain’t broke, don’t fix it.";
+            break;
+        }
+        case 7: {
+            proverb = "It’s no use crying over spilt milk.";
+            break;
+        }
+        case 8: {
+            proverb = "Laughter is the best medicine.";
+            break;
+        }
+        case 9: {
+            proverb = "Lightning never strikes twice in the same place.";
+            break;
+        }
+    }
+    return proverb;
+}
