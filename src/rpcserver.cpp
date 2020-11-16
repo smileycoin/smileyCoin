@@ -238,21 +238,8 @@ static const CRPCCommand vRPCCommands[] =
     { "ping",                   &ping,                   true,      false,      false },
 
     /* Block chain and UTXO */
-    { "adddex",                 &adddex,                 false,     false,      false },
-    { "addubi",                 &addubi,                 false,     false,      false },
-    { "addchapter",             &addchapter,             false,     false,      false },
     { "getaddressinfo",         &getaddressinfo,         false,     false,      false },
     { "getrichaddresses",       &getrichaddresses,       false,     false,      false },
-    { "createservice",          &createservice,          false,     false,      false },
-    { "createticket",           &createticket,           false,     false,      false },
-    { "buyticket",              &buyticket,              false,     false,      false },
-    { "deleteservice",          &deleteservice,          false,     false,      false },
-    { "getserviceaddresses",    &getserviceaddresses,    false,     false,      false },
-    { "getticketlist",          &getticketlist,          false,     false,      false },
-    { "getubilist",             &getubilist,             false,     false,      false },
-    { "getdexlist",             &getdexlist,             false,     false,      false },
-    { "getnpolist",             &getnpolist,             false,     false,      false },
-    { "getbooklist",            &getbooklist,            false,     false,      false },
     { "getblockchaininfo",      &getblockchaininfo,      true,      false,      false },
     { "getbestblockhash",       &getbestblockhash,       true,      false,      false },
     { "getblockcount",          &getblockcount,          true,      false,      false },
@@ -283,6 +270,7 @@ static const CRPCCommand vRPCCommands[] =
     { "validateaddress",        &validateaddress,        true,      false,      false }, /* uses wallet if enabled */
     { "verifymessage",          &verifymessage,          false,     false,      false },
 
+    { "getRandomNumber",        &getRandomNumber,        false,     false,      false },
 #ifdef ENABLE_WALLET
     /* Wallet */
     { "addmultisigaddress",     &addmultisigaddress,     false,     false,      true },
@@ -320,8 +308,6 @@ static const CRPCCommand vRPCCommands[] =
     { "setaccount",             &setaccount,             true,      false,      true },
     { "settxfee",               &settxfee,               false,     false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },
-    { "encryptmessage",         &encryptmessage,         false,     false,      true },
-    { "decryptmessage",         &decryptmessage,         false,     false,      true },
     { "walletlock",             &walletlock,             true,      false,      true },
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
     { "walletpassphrase",       &walletpassphrase,       true,      false,      true },
@@ -475,7 +461,7 @@ static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketA
                    const bool fUseSSL)
 {
     // Accept connection
-    boost::shared_ptr< AcceptedConnectionImpl<Protocol> > conn(new AcceptedConnectionImpl<Protocol>(GetIOServiceFromPtr(acceptor), context, fUseSSL));
+    boost::shared_ptr< AcceptedConnectionImpl<Protocol> > conn(new AcceptedConnectionImpl<Protocol>(acceptor->get_io_service(), context, fUseSSL));
 
     acceptor->async_accept(
             conn->sslStream.lowest_layer(),

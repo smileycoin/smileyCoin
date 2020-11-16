@@ -11,7 +11,6 @@
 #include "util.h"
 #include "wallet.h"
 #include "walletdb.h"
-#include "jeeq.h"
 
 #include <stdint.h>
 
@@ -74,7 +73,7 @@ string AccountFromValue(const Value& value)
 
 Value getnewaddress(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 2)
+    if (fHelp || params.size() > 1)
         throw runtime_error(
             "getnewaddress ( \"account\" )\n"
             "\nReturns a new Smileycoin address for receiving payments.\n"
@@ -82,14 +81,12 @@ Value getnewaddress(const Array& params, bool fHelp)
             "so payments received with the address will be credited to 'account'.\n"
             "\nArguments:\n"
             "1. \"account\"        (string, optional) The account name for the address to be linked to. if not provided, the default account \"\" is used. It can also be set to the empty string \"\" to represent the default account. The account does not need to exist, it will be created if there is no account by the given name.\n"
-            "2. \"pattern\"        (string, optional) A pattern that needs to be found in the address generated. Account needs to be set for this to work.\n"
             "\nResult:\n"
             "\"smileycoinaddress\" (string) The new smileycoin address\n"
             "\nExamples:\n"
             + HelpExampleCli("getnewaddress", "")
             + HelpExampleCli("getnewaddress", "\"\"")
             + HelpExampleCli("getnewaddress", "\"myaccount\"")
-            + HelpExampleCli("getnewaddress", "\"myaccount\" \"GS\"")
             + HelpExampleRpc("getnewaddress", "\"myaccount\"")
         );
 
@@ -98,21 +95,14 @@ Value getnewaddress(const Array& params, bool fHelp)
     if (params.size() > 0)
         strAccount = AccountFromValue(params[0]);
 
-    string strPattern;
-    if (params.size() > 1)
-        strPattern = params[1].get_str();
-
     if (!pwalletMain->IsLocked())
         pwalletMain->TopUpKeyPool();
 
+    // Generate a new key that is added to wallet
     CPubKey newKey;
-    CKeyID keyID;
-    do {
-        // Generate a new key that is added to wallet
-        if (!pwalletMain->GetKeyFromPool(newKey))
-           throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
-        keyID = newKey.GetID();
-    } while (CBitcoinAddress(keyID).ToString().find(strPattern) == std::string::npos);
+    if (!pwalletMain->GetKeyFromPool(newKey))
+        throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
+    CKeyID keyID = newKey.GetID();
 
     pwalletMain->SetAddressBook(keyID, strAccount, "receive");
 
@@ -456,129 +446,6 @@ Value signmessage(const Array& params, bool fHelp)
     return EncodeBase64(&vchSig[0], vchSig.size());
 }
 
-Value encryptmessage(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 2)
-        throw runtime_error(
-            "encryptmessage \"smileycoinaddress\" \"message\"\n"
-            "\nEncrypt a message with the public key of an address"
-            + HelpRequiringPassphrase() + "\n"
-            "\nArguments:\n"
-            "1. \"smileycoinaddress\"  (string, required) The smileycoin address to use for the public key.\n"
-            "2. \"message\"            (string, required) The message to encrypt.\n"
-            "\nResult:\n"
-            "\"signature\"             (string) The encrypted message encoded in base 64\n"
-            "\nExamples:\n"
-            "\nUnlock the wallet for 30 seconds\n"
-            + HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
-            "\nEncrypt the message\n"
-            + HelpExampleCli("encryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"my message\"") +
-            "\nDecrypt the message\n"
-            + HelpExampleCli("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"?\"") +
-            "\nAs json rpc\n"
-            + HelpExampleRpc("encryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", \"my message\"")
-        );
-
-    EnsureWalletIsUnlocked();
-
-    if (!fTxIndex)
-        throw JSONRPCError(RPC_MISC_ERROR, "Transaction indexing (txindex=1) must be set");
-
-    string strAddress = params[0].get_str();
-    string strMessage = params[1].get_str();
-
-    if (strMessage.empty())
-        throw JSONRPCError(RPC_TYPE_ERROR, "No message to encrypt");
-
-    CBitcoinAddress addr(strAddress);
-    if (!addr.IsValid())
-        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
-    if (addr.IsScript())
-        throw JSONRPCError(RPC_TYPE_ERROR, "Address must be a P2PKH address");
-
-
-    CKeyID keyID;
-    if (!addr.GetKeyID(keyID))
-        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
-
-    CKey key;
-    CPubKey pubkey;
-    // if the key is in our wallet, we use it, else we search the blockchain
-    if (pwalletMain->GetKey(keyID, key))
-    {
-        pubkey = key.GetPubKey();
-    }
-    else
-    {
-        pubkey = Jeeq::SearchForPubKey(addr);
-        if (!pubkey.IsValid())
-            throw JSONRPCError(RPC_TYPE_ERROR,
-                    "The address has not been spent on the blockchain so its public key is unavailable");
-
-    }
-
-    vector<uint8_t> vchEnc;
-    vchEnc = Jeeq::EncryptMessage(pubkey, strMessage);
-    if (vchEnc.empty())
-        throw JSONRPCError(RPC_MISC_ERROR, "Could not encrypt message");
-
-    return EncodeBase64(&vchEnc[0], vchEnc.size());
-}
-
-Value decryptmessage(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 2)
-        throw runtime_error(
-            "decryptmessage \"smileycoinaddress\" \"message\"\n"
-            "\ndecrypt a message with the public key of an address"
-            + HelpRequiringPassphrase() + "\n"
-            "\nArguments:\n"
-            "1. \"smileycoinaddress\"  (string, required) The smileycoin address to use for the public key.\n"
-            "2. \"message\"            (string, required) The message to decrypt.\n"
-            "\nResult:\n"
-            "\"signature\"             (string) The decrypted message encoded in base 64\n"
-            "\nExamples:\n"
-            "\nUnlock the wallet for 30 seconds\n"
-            + HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
-            "\ndecrypt the message\n"
-            + HelpExampleCli("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"my message\"") +
-            "\nDecrypt the message\n"
-            + HelpExampleCli("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"?\"") +
-            "\nAs json rpc\n"
-            + HelpExampleRpc("decryptmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", \"my message\"")
-        );
-
-    EnsureWalletIsUnlocked();
-
-    string strAddress = params[0].get_str();
-    string strEnc = params[1].get_str();
-
-    if (strEnc.empty())
-        throw JSONRPCError(RPC_TYPE_ERROR, "No message to encrypt");
-
-    vector<unsigned char> enc = DecodeBase64(&strEnc[0]);
-
-
-    CBitcoinAddress addr(strAddress);
-    if (!addr.IsValid())
-        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
-
-    CKeyID keyID;
-    if (!addr.GetKeyID(keyID))
-        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
-
-    CKey key;
-    if (!pwalletMain->GetKey(keyID, key))
-        throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
-
-    string vchDec;
-    vchDec = Jeeq::DecryptMessage(key, enc);
-    if (vchDec.empty())
-        throw JSONRPCError(RPC_MISC_ERROR, "Could not decrypt message");
-
-    return vchDec;
-}
-
 Value getreceivedbyaddress(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 1 || params.size() > 2)
@@ -716,6 +583,18 @@ int64_t GetAccountBalance(const string& strAccount, int nMinDepth)
     return GetAccountBalance(walletdb, strAccount, nMinDepth);
 }
 
+Value getbalance(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "getRandomNumber \n"
+            "Takes no argument"
+            "Random number from 1-99999"
+        );
+    int randomNum = rand() % 1000000;
+    
+    return randomNum;
+}
 
 Value getbalance(const Array& params, bool fHelp)
 {
