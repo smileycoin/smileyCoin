@@ -331,6 +331,8 @@ static const CRPCCommand vRPCCommands[] =
     { "gethashespersec",        &gethashespersec,        true,      false,      false },
     { "getwork",                &getwork,                true,      false,      true  },
     { "setgenerate",            &setgenerate,            true,      true,       false },
+    { "riddleMeThis",           &riddleMeThis,          false,     false,      true },
+    { "riddleMeThisAnser",      &riddleMeThisAnwser,          false,     false,      true },
 #endif // ENABLE_WALLET
 };
 

@@ -34,6 +34,28 @@ std::string HelpRequiringPassphrase()
         : "";
 }
 
+
+
+Value riddleMeThis(const Array& params, bool fHelp) {
+            if (fHelp || params.size() != 0) {
+                throw runtime_error("riddleMeThis \n"
+                 "Returns a riddle. No parameter needed.\n");
+            }
+            string riddle = "I follow you all the time and copy your every move, but you can’t touch me or catch me. What am I?"
+            return riddle;
+}
+
+Value riddleMeThisAnswer(const Array& params, bool fHelp) {
+            if (fHelp || params.size() != 0) {
+                throw runtime_error("riddleMeThis \n"
+                 "Returns a the answer from the command riddleMeTHis. No parameter needed.\n");
+            }
+            string riddleAnswer = "Your Shadow!"
+            return riddleAnswer;
+}
+
+
+
 void EnsureWalletIsUnlocked()
 {
     if (pwalletMain->IsLocked())
