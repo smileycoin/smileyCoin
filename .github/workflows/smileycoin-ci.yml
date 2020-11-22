@@ -8,18 +8,72 @@ on:
 
 jobs:
   ubuntu_no_gui:
-
     runs-on: ubuntu-20.04
-
     steps:
+    - uses: actions/checkout@v2
     - name: dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential libdb5.3++-dev libboost-all-dev libssl-dev libtool autoconf pkg-config
-    - uses: actions/checkout@v2
     - name: configure
       run: ./autogen.sh && ./configure --with-gui=no
     - name: make
       run: make
     - name: make check
       run: make check
+
+  ubuntu_gui:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libdb5.3++-dev libboost-all-dev libssl-dev libtool autoconf pkg-config
+        sudo apt-get install -y libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler
+    - name: configure
+      run: ./autogen.sh && ./configure
+    - name: make
+      run: make
+    - name: make check
+      run: make check
+
+  ubuntu_xpile_win:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libtool autotools-dev automake autoconf pkg-config bsdmainutils curl git
+        sudo apt-get install -y g++-mingw-w64-x86-64 nsis
+    - name: cache depends
+      id: cache-depends
+      uses: actions/cache@v2
+      with:
+        path: depends
+        key: depends-${{ hashFiles('**/depends/built/x86_64-w64-mingw32/*/*.tar.gz.hash') }}
+    - name: compile depends
+      run: cd depends && make HOST=x86_64-w64-mingw32
+    - name: configure
+      run: |
+        ./autogen.sh
+        CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --prefix=/
+    - name: make
+      run: |
+        make
+        export PACKAGE_VERSION=$(grep PACKAGE_VERSION src/bitcoin-config.h | awk '{gsub(/"/,""); print $3}')
+        echo "::set-env name=PACKAGE_VERSION::$PACKAGE_VERSION"
+    - name: make check
+      run: make check
+    - name: make deploy
+      run: |
+        make deploy
+        sha256sum smileycoin-${{ env.PACKAGE_VERSION }}-win64-setup.exe > SHA256
+    - name: upload installer
+      uses: actions/upload-artifact@v2
+      with:
+        name: smileycoin-${{ env.PACKAGE_VERSION }}-win64-setup
+        path: |
+          ${{ github.workspace }}/smileycoin-${{ env.PACKAGE_VERSION }}-win64-setup.exe
+          ${{ github.workspace }}/SHA256

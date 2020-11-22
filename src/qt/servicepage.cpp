@@ -35,7 +35,7 @@ ServicePage::ServicePage(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ServiceList.GetMyServiceAddresses(myServices);
+    /*ServiceList.GetMyServiceAddresses(myServices);
     if (myServices.empty()) {
         ui->viewAllServices->hide();
         ui->viewMyServices->hide();
@@ -54,12 +54,10 @@ ServicePage::ServicePage(QWidget *parent) :
         ui->horizontalLayout->setAlignment(ui->viewAllServices, Qt::AlignHCenter);
         ui->horizontalLayout->setAlignment(ui->viewMyServices, Qt::AlignHCenter);
     }
-    ui->deleteService->hide();
+    ui->deleteService->hide();*/
 
     connect(ui->newService, SIGNAL(clicked()), this, SLOT(onNewServiceAction()));
     connect(ui->deleteService, SIGNAL(clicked()), this, SLOT(onDeleteServiceAction()));
-    connect(ui->viewAllServices, SIGNAL(toggled(bool)), this, SLOT(onViewAllServices()));
-    connect(ui->viewMyServices, SIGNAL(toggled(bool)), this, SLOT(onViewMyServices()));
 }
 
 ServicePage::~ServicePage()
@@ -79,7 +77,6 @@ void ServicePage::setServiceModel(ServiceTableModel *serviceModel) {
 
     ui->tableView->setModel(proxyModel);
     ui->tableView->sortByColumn(0, Qt::AscendingOrder);
-    ui->tableView->verticalHeader()->setDefaultSectionSize(50);
 
     // Set column widths
 #if QT_VERSION < 0x050000
@@ -144,26 +141,30 @@ void ServicePage::onDeleteServiceAction() {
         return;
 
     QModelIndexList selection = ui->tableView->selectionModel()->selectedRows();
-    QModelIndex idx = selection.at(0);
-    int row = idx.row();
-
     if(!selection.isEmpty())
     {
+        QModelIndex idx = selection.at(0);
+        int row = idx.row();
+
         QString serviceName = idx.sibling(row, 0).data().toString();
         QString serviceAddress = idx.sibling(row, 1).data().toString();
-        QString serviceType = idx.sibling(row, 2).data().toString();
+
+        CBitcoinAddress sAddress = CBitcoinAddress(serviceAddress.toStdString());
+        if (!IsMine(*pwalletMain, sAddress.Get())) {
+            QMessageBox::warning(this, windowTitle(),
+                    tr("Permission denied. The service address \"%1\" does not belong to this wallet.").arg(serviceAddress),
+                    QMessageBox::Ok, QMessageBox::Ok);
+            return;
+        }
 
         SendCoinsRecipient issuer;
         // Send delete service transaction to own service address
         issuer.address = serviceAddress;
         // Start with n = 1 to get rid of spam
-        issuer.amount = 100000000;
+        issuer.amount = 1*COIN;
 
-        // Create op_return in the following form OP_RETURN = "del service serviceName serviceAddress serviceType"
-        issuer.data = QString::fromStdString("64656c207365727669636520") +
-                      serviceName.toLatin1().toHex() + QString::fromStdString("20") +
-                      serviceAddress.toLatin1().toHex() + QString::fromStdString("20") +
-                      serviceType.toLatin1().toHex();
+        // Create op_return in the following form OP_RETURN = "DS serviceAddress"
+        issuer.data = QString::fromStdString("445320") + serviceAddress.toLatin1().toHex();
 
         QList <SendCoinsRecipient> recipients;
         recipients.append(issuer);
@@ -198,7 +199,6 @@ void ServicePage::onDeleteServiceAction() {
             if (sendStatus.status == WalletModel::OK) {
                 QDialog::accept();
                 CoinControlDialog::coinControl->UnSelectAll();
-                //ui->tableView->model()->removeRow(selection.at(0).row());
             } else {
                 QDialog::reject();
             }

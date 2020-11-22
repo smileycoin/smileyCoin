@@ -22,6 +22,9 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <regex>
+#include <algorithm>
+#include <cctype>
 
 #ifndef WIN32
 #include <sys/resource.h>
@@ -250,6 +253,43 @@ inline std::string hexToAscii(std::string dataStr)
         asciiData.push_back(chr);
     }
     return asciiData;
+}
+
+inline bool is_number(std::string s)
+{
+    return !s.empty() && std::find_if(s.begin(), 
+        s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
+}
+
+inline bool is_date(std::string s)
+{
+    std::string date = "([1-9]|([012][0-9])|(3[01]))\/([0]{0,1}[1-9]|1[012])\/[0-9]{4}(([01]{0,1}[0-9])|(2[0-4])):[0-5][0-9]";
+    std::regex expr(date);
+    if (std::regex_match(s, expr)) {
+        return true;
+    }
+    return false;
+}
+
+inline bool is_before(std::string dateOfTicket)
+{
+    time_t now = time(NULL);
+    time_t tTicket;
+    int yy, month, dd, hh, mm;
+    struct tm whenTicket = {0};
+    const char *zTicket = dateOfTicket.c_str();
+
+    sscanf(zTicket, "%2d/%2d/%4d %2d:%2d", &dd, &month, &yy, &hh, &mm);
+    whenTicket.tm_mday = dd;
+    whenTicket.tm_mon = month - 1;
+    whenTicket.tm_year = yy - 1900;
+    whenTicket.tm_hour = hh;
+    whenTicket.tm_min = mm;
+    whenTicket.tm_isdst = -1;
+
+    tTicket = mktime(&whenTicket);
+
+    return tTicket > now;
 }
 
 inline std::string i64tostr(int64_t n)

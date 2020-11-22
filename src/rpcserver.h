@@ -133,9 +133,20 @@ extern json_spirit::Value importprivkey(const json_spirit::Array& params, bool f
 extern json_spirit::Value dumpwallet(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value importwallet(const json_spirit::Array& params, bool fHelp);
 
+extern json_spirit::Value adddex(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value addubi(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value addchapter(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getrichaddresses(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value createservice(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value createticket(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value buyticket(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value deleteservice(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getserviceaddresses(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getserviceaddressinfo(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getticketlist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getubilist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getdexlist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getnpolist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getbooklist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getaddressinfo(const json_spirit::Array& params, bool fHelp); //in rpcmisc.cpp
 extern json_spirit::Value getgenerate(const json_spirit::Array& params, bool fHelp); // in rpcmining.cpp
 extern json_spirit::Value setgenerate(const json_spirit::Array& params, bool fHelp);
@@ -154,6 +165,8 @@ extern json_spirit::Value getaccount(const json_spirit::Array& params, bool fHel
 extern json_spirit::Value getaddressesbyaccount(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendtoaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value signmessage(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value encryptmessage(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value decryptmessage(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value verifymessage(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getreceivedbyaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getreceivedbyaccount(const json_spirit::Array& params, bool fHelp);

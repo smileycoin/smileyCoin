@@ -19,6 +19,7 @@ class CCoins;
 class uint256;
 class CRichList;
 class CServiceList;
+class CServiceItemList;
 
 // -dbcache default (MiB)
 static const int64_t nDefaultDbCache = 100;
@@ -39,23 +40,35 @@ public:
     bool SetCoins(const uint256 &txid, const CCoins &coins);
     bool GetAddressInfo(const CScript &key, std::pair<int64_t,int> &value);
     bool SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value);
-    bool GetServiceInfo(const CScript &key, std::tuple<std::string, std::string, std::string> &value);
-    bool SetServiceInfo(const CScript &key, const std::tuple<std::string, std::string, std::string> &value);
-    bool GetServiceAddressInfo(const CScript &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
-    bool SetServiceAddressInfo(const CScript &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool GetServiceInfo(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
+    bool SetServiceInfo(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
+    bool GetTicketList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool SetTicketList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool GetUbiList(const std::string &key, std::tuple<std::string, std::string> &value);
+    bool SetUbiList(const std::string &key, const std::tuple<std::string, std::string> &value);
+    bool GetDexList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
+    bool SetDexList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
+    bool GetBookList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
+    bool SetBookList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
 
     bool HaveCoins(const uint256 &txid);
     uint256 GetBestBlock();
     bool SetBestBlock(const uint256 &hashBlock);
     bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript,std::pair<int64_t,int> > &mapAddressInfo,
-                    const std::map<CScript, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
-                    const std::map<CScript, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceAddressInfo,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceTicketList,
+                    const std::map<std::string, std::tuple<std::string, std::string> > &mapServiceUbiList,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceDexList,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceBookList,
                     const uint256 &hashBlock);
     bool GetStats(CCoinsStats &stats);
 
     bool GetRichAddresses(CRichList &richlist);
     bool GetServiceAddresses(CServiceList &servicelist);
-    bool GetServiceAddressInfo(CServiceList &servicelist);
+    bool GetTicketList(CServiceItemList &ticketlist);
+    bool GetUbiList(CServiceItemList &ubilist);
+    bool GetDexList(CServiceItemList &dexlist);
+    bool GetBookList(CServiceItemList &booklist);
 };
 
 /** Access to the block database (blocks/index/) */
@@ -81,8 +94,14 @@ public:
     bool ReadRichListFork(bool &fForked);
     bool WriteServiceListFork(bool fForked);
     bool ReadServiceListFork(bool &fForked);
-    bool WriteServiceInfoListFork(bool fForked);
-    bool ReadServiceInfoListFork(bool &fForked);
+    bool WriteServiceTicketListFork(bool fForked);
+    bool ReadServiceTicketListFork(bool &fForked);
+    bool WriteServiceUbiListFork(bool fForked);
+    bool ReadServiceUbiListFork(bool &fForked);
+    bool WriteServiceDexListFork(bool fForked);
+    bool ReadServiceDexListFork(bool &fForked);
+    bool WriteServiceBookListFork(bool fForked);
+    bool ReadServiceBookListFork(bool &fForked);
     bool WriteFlag(const std::string &name, bool fValue);
     bool ReadFlag(const std::string &name, bool &fValue);
     bool LoadBlockIndexGuts();

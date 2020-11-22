@@ -84,6 +84,7 @@ namespace boost {
 }
 
 
+
 using namespace std;
 
 map<string, string> mapArgs;
@@ -138,6 +139,7 @@ public:
         for (int i = 0; i < CRYPTO_num_locks(); i++)
             delete ppmutexOpenSSL[i];
         OPENSSL_free(ppmutexOpenSSL);
+        RAND_cleanup();
     }
 }
 instance_of_cinit;
