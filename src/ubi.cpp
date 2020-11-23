@@ -38,26 +38,19 @@ static boost::once_flag ubiInitFlag = BOOST_ONCE_INIT;
 
 namespace UBI
 {
-// read ~/.smileycoin/ubi_addresses and put them into vRecipients
-// it's alright if there is no file, then it behaves like -ubi=0
 static void InitCirculation()
 {
-    auto addressfile_path = GetDataDir() / "ubi_addresses";
+    std::multiset<std::pair<std::string, 
+                  std::tuple<std::string, std::string>>> ubilist;
 
-    ifstream addressfile(addressfile_path.string());
+    ServiceItemList.GetUbiList(ubilist);
 
-    if (!addressfile.good())
-        LogPrintf("UBI::InitCirculation() couldn't read ubi_addresses file, not paying any UBI\n");
-
-    string ln;
-    while (getline(addressfile, ln))
+    for (auto r : ubilist)
     {
-        // allow empty lines or comments
-        if (ln[0] == '#' || ln.empty())
-            continue;
-
-        // user has not been paid, so he is initialized with the height 0
-        vRecipients.push_back({0, CBitcoinAddress(ln)});
+        std::string toAddress = get<1>(r.second);
+        if (toAddress == "" {
+            vRecipients.push_back({0, CBitcoinAddress(it.first)});
+        }
     }
 
     vBatch.assign(min(nBatchSize, vRecipients.size()), CScript());
