@@ -6,6 +6,7 @@
 #define RPCCONSOLE_H
 
 #include <QDialog>
+#include <QCompleter>
 
 class ClientModel;
 
@@ -73,6 +74,8 @@ private:
     int historyPtr;
 
     void startExecutor();
+
+    QCompleter *autoCompleter;
 };
 
 #endif // RPCCONSOLE_H
