@@ -32,9 +32,9 @@ const struct {
     const char *source;
 } ICON_MAPPING[] = {
     {"cmd-request", ":/icons/tx_input"},
-    {"cmd-reply", ":/icons/tx_output"},
-    {"cmd-error", ":/icons/tx_output"},
-    {"misc", ":/icons/tx_inout"},
+    {"cmd-reply",   ":/icons/tx_output"},
+    {"cmd-error",   ":/icons/tx_output"},
+    {"misc",        ":/icons/tx_inout"},
     {NULL, NULL}
 };
 
@@ -87,7 +87,7 @@ bool parseCommandLine(std::vector<std::string> &args, const std::string &strComm
         case STATE_EATING_SPACES: // Handle runs of whitespace
             switch(ch)
             {
-            case '"': state = STATE_DOUBLEQUOTED; break;
+            case '"':  state = STATE_DOUBLEQUOTED; break;
             case '\'': state = STATE_SINGLEQUOTED; break;
             case '\\': state = STATE_ESCAPE_OUTER; break;
             case ' ': case '\n': case '\t':
@@ -230,8 +230,8 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
         Qt::KeyboardModifiers mod = keyevt->modifiers();
         switch(key)
         {
-        case Qt::Key_Up: if(obj == ui->lineEdit) { browseHistory(-1); return true; } break;
-        case Qt::Key_Down: if(obj == ui->lineEdit) { browseHistory(1); return true; } break;
+        case Qt::Key_Up:   if(obj == ui->lineEdit) { browseHistory(-1); return true; } break;
+        case Qt::Key_Down: if(obj == ui->lineEdit) { browseHistory(1);  return true; } break;
         case Qt::Key_PageUp: /* pass paging keys to messages widget */
         case Qt::Key_PageDown:
             if(obj == ui->lineEdit)
@@ -255,8 +255,8 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
             // Exclude most combinations and keys that emit no text, except paste shortcuts
             if(obj == ui->messagesWidget && (
                   (!mod && !keyevt->text().isEmpty() && key != Qt::Key_Tab) ||
-                  ((mod & Qt::ControlModifier) && key == Qt::Key_V) ||
-                  ((mod & Qt::ShiftModifier) && key == Qt::Key_Insert)))
+                  ((mod &  Qt::ControlModifier)      && key == Qt::Key_V)   ||
+                  ((mod &  Qt::ShiftModifier)        && key == Qt::Key_Insert)))
             {
                 ui->lineEdit->setFocus();
                 QApplication::postEvent(ui->lineEdit, new QKeyEvent(*keyevt));
@@ -312,10 +312,10 @@ static QString categoryClass(int category)
 {
     switch(category)
     {
-    case RPCConsole::CMD_REQUEST:  return "cmd-request"; break;
-    case RPCConsole::CMD_REPLY:    return "cmd-reply"; break;
-    case RPCConsole::CMD_ERROR:    return "cmd-error"; break;
-    default:                       return "misc";
+    case RPCConsole::CMD_REQUEST: return "cmd-request";
+    case RPCConsole::CMD_REPLY:   return "cmd-reply";
+    case RPCConsole::CMD_ERROR:   return "cmd-error";
+    default:                      return "misc";
     }
 }
 
@@ -381,7 +381,7 @@ void RPCConsole::setNumConnections(int count)
         return;
 
     QString connections = QString::number(count) + " (";
-    connections += tr("In:") + " " + QString::number(clientModel->getNumConnections(CONNECTIONS_IN)) + " / ";
+    connections += tr("In:")  + " " + QString::number(clientModel->getNumConnections(CONNECTIONS_IN))  + " / ";
     connections += tr("Out:") + " " + QString::number(clientModel->getNumConnections(CONNECTIONS_OUT)) + ")";
 
     ui->numberOfConnections->setText(connections);
