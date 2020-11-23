@@ -840,7 +840,7 @@ Value getubilist(const Array& params, bool fHelp)
     ServiceList.GetServiceAddresses(services);
     bool isUbi = false;
     for(std::multiset< std::pair<std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
-        if (get<2>(it->second) == "2") {
+        if (get<2>(it->second) == "UBI") {
             isUbi = true;
         }
     }
