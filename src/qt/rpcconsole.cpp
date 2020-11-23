@@ -243,12 +243,33 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
 
         case Qt::Key_Return:
         case Qt::Key_Enter:
-            //TODO: fix variable names
-            if(obj == autoCompleter->popup()) {
+            if(obj == autoCompleter->popup())
+            {
                 QApplication::postEvent(ui->lineEdit, new QKeyEvent(*keyevt));
                 return true;
             }
             break;
+
+        case Qt::Key_Tab:
+        case Qt::Key_Backtab:
+                // Provides tab completion in the console
+                if (obj == autoCompleter->popup())
+                {
+                    QModelIndex curIndex = autoCompleter->popup()->currentIndex();
+                    QModelIndex newIndex;
+
+                    if (curIndex.row() == -1)
+                        newIndex = autoCompleter->popup()->model()->index(0, 0);
+                    else if(key == Qt::Key_Backtab)
+                        newIndex = autoCompleter->popup()->model()->index(curIndex.row() - 1, curIndex.column());
+                    else
+                        newIndex = autoCompleter->popup()->model()->index(curIndex.row() + 1, curIndex.column());
+
+                    autoCompleter->popup()->setCurrentIndex(newIndex);
+
+                    return true;
+                }
+                break;
 
         default:
             // Typing in messages widget brings focus to line edit, and redirects key there
@@ -291,7 +312,6 @@ void RPCConsole::setClientModel(ClientModel *model)
 
         ui->networkName->setText(model->getNetworkName());
 
-        //TODO: variable names
         //Completion
         QStringList wordList;
         std::vector<std::string> commandList = tableRPC.listCommands();
