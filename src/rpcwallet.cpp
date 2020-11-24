@@ -813,7 +813,6 @@ Value getbalance(const Array& params, bool fHelp)
     }
 
     string strAccount = AccountFromValue(params[0]);
-
     int64_t nBalance = GetAccountBalance(strAccount, nMinDepth);
 
     return ValueFromAmount(nBalance);
@@ -1684,6 +1683,68 @@ Value backupwallet(const Array& params, bool fHelp)
     return Value::null;
 }
 
+Value consolidate(const Array& params, bool fHelp)
+{
+    int64_t N = params[1].get_int();
+    if (fHelp || params.size() != 2 || N > 200)
+        throw runtime_error(
+            "consolidate \"account\" number of UTXO to consolidate \n"
+            "\nConsolidate many UTXO into one big one, up to 200\n"
+            + HelpRequiringPassphrase() +
+            "\nArguments:\n"
+            "1. \"smileycoinaddress\"  (string, required) The smileycoin address to send to.\n"
+            "2. \"amount\"             (numeric, required) The amount in btc to send. eg 0.1\n"
+            "\nResult:\n"
+            "\"transactionid\"  (string) The transaction id.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("consolidate", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 10")
+            + HelpExampleCli("consolidate", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 100")
+            + HelpExampleCli("consolidate", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 200")
+        );
+
+    CBitcoinAddress address(params[0].get_str());
+    if (!address.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
+    }
+        int64_t tBalance = 0;
+        int64_t tIter = 0;
+        for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
+        {
+            const CWalletTx& wtx = (*it).second;
+            if (!wtx.IsTrusted() || wtx.GetBlocksToMaturity(chainActive.Height() - wtx.GetDepthInMainChain()) > 0)
+                continue;
+
+            int64_t allFee;
+            string strSentAccount;
+            list<pair<CTxDestination, int64_t> > listReceived;
+            list<pair<CTxDestination, int64_t> > listSent;
+            wtx.GetAmounts(listReceived, listSent, allFee, strSentAccount);
+            BOOST_FOREACH(const PAIRTYPE(CTxDestination,int64_t)& r, listReceived)
+            {
+                if (tIter < N) {
+                    tBalance += r.second;
+                }
+                tIter++;
+            }
+            BOOST_FOREACH(const PAIRTYPE(CTxDestination,int64_t)& r, listSent)
+            {
+                if (tIter < N) {
+                    tBalance -= r.second;
+                }
+                tIter++;
+            }
+            tBalance -= allFee;
+        }
+    int64_t nAmount = AmountFromValue(ValueFromAmount(tBalance));
+    CWalletTx wtx2;
+    EnsureWalletIsUnlocked();
+
+    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx2);
+    if (strError != "")
+        throw JSONRPCError(RPC_WALLET_ERROR, strError);
+
+    return wtx2.GetHash().GetHex();
+}
 
 Value keypoolrefill(const Array& params, bool fHelp)
 {
@@ -2083,3 +2144,4 @@ Value getwalletinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("unlocked_until", nWalletUnlockTime));
     return obj;
 }
+
