@@ -869,7 +869,8 @@ Value getjoke(const Array& params, bool fHelp)
         "Takes one parameter, a number from 1 to 4 \n"
       );
     }
-    int jokeNumber = params[0].get_int();
+    string jokeNr = params[0];
+    int jokeNumber = stoi(jokeNr);
     switch(jokeNumber) {
       case 1:
         std::cout << "Why did the gym close down? It just didn't work out!" << '\n';
