@@ -1685,8 +1685,7 @@ Value backupwallet(const Array& params, bool fHelp)
 
 Value consolidate(const Array& params, bool fHelp)
 {
-    int64_t N = params[1].get_int();
-    if (fHelp || params.size() != 2 || N > 200)
+    if (fHelp || params.size() != 2 || params[1].get_int() > 200)
         throw runtime_error(
             "consolidate \"account\" number of UTXO to consolidate \n"
             "\nConsolidate many UTXO into one big one, up to 200\n"
@@ -1702,6 +1701,7 @@ Value consolidate(const Array& params, bool fHelp)
             + HelpExampleCli("consolidate", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 200")
         );
 
+    int64_t N = params[1].get_int();
     CBitcoinAddress address(params[0].get_str());
     if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
