@@ -1193,4 +1193,15 @@ Value verifymessage(const Array& params, bool fHelp)
     return (pubkey.GetID() == keyID);
 }
 
+Value recommendedSwitchGames(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 0)
+        throw runtime_error(
+            "recommendedSwitchGames does not require any parameters\n"
+            "You can call the function and it returns an string array containing Nintendo Switch game recommendations from Sindri"
+        );
+    
+    string recommendedGames[] = {"Super Mario Odyssey", "The Legend of Zelda: Breath of the Wild", "Hades", 
+        "Mario + Rabbids Kingdom Battle", "Paper Mario: The Origami King"};
+}
+
 #pragma clang diagnostic pop
