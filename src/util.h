@@ -262,8 +262,7 @@ inline bool is_number(std::string s)
 
 inline bool is_date(std::string s)
 {
-    std::string date = "([1-9]|([012][0-9])|(3[01]))\/([0]{0,1}[1-9]|1[012])\/[0-9]{4}(([01]{0,1}[0-9])|(2[0-4])):[0-5][0-9]";
-    std::regex expr(date);
+    std::regex expr(R"--(([1-9]|([012][0-9])|(3[01]))\/([0]{0,1}[1-9]|1[012])\/[0-9]{4}(([01]{0,1}[0-9])|(2[0-4])):[0-5][0-9])--");
     if (std::regex_match(s, expr)) {
         return true;
     }
