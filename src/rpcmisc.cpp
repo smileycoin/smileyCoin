@@ -874,18 +874,18 @@ Value getdexlist(const Array& params, bool fHelp)
         throw runtime_error("getdexlist \"address\"\n"
                             "Returns all DEX addresses that belong to the specified DEX service address\n"
                             );
-    
+
     Object obj;
     std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> info;
 
     ServiceItemList.GetDexList(info);
-    
+
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         obj.push_back(Pair("DEX Address: ", it->first));
         obj.push_back(Pair("Description: ", get<2>(it->second)));
     }
-    
+
     return obj;
 }
 
@@ -896,18 +896,18 @@ Value getnpolist(const Array& params, bool fHelp)
         throw runtime_error("getnpolist\n"
                             "Returns all non profit organization addresses\n"
                             );
-    
+
     Object obj;
     /*std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> info;
 
     ServiceItemList.GetNpoList(info);
-    
+
     for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         obj.push_back(Pair("Npo name: ", get<1>(it->second)));
         obj.push_back(Pair("Npo address: ", get<2>(it->second)));
     }*/
-    
+
     return obj;
 }
 
@@ -918,18 +918,18 @@ Value getbooklist(const Array& params, bool fHelp)
         throw runtime_error("getbooklist \"address\"\n"
                             "Returns all book chapters that belong to the specified book service address\n"
                             );
-    
+
     Object obj;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> info;
     ServiceItemList.GetBookList(info);
-    
+
     //TODO bæta við book name, book author og year
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         obj.push_back(Pair("Chapter Number: ", get<2>(it->second)));
         obj.push_back(Pair("Chapter Address: ", it->first));
     }
-    
+
     return obj;
 }
 
