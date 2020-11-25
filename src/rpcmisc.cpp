@@ -855,7 +855,6 @@ Value getubilist(const Array& params, bool fHelp)
 
     ServiceItemList.GetUbiList(info);
 
-    int i = 0;
     
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
