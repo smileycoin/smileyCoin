@@ -783,7 +783,7 @@ Value getbalance(const Array& params, bool fHelp)
     int nMinDepth = 1;
     if (params.size() > 1)
         nMinDepth = params[1].get_int();
-
+    int debug = 0;
     if (params[0].get_str() == "*") {
         // Calculate total balance a different way from GetBalance()
         // (GetBalance() sums up all unspent TxOuts)
@@ -1687,12 +1687,12 @@ Value consolidate(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2 || params[1].get_int() > 200)
         throw runtime_error(
-            "consolidate \"account\" number of UTXO to consolidate \n"
-            "\nConsolidate many UTXO into one big one, up to 200\n"
+            "consolidate \"smileycoinaddress\" N \n"
+            "\nConsolidate many UTXOs into one big one, up to 200\n"
             + HelpRequiringPassphrase() +
             "\nArguments:\n"
-            "1. \"smileycoinaddress\"  (string, required) The smileycoin address to send to.\n"
-            "2. \"amount\"             (numeric, required) The amount in btc to send. eg 0.1\n"
+            "1. \"smileycoinaddress\"  (string, required) One of your own smileycoin addresses that contains UTXOsl.\n"
+            "2. \"N\"             (numeric, required) The amount of UTXOs to consolidate. eg 50\n"
             "\nResult:\n"
             "\"transactionid\"  (string) The transaction id.\n"
             "\nExamples:\n"
@@ -1701,40 +1701,71 @@ Value consolidate(const Array& params, bool fHelp)
             + HelpExampleCli("consolidate", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 200")
         );
 
-    int64_t N = params[1].get_int();
+
+    set<CBitcoinAddress> setAddress;
     CBitcoinAddress address(params[0].get_str());
-    if (!address.IsValid()) {
+    if (!address.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
-    }
-        int64_t tBalance = 0;
-        int64_t tIter = 0;
-        for (map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
+    setAddress.insert(address);
+
+    int nMinDepth = 1;
+    int nMaxDepth = 9999999;
+    int64_t N = params[1].get_int();
+    int64_t tBalance = 0;
+    int64_t tIter = 0;
+
+    Array results;
+    vector<COutput> vecOutputs;
+    assert(pwalletMain != NULL);
+    pwalletMain->AvailableCoins(vecOutputs, false);
+    BOOST_FOREACH(const COutput& out, vecOutputs)
+    {
+        if (out.nDepth < nMinDepth || out.nDepth > nMaxDepth)
+            continue;
+
+        if (setAddress.size())
         {
-            const CWalletTx& wtx = (*it).second;
-            if (!wtx.IsTrusted() || wtx.GetBlocksToMaturity(chainActive.Height() - wtx.GetDepthInMainChain()) > 0)
+            CTxDestination address;
+            if (!ExtractDestination(out.tx->vout[out.i].scriptPubKey, address))
                 continue;
 
-            int64_t allFee;
-            string strSentAccount;
-            list<pair<CTxDestination, int64_t> > listReceived;
-            list<pair<CTxDestination, int64_t> > listSent;
-            wtx.GetAmounts(listReceived, listSent, allFee, strSentAccount);
-            BOOST_FOREACH(const PAIRTYPE(CTxDestination,int64_t)& r, listReceived)
-            {
-                if (tIter < N) {
-                    tBalance += r.second;
-                }
-                tIter++;
-            }
-            BOOST_FOREACH(const PAIRTYPE(CTxDestination,int64_t)& r, listSent)
-            {
-                if (tIter < N) {
-                    tBalance -= r.second;
-                }
-                tIter++;
-            }
-            tBalance -= allFee;
+            if (!setAddress.count(address))
+                continue;
         }
+
+        int64_t nValue = out.tx->vout[out.i].nValue;
+        const CScript& pk = out.tx->vout[out.i].scriptPubKey;
+        Object entry;
+        entry.push_back(Pair("txid", out.tx->GetHash().GetHex()));
+        entry.push_back(Pair("vout", out.i));
+        CTxDestination address;
+        if (ExtractDestination(out.tx->vout[out.i].scriptPubKey, address))
+        {
+            entry.push_back(Pair("address", CBitcoinAddress(address).ToString()));
+            if (pwalletMain->mapAddressBook.count(address))
+                entry.push_back(Pair("account", pwalletMain->mapAddressBook[address].name));
+        }
+        entry.push_back(Pair("scriptPubKey", HexStr(pk.begin(), pk.end())));
+        if (pk.IsPayToScriptHash())
+        {
+            CTxDestination address;
+            if (ExtractDestination(pk, address))
+            {
+                const CScriptID& hash = boost::get<CScriptID>(address);
+                CScript redeemScript;
+                if (pwalletMain->GetCScript(hash, redeemScript))
+                    entry.push_back(Pair("redeemScript", HexStr(redeemScript.begin(), redeemScript.end())));
+            }
+        }
+        entry.push_back(Pair("amount",ValueFromAmount(nValue)));
+        if (tIter < N) {
+            tBalance += nValue;
+            tIter++;
+        }
+        entry.push_back(Pair("confirmations",out.nDepth));
+        results.push_back(entry);
+    }
+
     int64_t nAmount = AmountFromValue(ValueFromAmount(tBalance));
     CWalletTx wtx2;
     EnsureWalletIsUnlocked();
