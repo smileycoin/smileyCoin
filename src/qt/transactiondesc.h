@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QUrl>
 
 class CWallet;
 class CWalletTx;

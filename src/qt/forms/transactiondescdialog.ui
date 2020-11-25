@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTextEdit" name="detailText">
+    <widget class="QTextBrowser" name="detailText">
      <property name="toolTip">
       <string>This pane shows a detailed description of the transaction</string>
      </property>
