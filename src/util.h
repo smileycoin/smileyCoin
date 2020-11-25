@@ -273,17 +273,18 @@ inline bool is_before(std::string dateOfTicket)
 {
     time_t now = time(NULL);
     time_t tTicket;
-    int yy, month, dd, hh, mm;
-    struct tm whenTicket = {0};
+    struct tm whenTicket;
+    memset(&whenTicket, 0, sizeof(struct tm));
     const char *zTicket = dateOfTicket.c_str();
-
-    sscanf(zTicket, "%2d/%2d/%4d %2d:%2d", &dd, &month, &yy, &hh, &mm);
-    whenTicket.tm_mday = dd;
-    whenTicket.tm_mon = month - 1;
-    whenTicket.tm_year = yy - 1900;
-    whenTicket.tm_hour = hh;
-    whenTicket.tm_min = mm;
     whenTicket.tm_isdst = -1;
+
+    sscanf(zTicket, "%2d/%2d/%4d %2d:%2d",
+            &whenTicket.tm_mday,
+            &whenTicket.tm_mon,
+            &whenTicket.tm_year,
+            &whenTicket.tm_hour,
+            &whenTicket.tm_min
+          );
 
     tTicket = mktime(&whenTicket);
 
