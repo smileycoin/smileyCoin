@@ -307,7 +307,6 @@ Value listunspent(const Array& params, bool fHelp)
         entry.push_back(Pair("confirmations",out.nDepth));
         results.push_back(entry);
     }
-    
     return results;
 }
 #endif
