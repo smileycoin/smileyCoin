@@ -18,11 +18,11 @@
 #include <QThread>
 #include <QTime>
 
-// TODO: add a scrollback limit, as there is currently none
 // TODO: make it possible to filter out categories (esp debug messages when implemented)
 // TODO: receive errors and debug messages through ClientModel
 
 const int CONSOLE_HISTORY = 50;
+const int CONSOLE_SCROLLBACK = 100;
 const QSize ICON_SIZE(24, 24);
 
 const int INITIAL_TRAFFIC_GRAPH_MINS = 30;
@@ -202,6 +202,9 @@ RPCConsole::RPCConsole(QWidget *parent) :
     ui->lineEdit->installEventFilter(this);
     ui->messagesWidget->installEventFilter(this);
 
+    // Set scrollback size
+    ui->messagesWidget->document()->setMaximumBlockCount(CONSOLE_SCROLLBACK);
+
     connect(ui->clearButton, SIGNAL(clicked()), this, SLOT(clear()));
     connect(ui->btnClearTrafficGraph, SIGNAL(clicked()), ui->trafficGraph, SLOT(clear()));
 
@@ -346,6 +349,7 @@ void RPCConsole::message(int category, const QString &message, bool html)
         out += message;
     else
         out += GUIUtil::HtmlEscape(message, true);
+
     out += "</td></tr></table>";
     ui->messagesWidget->append(out);
 }
