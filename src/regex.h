@@ -44,7 +44,7 @@ bool isRegex(const string& txData) {
         lines.push_back(line);
     }
 
-    for (int i = 0; i < lines.size(); i++) {
+    for (size_t i = 0; i < lines.size(); i++) {
         std::string strengur = lines[i];
         std::regex expr(strengur);
 
