@@ -1735,59 +1735,6 @@ Value consolidate(const Array& params, bool fHelp)
     return wtx2.GetHash().GetHex();
 }
 
-Value consolidate(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 2 || params[1].get_int() > 200)
-        throw runtime_error(
-            "consolidate \"smileycoinaddress\" N \n"
-            "\nConsolidate many UTXOs into one big one, up to 200\n"
-            + HelpRequiringPassphrase() +
-            "\nArguments:\n"
-            "1. \"smileycoinaddress\"  (string, required) One of your own smileycoin addresses that contains UTXOsl.\n"
-            "2. \"N\"             (numeric, required) The amount of UTXOs to consolidate. eg 50\n"
-            "\nResult:\n"
-            "\"transactionid\"  (string) The transaction id.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("consolidate", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 10")
-            + HelpExampleCli("consolidate", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 100")
-            + HelpExampleCli("consolidate", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 200")
-        );
-
-
-    set<CBitcoinAddress> setAddress;
-    CBitcoinAddress address(params[0].get_str());
-    if (!address.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
-    setAddress.insert(address);
-
-    int64_t N = params[1].get_int();
-    int64_t tBalance = 0;
-    int64_t tIter = 0;
-
-    vector<COutput> vecOutputs;
-    assert(pwalletMain != NULL);
-    pwalletMain->AvailableCoins(vecOutputs, false);
-    BOOST_FOREACH(const COutput& out, vecOutputs)
-    {
-
-        int64_t nValue = out.tx->vout[out.i].nValue;
-        if (tIter < N) {
-            tBalance += nValue;
-            tIter++;
-        }
-    }
-
-    int64_t nAmount = AmountFromValue(ValueFromAmount(tBalance));
-    CWalletTx wtx2;
-    EnsureWalletIsUnlocked();
-
-    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx2);
-    if (strError != "")
-        throw JSONRPCError(RPC_WALLET_ERROR, strError);
-
-    return wtx2.GetHash().GetHex();
-}
-
 Value keypoolrefill(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)
