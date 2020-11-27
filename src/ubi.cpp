@@ -5,6 +5,9 @@
 
 #include <boost/filesystem.hpp>
 
+#include "servicelistdb.h"
+#include "serviceitemlistdb.h"
+
 using namespace std;
 
 // guards nCurrentHeigth, vBatch and vRecipients
@@ -47,9 +50,9 @@ static void InitCirculation()
 
     for (auto r : ubilist)
     {
-        std::string toAddress = get<1>(r.second);
-        if (toAddress == "" {
-            vRecipients.push_back({0, CBitcoinAddress(it.first)});
+        // the urUBI address
+        if (get<1>(r.second) == "BLsTgPMirCUmnd3TE5p9rBLQSXBid3KfnT") {
+            vRecipients.push_back({0, CBitcoinAddress(r.first)});
         }
     }
 
