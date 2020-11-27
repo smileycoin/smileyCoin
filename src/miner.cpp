@@ -367,8 +367,10 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, int algo)
     LogPrintf("CreateNewBlock(): total size %u\n", nBlockSize);
 
   
-      // miner's reward
-      txNew.vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees*0.10);
+      // miner's reward, if ubi then we take a 90% of the tx fees
+      if (fUBI) {
+          txNew.vout[0].nValue = GetBlockValue(pindexPrev->nHeight+1, nFees/10);
+      }
       //CTxOut minerTxOut = CTxOut(0, scriptPubKeyIn);
       CScript richpubkey;
       if(!RichList.NextRichScriptPubKey(richpubkey))
