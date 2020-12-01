@@ -430,7 +430,7 @@ Value createservice(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
     } else if (ServiceList.IsService(serviceAddress)) {
         throw runtime_error("The entered address is already on service list. Please use another address.");
-    } else if (serviceType != "1" || serviceType != "2" || serviceType != "3"|| serviceType != "4"|| serviceType != "5" || serviceType != "6" || serviceType != "7") {
+    } else if (serviceType != "1" && serviceType != "2" && serviceType != "3"&& serviceType != "4"&& serviceType != "5" && serviceType != "6" && serviceType != "7") {
         throw runtime_error("Invalid service type. Please choose a type between 1 - 7.");
     }
 
@@ -840,7 +840,7 @@ Value getubilist(const Array& params, bool fHelp)
     ServiceList.GetServiceAddresses(services);
     bool isUbi = false;
     for(std::multiset< std::pair<std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++ ) {
-        if (get<2>(it->second) == "2") {
+        if (get<2>(it->second) == "UBI") {
             isUbi = true;
         }
     }
