@@ -540,4 +540,16 @@ Value addcontact(const Array& params, bool fHelp)
     return output;
 }
 
+Value listcontacts(const Array& params, bool fHelp) {
+    if (fHelp || params.size() > 0) {
+        throw runtime_error("Error!");
+    }
+    
+    getAll();
+
+    std::string output = "testing!";
+
+    return output;
+}
+
 #pragma clang diagnostic pop
