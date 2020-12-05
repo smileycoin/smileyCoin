@@ -20,6 +20,8 @@
 #include "walletdb.h"
 #endif
 
+#include "contacts.h"
+
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
@@ -513,6 +515,28 @@ Value gethex(const Array& params, bool fHelp)
         output.push_back(hex_digits[c >> 4]);
 	output.push_back(hex_digits[c & 15]);
     }
+    return output;
+}
+
+Value addcontact(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 2) {
+        throw runtime_error("Error!");
+    }
+
+    std::string key = params[0].get_str();
+    std::string value = params[1].get_str();
+
+    bool status = save(key, value);
+
+    std::string output;
+
+    if (status) {
+	output = "Success!";
+    } else {
+	output = "failed!";
+    }
+
     return output;
 }
 
