@@ -527,6 +527,11 @@ Value addcontact(const Array& params, bool fHelp)
     std::string key = params[0].get_str();
     std::string value = params[1].get_str();
 
+    CBitcoinAddress address(value);
+    if (!address.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
+    }
+
     bool status = save(key, value);
 
     std::string output;

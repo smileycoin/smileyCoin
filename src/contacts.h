@@ -5,13 +5,35 @@
 #define CONTACTS_LEVELDB_H
 
 #include <string>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 #include "leveldb/db.h"
 
+std::string getPath() {
+  // Fetch the path to the database
+  const char *homedir;
+  if ((homedir = getenv("HOME")) == NULL) {
+    homedir = getpwuid(getuid())->pw_dir;
+  }
+
+  std::string home(homedir);
+  std::string data("/.smileycoin/contacts");
+
+  std::string path = home + data;
+  return path;
+}
+
+
 template<typename K, typename V> bool save(const K& key, const V& value) {
+  std::string path = getPath();
+
+  std::cout << path << endl;
+
   leveldb::DB* db;
   leveldb::Options options;
   options.create_if_missing = true;
-  leveldb::Status status = leveldb::DB::Open(options, "/home/atli/.smileycoin/contacts", &db);
+  leveldb::Status status = leveldb::DB::Open(options, path, &db);
 
   if (status.ok()) {
     std::cout << "Successfully opened DB!" << endl;
@@ -34,7 +56,7 @@ template<typename K, typename V> bool save(const K& key, const V& value) {
   return ret_status;
 }
 
-template<typename K> std::string get(const std::string& key) {
+template<typename K> std::string get(const K& key) {
   leveldb::DB* db;
   leveldb::Options options;
   options.create_if_missing = true;
@@ -53,10 +75,13 @@ template<typename K> std::string get(const std::string& key) {
 }
 
 void getAll() {
+  std::string path = getPath();
+  std::cout << path << endl;
+
   leveldb::DB* db;
   leveldb::Options options;
   options.create_if_missing = true;
-  leveldb::Status status = leveldb::DB::Open(options, "/home/atli/.smileycoin/contacts", &db);
+  leveldb::Status status = leveldb::DB::Open(options, path, &db);
 
   if (status.ok()) {
     std::cout << "Successfully opened DB!" << endl;
