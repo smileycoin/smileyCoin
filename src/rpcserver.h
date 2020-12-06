@@ -206,5 +206,7 @@ extern json_spirit::Value verifychain(const json_spirit::Array& params, bool fHe
 extern json_spirit::Value gethex(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value addcontact(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value listcontacts(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value sendtocontact(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value removecontact(const json_spirit::Array& params, bool fHelp);
 
 #endif

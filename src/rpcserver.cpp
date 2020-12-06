@@ -274,6 +274,8 @@ static const CRPCCommand vRPCCommands[] =
     { "gethex",          	&gethex,                 false,     false,      false },
     { "addcontact",          	&addcontact,             true,      false,      true },
     { "listcontacts",          	&listcontacts,           true,      false,      true },
+    { "sendtocontact",          &sendtocontact,          true,      false,      true },
+    { "removecontact",          &removecontact,          true,      false,      true },
 
 #ifdef ENABLE_WALLET
     /* Wallet */

@@ -28,8 +28,6 @@ std::string getPath() {
 template<typename K, typename V> bool save(const K& key, const V& value) {
   std::string path = getPath();
 
-  std::cout << path << endl;
-
   leveldb::DB* db;
   leveldb::Options options;
   options.create_if_missing = true;
@@ -56,11 +54,13 @@ template<typename K, typename V> bool save(const K& key, const V& value) {
   return ret_status;
 }
 
-template<typename K> std::string get(const K& key) {
+template<typename K> std::string getContact(const K& key) {
+  std::string path = getPath();
+
   leveldb::DB* db;
   leveldb::Options options;
   options.create_if_missing = true;
-  leveldb::Status status = leveldb::DB::Open(options, "~/.smileycoin/contacts", &db);
+  leveldb::Status status = leveldb::DB::Open(options, path, &db);
 
   assert(status.ok());
 
@@ -74,7 +74,64 @@ template<typename K> std::string get(const K& key) {
   return value;
 }
 
-void getAll() {
+std::string getAll() {
+  std::string path = getPath();
+
+  leveldb::DB* db;
+  leveldb::Options options;
+  options.create_if_missing = true;
+  leveldb::Status status = leveldb::DB::Open(options, path, &db);
+
+  if (status.ok()) {
+    std::cout << "Successfully opened DB!" << endl;
+  } else {
+    std::cout << "Error opening DB!" << endl;
+  }
+
+  std::string output = "Contacts:\n";
+  leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
+
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    output = output + it->key().ToString() + ": " + it->value().ToString() + "\n";
+  }
+
+  assert(it->status().ok());  // Check for any errors found during the scan
+  delete it;
+  it = NULL;
+  delete db;
+  db = NULL;
+  return output;
+}
+//
+// void getAll() {
+  // std::string path = getpath();
+  // std::cout << path << endl;
+//
+  // leveldb::DB* db;
+  // leveldb::Options options;
+  // options.create_if_missing = true;
+  // leveldb::Status status = leveldb::DB::Open(options, path, &db);
+//
+  // if (status.ok()) {
+    // std::cout << "Successfully opened DB!" << endl;
+  // } else {
+    // std::cout << "Error opening DB!" << endl;
+  // }
+//
+  // leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
+//
+  // for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    // cout << it->key().ToString() << ": "  << it->value().ToString() << endl;
+  // }
+//
+  // assert(it->status().ok());  // Check for any errors found during the scan
+  // delete it;
+  // it = NULL;
+  // delete db;
+  // db = NULL;
+// }
+
+template<typename K> bool deleteContact(const K &key) {
   std::string path = getPath();
   std::cout << path << endl;
 
@@ -89,17 +146,18 @@ void getAll() {
     std::cout << "Error opening DB!" << endl;
   }
 
-  leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
+  leveldb::Status s = db->Delete(leveldb::WriteOptions(), key);
+ 
+  bool ret_status = false;
 
-  for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    cout << it->key().ToString() << ": "  << it->value().ToString() << endl;
+  if(s.ok()) {
+      ret_status = true;
   }
 
-  assert(it->status().ok());  // Check for any errors found during the scan
-  delete it;
-  it = NULL;
   delete db;
   db = NULL;
+
+  return ret_status; 
 }
 
 #endif

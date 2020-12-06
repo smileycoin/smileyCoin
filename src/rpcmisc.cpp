@@ -521,11 +521,17 @@ Value gethex(const Array& params, bool fHelp)
 Value addcontact(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2) {
-        throw runtime_error("Error!");
+        throw runtime_error(
+	    "addcontact \"name\" \"smileycoinaddress\" \n"
+	    "\n Stores the given name and address as a contact in the wallet. \n"
+	    "\nArguments:\n"
+	    "1. \"name\" (string,required) The name associated with the stored contact.\n"
+	    "2. \"smileycoinaddress\" (string, required) The smileycoin address of the contact.\n"
+	);
     }
 
-    std::string key = params[0].get_str();
-    std::string value = params[1].get_str();
+    std::string key(params[0].get_str());
+    std::string value(params[1].get_str());
 
     CBitcoinAddress address(value);
     if (!address.IsValid()) {
@@ -537,9 +543,9 @@ Value addcontact(const Array& params, bool fHelp)
     std::string output;
 
     if (status) {
-	output = "Success!";
+        output = "Success! Contact with name: " + key + " and address: " + value + " added!";
     } else {
-	output = "failed!";
+        output = "failed!";
     }
 
     return output;
@@ -547,12 +553,57 @@ Value addcontact(const Array& params, bool fHelp)
 
 Value listcontacts(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 0) {
-        throw runtime_error("Error!");
+        throw runtime_error(
+	    "listcontacts \n"
+	    "\n Returns all the contacts stored in the wallet.\n"
+	);
     }
     
-    getAll();
+    Value output = getAll();
 
-    std::string output = "testing!";
+    return output;
+}
+
+Value sendtocontact(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 2) {
+        throw runtime_error("Error!");
+    }
+
+    std::string key = params[0].get_str();
+    std::string amount = params[1].get_str();
+    double iAmount = atof(amount.c_str());
+
+    std::string address = getContact(key);
+
+    std::cout << "Sending " << iAmount << " to address: " << address << endl;
+    const Array& keys = {address, iAmount};
+
+    Value output = sendtoaddress(keys, false);
+
+    return output;
+}
+
+Value removecontact(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 1) {
+        throw runtime_error(
+	    "removecontact \"name\" \n"
+	    "\n Removes a contact with given name, if it exists. \n"
+	    "\n Arguments: \n"
+	    "1. \"name\" (string, required) The name of the contact to remove.\n"
+        );
+    }
+
+    std::string key(params[0].get_str());
+
+    bool status = deleteContact(key);
+
+    std::string output;
+
+    if (status) {
+	output = "Success!";
+    } else {
+	output = "failed!";
+    }
 
     return output;
 }
