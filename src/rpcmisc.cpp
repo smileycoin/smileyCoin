@@ -590,7 +590,6 @@ Value sendtocontact(const Array& params, bool fHelp) {
 
     std::string address = getContact(key);
 
-    std::cout << "Sending " << iAmount << " to address: " << address << endl;
     const Array& keys = {address, iAmount};
 
     Value output = sendtoaddress(keys, false);
