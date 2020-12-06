@@ -18,6 +18,8 @@
 #include "sendcoinsdialog.h"
 #include "init.h"
 #include "servicelistdb.h"
+#include "serviceitemlistdb.h"
+#include "util.h"
 
 #include <qvalidatedlineedit.h>
 #include <wallet.h>
@@ -42,11 +44,12 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             ui->serviceType->addItem("UBI");
             ui->serviceType->addItem("Book Chapter");
             ui->serviceType->addItem("Traceability");
-            ui->serviceType->addItem("NPO");
+            ui->serviceType->addItem("Nonprofit Organization");
             ui->serviceType->addItem("DEX");
+            ui->serviceType->addItem("Survey");
 
-            ui->serviceName->setMaxLength(20);
-            ui->sCounterName->setText("20 characters left");
+            ui->serviceName->setMaxLength(25);
+            ui->sCounterName->setText("25 characters left");
 
             break;
         }
@@ -58,10 +61,11 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
             setWindowTitle(tr("Create new ticket"));
 
             ServiceList.GetMyServiceAddresses(myServices);
-            for(std::multiset< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
+            for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
             {
-                if(get<2>(it->second) == "TicketSales" || get<2>(it->second) == "Ticketsales") {
-                    ui->ticketService->addItem(QString::fromStdString(get<0>(it->second)));
+                // If service type is Ticket Sales add to dropdown selection
+                if(get<2>(it->second) == "Ticket Sales") {
+                    ui->ticketService->addItem(QString::fromStdString(get<1>(it->second)));
                 }
             }
             ui->ticketName->setMaxLength(20);
@@ -77,6 +81,13 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
     connect(ui->serviceName, SIGNAL(textChanged(const QString &)), this, SLOT(sNameCount(const QString &)));
     connect(ui->ticketName, SIGNAL(textChanged(const QString &)), this, SLOT(tNameCount(const QString &)));
     connect(ui->ticketLocation, SIGNAL(textChanged(const QString &)), this, SLOT(tLocationCount(const QString &)));
+
+    connect(ui->serviceName, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->serviceAddress, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->ticketName, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->ticketLocation, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->ticketPrice, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->ticketAddress, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
 }
 
 EditServiceDialog::~EditServiceDialog()
@@ -100,48 +111,75 @@ void EditServiceDialog::accept()
      {
          case NewService:
          {
-             CBitcoinAddress sAddress = CBitcoinAddress(ui->serviceAddress->text().toStdString());
-             if (!sAddress.IsValid()) {
-                 QMessageBox::warning(this, windowTitle(),
-                                      tr("The entered address \"%1\" is not a valid Smileycoin address.").arg(ui->serviceAddress->text()),
-                                      QMessageBox::Ok, QMessageBox::Ok);
+             if (ui->serviceName->text().isEmpty() || ui->serviceAddress->text().isEmpty()) {
+                 if (ui->serviceName->text().isEmpty()) {
+                     ui->serviceName->setStyleSheet(STYLE_INVALID);
+                 }
+                 if (ui->serviceAddress->text().isEmpty()) {
+                     ui->serviceAddress->setStyleSheet(STYLE_INVALID);
+                 }
                  return;
              }
 
-             if (!IsMine(*pwalletMain, sAddress.Get())) {
+             CBitcoinAddress sAddress = CBitcoinAddress(ui->serviceAddress->text().toStdString());
+             if (!sAddress.IsValid()) {
                  QMessageBox::warning(this, windowTitle(),
-                         tr("The entered address \"%1\" does not belong to this wallet. Please use one of your own addresses or create a new one.").arg(ui->serviceAddress->text()),
+                         tr("The entered address \"%1\" is not a valid Smileycoin address.").arg(ui->serviceAddress->text()),
+                         QMessageBox::Ok, QMessageBox::Ok);
+                 return;
+             }
+
+             if (ServiceList.IsService(ui->serviceAddress->text().toStdString())) {
+                 QMessageBox::warning(this, windowTitle(),
+                         tr("The entered address \"%1\" is already on service list. Please use another address.").arg(ui->serviceAddress->text()),
                          QMessageBox::Ok, QMessageBox::Ok);
                  return;
              }
 
              // Get new service name and convert to hex
-             QString serviceName = ui->serviceName->text().toLatin1().toHex();
+             QString rawServiceName = ui->serviceName->text().toLatin1().toHex();
              // Get new service address and convert to hex
              QString serviceAddress = ui->serviceAddress->text().toLatin1().toHex();
              // Get type of new service and convert to hex
-             QString rawServiceType = ui->serviceType->currentText().toLatin1().toHex();
-             std::vector<std::string> typeStr = splitString(rawServiceType.toStdString(), "20");
-             // Merge into one string if service type name consists of more than one word
+             QString rawServiceType = ui->serviceType->currentText();
              QString serviceType = "";
-             if (typeStr.size() > 1) {
-                 for (std::string::size_type i = 0; i < typeStr.size(); i++) {
-                     serviceType += QString::fromStdString(typeStr.at(i));
+
+             if (rawServiceType == "Ticket Sales") {
+                 serviceType = "31";
+             } else if (rawServiceType == "UBI") {
+                 serviceType = "32";
+             } else if (rawServiceType == "Book Chapter") {
+                 serviceType = "33";
+             } else if (rawServiceType == "Traceability") {
+                 serviceType = "34";
+             } else if (rawServiceType == "Nonprofit Organization") {
+                 serviceType = "35";
+             } else if (rawServiceType == "DEX") {
+                 serviceType = "36";
+             } else if (rawServiceType == "Survey") {
+                 serviceType = "37";
+             }
+
+             std::vector<std::string> nameStr = splitString(rawServiceName.toStdString(), "20");
+             // Merge into one string if service name consists of more than one word
+             QString serviceName = "";
+             if (nameStr.size() > 1) {
+                 for (std::string::size_type i = 0; i < nameStr.size(); i++) {
+                     serviceName += QString::fromStdString(nameStr.at(i));
                  }
              } else {
-                 serviceType = rawServiceType;
+                 serviceName = rawServiceName;
              }
 
              SendCoinsRecipient issuer;
              // Send new service request transaction to official service address
-             //issuer.address = QString::fromStdString("B8dytMfspUhgMQUWGgdiR3QT8oUbNS9QVn");
              issuer.address = QString::fromStdString("B9TRXJzgUJZZ5zPZbywtNfZHeu492WWRxc");
 
              // Start with n = 10 (0.001) to get rid of spam
-             issuer.amount = 1000000000;
+             issuer.amount = 10*COIN;
 
-             // Create op_return in the following form OP_RETURN = "new service serviceName serviceAddress serviceType"
-             issuer.data = QString::fromStdString("6e6577207365727669636520") + serviceName +
+             // Create op_return in the following form OP_RETURN = "NS serviceName serviceAddress serviceType"
+             issuer.data = QString::fromStdString("4e5320") + serviceName +
                            QString::fromStdString("20") + serviceAddress + QString::fromStdString("20") + serviceType;
 
              QList <SendCoinsRecipient> recipients;
@@ -221,6 +259,22 @@ void EditServiceDialog::accept()
          }
          case NewTicket:
          {
+             if (ui->ticketName->text().isEmpty() || ui->ticketLocation->text().isEmpty() || ui->ticketPrice->text().isEmpty() || ui->ticketAddress->text().isEmpty())
+             {
+                 if (ui->ticketName->text().isEmpty()) {
+                     ui->ticketName->setStyleSheet(STYLE_INVALID);
+                 }
+                 if (ui->ticketLocation->text().isEmpty()) {
+                     ui->ticketLocation->setStyleSheet(STYLE_INVALID);
+                 }
+                 if (ui->ticketPrice->text().isEmpty()) {
+                     ui->ticketPrice->setStyleSheet(STYLE_INVALID);
+                 }
+                 if (ui->ticketAddress->text().isEmpty()) {
+                     ui->ticketAddress->setStyleSheet(STYLE_INVALID);
+                 }
+                 return;
+             }
 
              CBitcoinAddress tAddress = CBitcoinAddress(ui->ticketAddress->text().toStdString());
              if (!tAddress.IsValid()) {
@@ -229,10 +283,21 @@ void EditServiceDialog::accept()
                          QMessageBox::Ok, QMessageBox::Ok);
                  return;
              }
-
-             if (!IsMine(*pwalletMain, tAddress.Get())) {
+             if (!is_number(ui->ticketPrice->text().toStdString())) {
+                 QMessageBox::warning(this, windowTitle(), "Ticket price must be a number.", QMessageBox::Ok,
+                         QMessageBox::Ok);
+                 return;
+             }
+             // Don't allow new ticket if date and time has already expired
+             if (!is_before(ui->ticketDateTime->dateTime().toString("dd/MM/yyyyhh:mm").toStdString())) {
                  QMessageBox::warning(this, windowTitle(),
-                         tr("The entered address \"%1\" does not belong to this wallet. Please use one of your own addresses or create a new one.").arg(ui->serviceAddress->text()),
+                         tr("The entered ticket date and time \"%1\" has already expired.").arg(ui->ticketDateTime->dateTime().toString("dd/MM/yyyyhh:mm")),
+                         QMessageBox::Ok, QMessageBox::Ok);
+                 return;
+             }
+             if (ServiceItemList.IsTicket(ui->ticketAddress->text().toStdString())) {
+                 QMessageBox::warning(this, windowTitle(),
+                         tr("The entered address \"%1\" is already on ticket list. Please use another address.").arg(ui->ticketAddress->text()),
                          QMessageBox::Ok, QMessageBox::Ok);
                  return;
              }
@@ -269,19 +334,19 @@ void EditServiceDialog::accept()
 
              QString ticketServiceAddress = "";
              SendCoinsRecipient issuer;
-             // Send new ticket to own service address
-             for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
+             // Send new ticket transaction to corresponding service address
+             for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
              {
-                 if(rawTicketService == QString::fromStdString(get<0>(it->second))) {
-                     ticketServiceAddress = QString::fromStdString(get<1>(it->second));
+                 if(rawTicketService == QString::fromStdString(get<1>(it->second))) {
+                     ticketServiceAddress = QString::fromStdString(it->first);
                  }
              }
              issuer.address = ticketServiceAddress;
              // Start with n = 1 to get rid of spam
-             issuer.amount = 100000000;
+             issuer.amount = 1*COIN;
 
-             // Create op_return in the following form OP_RETURN = "new ticket ticketLoc ticketName ticketDate ticketTime ticketPrice ticketAddress"
-             issuer.data = QString::fromStdString("6e6577207469636b657420") +
+             // Create op_return in the following form OP_RETURN = "NT ticketLoc ticketName ticketDateTime ticketPrice ticketAddress"
+             issuer.data = QString::fromStdString("4e5420") +
                               ticketLoc + QString::fromStdString("20") +
                               ticketName + QString::fromStdString("20") +
                               ticketDateTime + QString::fromStdString("20") +
@@ -379,6 +444,11 @@ void EditServiceDialog::tNameCount(const QString & text) {
 }
 
 void EditServiceDialog::tLocationCount(const QString & text) {
+    QString text_label = QString("%1 characters left").arg(ui->ticketLocation->maxLength() - text.size());
+    ui->tCounterLoc->setText(text_label);
+}
+
+void EditServiceDialog::valueChanged(const QString & text) {
     QString text_label = QString("%1 characters left").arg(ui->ticketLocation->maxLength() - text.size());
     ui->tCounterLoc->setText(text_label);
 }

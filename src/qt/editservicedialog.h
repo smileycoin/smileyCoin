@@ -52,7 +52,6 @@ class EditServiceDialog : public QDialog
 public:
     enum Mode {
         NewService,
-        DeleteService,
         NewTicket
     };
 
@@ -71,12 +70,14 @@ private slots:
     void sNameCount(const QString & text);
     void tNameCount(const QString & text);
     void tLocationCount(const QString & text);
+    void valueChanged(const QString & text);
 
 private:
     Ui::EditServiceDialog *ui;
     Mode mode;
     WalletModel *model;
-    std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> myServices;
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> myServices;
     void processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg = QString());
 };
 

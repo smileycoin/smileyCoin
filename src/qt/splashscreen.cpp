@@ -14,6 +14,7 @@
 
 #include <QApplication>
 #include <QPainter>
+#include <QPainterPath>
 
 SplashScreen::SplashScreen(const QPixmap &pixmap, Qt::WindowFlags f, bool isTestNet) :
     QSplashScreen(pixmap, f)

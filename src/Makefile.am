@@ -1,28 +1,30 @@
-include Makefile.include
+AM_LDFLAGS = $(PTHREAD_CFLAGS) $(HARDENED_LDFLAGS) $(LIBTOOL_LDFLAGS)
+AM_CXXFLAGS = $(HARDENED_CXXFLAGS)
+AM_CPPFLAGS = $(HARDENED_CPPFLAGS)
+EXTRA_LIBRARIES =
 
-AM_CPPFLAGS += -I$(builddir) -msse2
+BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) $(CRYPTO_CFLAGS) $(SSL_FLAGS) -msse2
 
-noinst_LIBRARIES = \
+EXTRA_LIBRARIES += \
   libbitcoin_server.a \
   libbitcoin_common.a \
   libbitcoin_cli.a
 if ENABLE_WALLET
-noinst_LIBRARIES += libbitcoin_wallet.a
+BITCOIN_INCLUDES += $(BDB_CPPFLAGS)
+EXTRA_LIBRARIES += libbitcoin_wallet.a
 endif
 
 bin_PROGRAMS =
-sbin_PROGRAMS =
+TESTS =
 
 if BUILD_BITCOIND
-  sbin_PROGRAMS += smileycoind
+  bin_PROGRAMS += smileycoind
 endif
 
 if BUILD_BITCOIN_CLI
   bin_PROGRAMS += smileycoin-cli
 endif
 
-SUBDIRS = . $(BUILD_QT) $(BUILD_TEST)
-DIST_SUBDIRS = . qt test
 .PHONY: FORCE
 # bitcoin core #
 BITCOIN_CORE_H = \
@@ -34,7 +36,6 @@ BITCOIN_CORE_H = \
   chainparams.h \
   checkpoints.h \
   checkqueue.h \
-  version.h \
   coincontrol.h \
   coins.h \
   compat.h \
@@ -43,8 +44,10 @@ BITCOIN_CORE_H = \
   db.h \
   richlistdb.h \
   servicelistdb.h \
+  serviceitemlistdb.h \
   hash.h \
   init.h \
+  jeeq.h \
   key.h \
   keystore.h \
   leveldbwrapper.h \
@@ -101,11 +104,13 @@ JSON_H = \
   json/json_spirit_writer_template.h
 
 obj/build.h: FORCE
-	@$(MKDIR_P) $(abs_top_builddir)/src/obj
-	@$(top_srcdir)/misc/share/genbuild.sh $(abs_top_builddir)/src/obj/build.h \
-	  $(abs_top_srcdir)
-version.o: obj/build.h
+	@$(MKDIR_P) $(builddir)/obj
+	@$(top_srcdir)/share/genbuild.sh "$(abs_top_builddir)/src/obj/build.h" \
+	  "$(abs_top_srcdir)"
+libbitcoin_common_a-version.$(OBJEXT): obj/build.h
 
+libbitcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS)
+libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_server_a_SOURCES = \
   addrman.cpp \
   alert.cpp \
@@ -121,6 +126,7 @@ libbitcoin_server_a_SOURCES = \
   noui.cpp \
   richlistdb.cpp \
   servicelistdb.cpp \
+  serviceitemlistdb.cpp \
   rpcblockchain.cpp \
   rpcmining.cpp \
   rpcmisc.cpp \
@@ -132,6 +138,8 @@ libbitcoin_server_a_SOURCES = \
   $(JSON_H) \
   $(BITCOIN_CORE_H)
 
+libbitcoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libbitcoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_wallet_a_SOURCES = \
   db.cpp \
   crypter.cpp \
@@ -139,8 +147,11 @@ libbitcoin_wallet_a_SOURCES = \
   rpcwallet.cpp \
   wallet.cpp \
   walletdb.cpp \
+  jeeq.cpp \
   $(BITCOIN_CORE_H)
 
+libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libbitcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_common_a_SOURCES = \
   base58.cpp \
   allocators.cpp \
@@ -176,11 +187,13 @@ libbitcoin_common_a_SOURCES += compat/glibc_compat.cpp
 libbitcoin_common_a_SOURCES += compat/glibcxx_compat.cpp
 endif
 
+libbitcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libbitcoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_cli_a_SOURCES = \
   rpcclient.cpp \
   $(BITCOIN_CORE_H)
 
-nodist_libbitcoin_common_a_SOURCES = $(top_srcdir)/src/obj/build.h
+nodist_libbitcoin_common_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # bitcoind binary #
@@ -200,39 +213,78 @@ if TARGET_WINDOWS
 smileycoind_SOURCES += bitcoind-res.rc
 endif
 
-AM_CPPFLAGS += $(BDB_CPPFLAGS)
-smileycoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS)
+smileycoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS)
+smileycoind_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+smileycoind_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+smileycoind_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS)
 
 # bitcoin-cli binary #
 smileycoin_cli_LDADD = \
   libbitcoin_cli.a \
   libbitcoin_common.a \
-  $(BOOST_LIBS)
+  $(BOOST_LIBS) \
+  $(SSL_LIBS) \
+  $(CRYPTO_LIBS)
+
 smileycoin_cli_SOURCES = bitcoin-cli.cpp
+smileycoin_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+smileycoin_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 #
 
 if TARGET_WINDOWS
 smileycoin_cli_SOURCES += bitcoin-cli-res.rc
 endif
+smileycoin_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS)
 
-# NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
-leveldb/libleveldb.a: leveldb/libmemenv.a
-
-leveldb/%.a:
-	@echo "Building LevelDB ..." && $(MAKE) -C $(@D) $(@F) CXX="$(CXX)" \
-	  CC="$(CC)" PLATFORM=$(TARGET_OS) AR="$(AR)" $(LEVELDB_TARGET_FLAGS) \
-	  OPT="$(CXXFLAGS) $(CPPFLAGS)"
-
-qt/bitcoinstrings.cpp: $(libbitcoin_server_a_SOURCES) $(libbitcoin_common_a_SOURCES) $(libbitcoin_cli_a_SOURCES)
-	@test -n $(XGETTEXT) || echo "xgettext is required for updating translations"
-	@cd $(top_srcdir); XGETTEXT=$(XGETTEXT) misc/share/qt/extract_strings_qt.py
-
-CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
+CLEANFILES = $(EXTRA_LIBRARIES)
+CLEANFILES += *.gcda *.gcno
+CLEANFILES += compat/*.gcda compat/*.gcno
+CLEANFILES += consensus/*.gcda consensus/*.gcno
+CLEANFILES += crypto/*.gcda crypto/*.gcno
+CLEANFILES += policy/*.gcda policy/*.gcno
+CLEANFILES += primitives/*.gcda primitives/*.gcno
+CLEANFILES += script/*.gcda script/*.gcno
+CLEANFILES += support/*.gcda support/*.gcno
+CLEANFILES += univalue/*.gcda univalue/*.gcno
+CLEANFILES += wallet/*.gcda wallet/*.gcno
+CLEANFILES += wallet/test/*.gcda wallet/test/*.gcno
+CLEANFILES += zmq/*.gcda zmq/*.gcno
+CLEANFILES += obj/build.h
 
 DISTCLEANFILES = obj/build.h
 
-EXTRA_DIST = leveldb Makefile.include
+EXTRA_DIST =
 
 clean-local:
-	-$(MAKE) -C leveldb clean
-	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno
+	-rm -f leveldb/*/*.gcda leveldb/*/*.gcno leveldb/helpers/memenv/*.gcda leveldb/helpers/memenv/*.gcno
+	-rm -f config.h
+
+.rc.o:
+	@test -f $(WINDRES) && $(WINDRES) -i $< -o $@ || \
+		echo error: could not build $@
+
+%.pb.cc %.pb.h: %.proto
+	test -f $(PROTOC) && $(PROTOC) --cpp_out=$(@D) --proto_path=$(abspath $(<D) $<)  || \
+		echo error: could not build $@
+
+LIBBITCOIN_SERVER=libbitcoin_server.a
+LIBBITCOIN_WALLET=libbitcoin_wallet.a
+LIBBITCOIN_COMMON=libbitcoin_common.a
+LIBBITCOIN_CLI=libbitcoin_cli.a
+LIBBITCOINQT=qt/libbitcoinqt.a
+
+if EMBEDDED_LEVELDB
+include Makefile.leveldb.include
+endif
+
+if ENABLE_TESTS
+include Makefile.test.include
+endif
+
+if ENABLE_QT
+include Makefile.qt.include
+endif
+
+if ENABLE_QT_TESTS
+include Makefile.qttest.include
+endif
