@@ -533,6 +533,10 @@ Value addcontact(const Array& params, bool fHelp)
     std::string key(params[0].get_str());
     std::string value(params[1].get_str());
 
+    if(getContact(key).size() > 0) {
+        throw runtime_error("Contact with that name already exists.");
+    }
+
     CBitcoinAddress address(value);
     if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
@@ -545,7 +549,7 @@ Value addcontact(const Array& params, bool fHelp)
     if (status) {
         output = "Success! Contact with name: " + key + " and address: " + value + " added!";
     } else {
-        output = "failed!";
+        output = "Failed to add contact!";
     }
 
     return output;
@@ -565,8 +569,19 @@ Value listcontacts(const Array& params, bool fHelp) {
 }
 
 Value sendtocontact(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 2) {
-        throw runtime_error("Error!");
+    if (fHelp || params.size() != 2 || getContact(params[0].get_str()).size() == 0) {
+	throw runtime_error(
+	    "sendtocontact \"name\" amount\n"
+	    "Send an amount to a given contact. The contact needs to be connected to the wallet\n"
+	    "and the amount is real and is rounded to the nearest 0.00000001\n"
+	    "1. \"name\"    (string, required) name of the contact to send to .\n"
+	    "2. \"amount\"  (numeric, required) The amount in SMLY to send. eg 0.1\n"
+	    "\nResult:\n"
+	    "\"transactionid\"  (string) The transaction id.\n"
+	    "\nExamples:\n"
+	    + HelpExampleCli("sendtocontact", "\"Atli\" 0.1")
+	    + HelpExampleCli("sendtocontact", "\"Sindri\" 20")
+	);
     }
 
     std::string key = params[0].get_str();
@@ -595,14 +610,18 @@ Value removecontact(const Array& params, bool fHelp) {
 
     std::string key(params[0].get_str());
 
+    if(getContact(key).size() == 0) {
+        throw runtime_error("No contact with that name exists.");
+    }
+
     bool status = deleteContact(key);
 
     std::string output;
 
     if (status) {
-	output = "Success!";
+        output = "Success! Contact with name: " + key + " removed!";
     } else {
-	output = "failed!";
+	output = "Failed to remove contact!";
     }
 
     return output;

@@ -1,6 +1,12 @@
-// API for contact storing in the wallet
+// API for storing contacts in the wallet
 // Created by Atli Guðjónsson and Sindri Unnsteinsson
 // as part of the final project in STÆ532M
+//
+// getContac(key) - finds and returns the address associated with the key.
+//
+// getAll() - returns all contact key-value pairs stored in the wallet.
+//
+// removeContact(key) - removes a key-value pair from the storage.
 #ifndef CONTACTS_LEVELDB_H
 #define CONTACTS_LEVELDB_H
 
@@ -33,12 +39,10 @@ template<typename K, typename V> bool save(const K& key, const V& value) {
   options.create_if_missing = true;
   leveldb::Status status = leveldb::DB::Open(options, path, &db);
 
-  if (status.ok()) {
-    std::cout << "Successfully opened DB!" << endl;
-  } else {
-    std::cout << "Error opening DB!" << endl;
+  if (!status.ok()) {
+    std::string error = status.ToString();
+    throw runtime_error(error);
   }
-  // assert(status.ok());
 
   leveldb::Status s = db->Put(leveldb::WriteOptions(), key, value);
 
@@ -62,8 +66,11 @@ template<typename K> std::string getContact(const K& key) {
   options.create_if_missing = true;
   leveldb::Status status = leveldb::DB::Open(options, path, &db);
 
-  assert(status.ok());
-
+  if (!status.ok()) {
+    std::string error = status.ToString();
+    throw runtime_error(error);
+  }
+ 
   std::string value;
 
   leveldb::Status s = db->Get(leveldb::ReadOptions(), key, &value);
@@ -82,10 +89,9 @@ std::string getAll() {
   options.create_if_missing = true;
   leveldb::Status status = leveldb::DB::Open(options, path, &db);
 
-  if (status.ok()) {
-    std::cout << "Successfully opened DB!" << endl;
-  } else {
-    std::cout << "Error opening DB!" << endl;
+  if (!status.ok()) {
+    std::string error = status.ToString();
+    throw runtime_error(error);
   }
 
   std::string output = "Contacts:\n";
@@ -100,50 +106,21 @@ std::string getAll() {
   it = NULL;
   delete db;
   db = NULL;
+  
   return output;
 }
-//
-// void getAll() {
-  // std::string path = getpath();
-  // std::cout << path << endl;
-//
-  // leveldb::DB* db;
-  // leveldb::Options options;
-  // options.create_if_missing = true;
-  // leveldb::Status status = leveldb::DB::Open(options, path, &db);
-//
-  // if (status.ok()) {
-    // std::cout << "Successfully opened DB!" << endl;
-  // } else {
-    // std::cout << "Error opening DB!" << endl;
-  // }
-//
-  // leveldb::Iterator* it = db->NewIterator(leveldb::ReadOptions());
-//
-  // for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    // cout << it->key().ToString() << ": "  << it->value().ToString() << endl;
-  // }
-//
-  // assert(it->status().ok());  // Check for any errors found during the scan
-  // delete it;
-  // it = NULL;
-  // delete db;
-  // db = NULL;
-// }
 
 template<typename K> bool deleteContact(const K &key) {
   std::string path = getPath();
-  std::cout << path << endl;
 
   leveldb::DB* db;
   leveldb::Options options;
   options.create_if_missing = true;
   leveldb::Status status = leveldb::DB::Open(options, path, &db);
 
-  if (status.ok()) {
-    std::cout << "Successfully opened DB!" << endl;
-  } else {
-    std::cout << "Error opening DB!" << endl;
+  if (!status.ok()) {
+    std::string error = status.ToString();
+    throw runtime_error(error);
   }
 
   leveldb::Status s = db->Delete(leveldb::WriteOptions(), key);
