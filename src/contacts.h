@@ -1,12 +1,17 @@
 // API for storing contacts in the wallet
 // Created by Atli Guðjónsson and Sindri Unnsteinsson
-// as part of the final project in STÆ532M
+// as part of our final project in STÆ532M fall 2020
+//
+// Methods:
+// 
+// save(key, value) - stores given key-value pair.
 //
 // getContac(key) - finds and returns the address associated with the key.
 //
 // getAll() - returns all contact key-value pairs stored in the wallet.
 //
-// removeContact(key) - removes a key-value pair from the storage.
+// deleteContact(key) - removes a key-value pair from the storage.
+
 #ifndef CONTACTS_LEVELDB_H
 #define CONTACTS_LEVELDB_H
 
