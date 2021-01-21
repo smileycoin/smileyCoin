@@ -73,7 +73,7 @@ jobs:
     - name: upload installer
       uses: actions/upload-artifact@v2
       with:
-        name: smileycoin-$SMLY_PACKAGE_VERSION }}-win64-setup
+        name: smileycoin-${{ env.SMLY_PACKAGE_VERSION }}-win64-setup
         path: |
           ${{ github.workspace }}/smileycoin-$SMLY_PACKAGE_VERSION-win64-setup.exe
           ${{ github.workspace }}/SHA256
