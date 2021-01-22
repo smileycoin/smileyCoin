@@ -63,17 +63,17 @@ jobs:
       run: |
         make
         export PACKAGE_VERSION=$(grep PACKAGE_VERSION src/bitcoin-config.h | awk '{gsub(/"/,""); print $3}')
-        echo "::set-env name=PACKAGE_VERSION::$PACKAGE_VERSION"
+        echo "SMLY_PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
     - name: make check
       run: make check
     - name: make deploy
       run: |
         make deploy
-        sha256sum smileycoin-${{ env.PACKAGE_VERSION }}-win64-setup.exe > SHA256
+        sha256sum smileycoin-$SMLY_PACKAGE_VERSION-win64-setup.exe > SHA256
     - name: upload installer
       uses: actions/upload-artifact@v2
       with:
-        name: smileycoin-${{ env.PACKAGE_VERSION }}-win64-setup
+        name: smileycoin-${{ env.SMLY_PACKAGE_VERSION }}-win64-setup
         path: |
-          ${{ github.workspace }}/smileycoin-${{ env.PACKAGE_VERSION }}-win64-setup.exe
+          ${{ github.workspace }}/smileycoin-$SMLY_PACKAGE_VERSION-win64-setup.exe
           ${{ github.workspace }}/SHA256
