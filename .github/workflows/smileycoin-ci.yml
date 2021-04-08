@@ -1,6 +1,8 @@
 name: SmileyCoin CI build
 
 on:
+  workflow_dispatch:
+    branches: [ master ]
   push:
     branches: [ master ]
   pull_request:
