@@ -77,5 +77,5 @@ jobs:
       with:
         name: smileycoin-${{ env.SMLY_PACKAGE_VERSION }}-win64-setup
         path: |
-          ${{ github.workspace }}/smileycoin-$SMLY_PACKAGE_VERSION-win64-setup.exe
+          ${{ github.workspace }}/smileycoin-${{ env.SMLY_PACKAGE_VERSION }}-win64-setup.exe
           ${{ github.workspace }}/SHA256
