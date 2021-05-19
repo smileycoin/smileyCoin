@@ -45,7 +45,7 @@ public:
 
         // Build the genesis block.
         const char* pszTimestamp = "NY Times 18/Aug/2014 Bitcoin's Price Falls 12%, to Lowest Value Since May";
-        CTransaction txNew;
+        CMutableTransaction txNew;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
         txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(4) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
