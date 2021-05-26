@@ -106,6 +106,7 @@ extern bool fServer;
 extern std::string strMiscWarning;
 extern bool fNoListen;
 extern bool fLogTimestamps;
+extern bool fUBI;
 extern volatile bool fReopenDebugLog;
 
 void RandAddSeed();

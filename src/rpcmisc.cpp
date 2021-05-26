@@ -737,6 +737,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
 
     Object root;
     Array tservices; /* TicketSales */
+    Array uservices; /* UBI */
     Array bservices; /* BookChapter */
     Array nservices; /* NPO */
     Array dservices; /* DEX */
@@ -755,6 +756,10 @@ Value getserviceaddresses(const Array& params, bool fHelp)
             name_address.push_back(Pair("name", get<1>(s->second)));
             name_address.push_back(Pair("address", s->first));
             tservices.push_back(name_address);
+        } else if (get<2>(s->second) == "UBI") { // "2"
+            name_address.push_back(Pair("name", get<1>(s->second)));
+            name_address.push_back(Pair("address", s->first));
+            uservices.push_back(name_address);
         } else if (get<2>(s->second) == "Book Chapter") { // "3"
             name_address.push_back(Pair("name", get<1>(s->second)));
             name_address.push_back(Pair("address", s->first));
@@ -775,6 +780,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     }
 
     root.push_back(Pair("Ticket Sales", tservices));
+    root.push_back(Pair("UBI", uservices));
     root.push_back(Pair("Book Chapter", bservices));
     root.push_back(Pair("Nonprofit Organization", nservices));
     root.push_back(Pair("DEX", dservices));

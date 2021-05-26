@@ -97,6 +97,7 @@ bool fServer = false;
 string strMiscWarning;
 bool fNoListen = false;
 bool fLogTimestamps = false;
+bool fUBI = false;
 volatile bool fReopenDebugLog = false;
 CClientUIInterface uiInterface;
 
