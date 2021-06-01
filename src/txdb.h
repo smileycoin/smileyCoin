@@ -50,6 +50,8 @@ public:
     bool SetDexList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
     bool GetBookList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
     bool SetBookList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
+    bool GetNPList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
+    bool SetNPList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
 
     bool HaveCoins(const uint256 &txid);
     uint256 GetBestBlock();
@@ -60,6 +62,7 @@ public:
                     const std::map<std::string, std::tuple<std::string, std::string> > &mapServiceUbiList,
                     const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceDexList,
                     const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceBookList,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceNPList,
                     const uint256 &hashBlock);
     bool GetStats(CCoinsStats &stats);
 
@@ -69,6 +72,7 @@ public:
     bool GetUbiList(CServiceItemList &ubilist);
     bool GetDexList(CServiceItemList &dexlist);
     bool GetBookList(CServiceItemList &booklist);
+    bool GetNPList(CServiceItemList &nplist);
 };
 
 /** Access to the block database (blocks/index/) */
@@ -102,6 +106,8 @@ public:
     bool ReadServiceDexListFork(bool &fForked);
     bool WriteServiceBookListFork(bool fForked);
     bool ReadServiceBookListFork(bool &fForked);
+    bool WriteServiceNPListFork(bool fForked);
+    bool ReadServiceNPListFork(bool &fForked);
     bool WriteFlag(const std::string &name, bool fValue);
     bool ReadFlag(const std::string &name, bool &fValue);
     bool LoadBlockIndexGuts();

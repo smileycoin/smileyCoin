@@ -892,6 +892,11 @@ bool AppInit2(boost::thread_group& threadGroup)
                     break;
                 }
 
+                if (!InitServiceNPList(*pcoinsdbview)) {
+                    strLoadError = _("Error initializing service np list. You need to rebuild the database using -reindex");
+                    break;
+                }
+
                  // Reading rich addresses into memory
                 if(!pcoinsdbview -> GetRichAddresses(RichList)) {
                     strLoadError = _("Error loading rich list");
@@ -925,6 +930,12 @@ bool AppInit2(boost::thread_group& threadGroup)
                 // Reading book chapter addresses into memory
                 if(!pcoinsdbview -> GetBookList(ServiceItemList)) {
                     strLoadError = _("Error loading service book list");
+                    break;
+                }
+
+                // reading npos addresses into memory
+                if(!pcoinsdbview -> GetNPList(ServiceItemList)) {
+                    strLoadError = _("Error loading service np list");
                     break;
                 }
 
@@ -977,6 +988,13 @@ bool AppInit2(boost::thread_group& threadGroup)
                 
                 if(!pblocktree -> ReadServiceBookListFork(fFork)) {
                     strLoadError = _("Error reading service book chapter list fork status");
+                    break;
+                } else {
+                    ServiceItemList.SetForked(fFork);
+                }
+
+                if(!pblocktree -> ReadServiceNPListFork(fFork)) {
+                    strLoadError = _("Error reading service np chapter list fork status");
                     break;
                 } else {
                     ServiceItemList.SetForked(fFork);
@@ -1042,6 +1060,16 @@ bool AppInit2(boost::thread_group& threadGroup)
                 if(fFork) {
                     if(!ServiceItemList.UpdateBookListHeights()) {
                         strLoadError = _("Error rollbacking book chapter list heights");
+                        break;
+                    }
+                    else {
+                        ServiceItemList.SetForked(false);
+                    }
+                }
+
+                if(fFork) {
+                    if(!ServiceItemList.UpdateNPListHeights()) {
+                        strLoadError = _("Error rollbacking NP chapter list heights");
                         break;
                     }
                     else {

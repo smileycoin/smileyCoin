@@ -108,6 +108,8 @@ bool CServiceList::GetServiceAddresses(std::multiset<std::pair<std::string, std:
             displayType = "DEX";
         } else if (get<2>(it->second) == "7") {
             displayType = "Survey";
+        } else if (get<2>(it->second) == "8") {
+            displayType = "Non-profit Group";
         } else {
             displayType = get<2>(it->second);
         }
@@ -135,6 +137,8 @@ bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<std::string, st
                 displayType = "DEX";
             } else if (get<2>(it->second) == "7") {
                 displayType = "Survey";
+            } else if (get<2>(it->second) == "8") {
+                displayType = "Non-profit Group";
             } else {
                 displayType = get<2>(it->second);
             }
