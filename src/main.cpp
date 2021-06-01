@@ -1820,6 +1820,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 	std::map<std::string, std::tuple<std::string, std::string> > serviceUbiList;
 	std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceDexList;
 	std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceBookList;
+	std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceNPList;
 
     // undo transactions in reverse order
 	for (int i = block.vtx.size() - 1; i >= 0; i--) {
@@ -1868,7 +1869,8 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                     if (sAddress.IsValid() && !ServiceList.IsService(asciiAddress) && serviceName.length() <= 50 &&
                                     (hexToAscii(serviceType) == "1" || hexToAscii(serviceType) == "2" ||
                                     hexToAscii(serviceType) == "3"|| hexToAscii(serviceType) == "4"||
-                                    hexToAscii(serviceType) == "5"|| hexToAscii(serviceType) == "6" || hexToAscii(serviceType) == "7")) {
+                                    hexToAscii(serviceType) == "5"|| hexToAscii(serviceType) == "6" || hexToAscii(serviceType) == "7"
+                                    || hexToAscii(serviceType) == "8")) {
                                         std::tuple<std::string, std::string, std::string> value;
                                         if (!view.GetServiceInfo(asciiAddress, value)) {
                                             return state.Abort(_("Failed to read service index"));
@@ -1984,6 +1986,29 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 												value = std::make_tuple("ND", toAddress, hexToAscii(dexDescription));
 												assert(view.SetDexList(asciiAddress, value));
 												serviceDexList[asciiAddress]=value;
+											}
+										}
+									}
+								}
+								// New Np
+								// If the string starts with "NN"
+								else if (hexData.substr(0, 4) == "4e4e") {
+									std::string newDex = hexData.substr(4, hexString.size());
+									std::vector<std::string> strs = splitString(newDex, "20");
+									// The string has to have 2 params to be valid as a np and saved into the db
+									if (strs.size() == 2) {
+										std::string npAddress = strs.at(0);
+										std::string npName = strs.at(1);
+                                        std::string asciiAddress = hexToAscii(npAddress);
+                                        CBitcoinAddress nAddress = CBitcoinAddress(asciiAddress);
+										if (nAddress.IsValid() && npName.length() <= 60 && ServiceList.IsService(toAddress)) {
+											std::tuple<std::string, std::string, std::string> value;
+											if(!view.GetNPList(asciiAddress, value))
+												return state.Abort(_("Failed to read np index"));
+											else {
+												value = std::make_tuple("NN", toAddress, hexToAscii(npName));
+												assert(view.SetNPList(asciiAddress, value));
+												serviceNPList[asciiAddress]=value;
 											}
 										}
 									}
@@ -2201,6 +2226,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
         return state.Abort(_("Failed to update book chapter list"));
     }
 
+    if(!ServiceItemList.UpdateNPList(serviceNPList)) {
+        return state.Abort(_("Failed to update np chapter list"));
+    }
+
 	return fClean;
 }
 
@@ -2293,6 +2322,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
     std::map<std::string, std::tuple<std::string, std::string> > serviceUbiList;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceDexList;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceBookList;
+    std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceNPList;
 
     for (unsigned int i = 0; i < block.vtx.size(); i++)
 	{
@@ -2392,7 +2422,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                     if (sAddress.IsValid() && !ServiceList.IsService(asciiAddress) && serviceName.length() <= 50
                                     && (hexToAscii(serviceType) == "1" || hexToAscii(serviceType) == "2" ||
                                     hexToAscii(serviceType) == "3"|| hexToAscii(serviceType) == "4"||
-                                    hexToAscii(serviceType) == "5"|| hexToAscii(serviceType) == "6" || hexToAscii(serviceType) == "7")) {
+                                    hexToAscii(serviceType) == "5"|| hexToAscii(serviceType) == "6" || hexToAscii(serviceType) == "7"
+                                    || hexToAscii(serviceType) == "8")) {
                                         std::tuple<std::string, std::string, std::string> value;
                                         value = std::make_tuple("NS", hexToAscii(serviceName), hexToAscii(serviceType));
                                         assert(view.SetServiceInfo(asciiAddress, value));
@@ -2493,6 +2524,24 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         }
                                     }
                                 }
+                                // If the string starts with "NN" (new np)
+                                else if (hexData.substr(0, 4) == "4e4e") {
+                                    std::string newNP = hexData.substr(4, hexString.size());
+                                    std::vector<std::string> strs = splitString(newNP, "20");
+                                    // The string has to have 2 params to be valid as a dex and saved into the db
+                                    if (strs.size() == 2) {
+                                        std::string npAddress = strs.at(0);
+                                        std::string npName = strs.at(1);
+                                        std::string asciiAddress = hexToAscii(npAddress);
+                                        CBitcoinAddress nAddress = CBitcoinAddress(asciiAddress);
+                                        if (nAddress.IsValid() && npName.length() <= 60 && ServiceList.IsService(toAddress)) {
+                                            std::tuple<std::string, std::string, std::string> value;
+                                            value = std::make_tuple("NN", toAddress, hexToAscii(npName));
+                                            assert(view.SetNPList(asciiAddress, value));
+                                            serviceNPList[asciiAddress]=value;
+                                        }
+                                    }
+                                }
                                 // If the string starts with "NB" (new book chapter)
                                 else if (hexData.substr(0, 4) == "4e42") {
                                     std::string newBookChapter = hexData.substr(4, hexString.size());
@@ -2585,6 +2634,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         }
                                     }
                                 }
+                                std::cout << hexData.substr(0, 4) << std::endl;
                             }
                         }
                     }
@@ -4074,6 +4124,21 @@ bool InitServiceBookList(CCoinsView &dbview)
     }
     bool dummy;
     if(!pblocktree->ReadFlag("booklist", dummy))
+        return false;
+    return true;
+
+}
+
+bool InitServiceNPList(CCoinsView &dbview)
+{
+    LOCK(cs_main);
+    if (fReindex || chainActive.Genesis() == NULL) {
+        if(!dbview.SetBookList(string("np"), std::make_tuple("1", "0", "0"))) {
+            return false; }
+        pblocktree->WriteFlag("nplist", true);
+    }
+    bool dummy;
+    if(!pblocktree->ReadFlag("nplist", dummy))
         return false;
     return true;
 

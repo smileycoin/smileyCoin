@@ -156,6 +156,7 @@ bool InitServiceTicketList(CCoinsView &dbview);
 bool InitServiceUbiList(CCoinsView &dbview);
 bool InitServiceDexList(CCoinsView &dbview);
 bool InitServiceBookList(CCoinsView &dbview);
+bool InitServiceNPList(CCoinsView &dbview);
 /** Load the block tree and coins database from disk */
 bool LoadBlockIndex();
 /** Unload database information */

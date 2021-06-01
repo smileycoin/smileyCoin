@@ -39,6 +39,10 @@ inline std::string ChapterAction(const CServiceBook &ai) {return get<0>(ai);}
 inline std::string ChapterToAddress(const CServiceBook &ai) {return get<1>(ai);}
 inline std::string ChapterNum(const CServiceBook &ai) {return get<2>(ai);}
 
+inline std::string NPAction(const CServiceNP &ai) {return get<0>(ai);}
+inline std::string NPToAddress(const CServiceNP &ai) {return get<1>(ai);}
+inline std::string NPDescription(const CServiceNP &ai) {return get<2>(ai);}
+
 bool CServiceItemList::SetForked(const bool &fFork)
 {
     fForked = fFork;
@@ -605,3 +609,146 @@ bool CServiceItemList::IsChapter(std::string address) {
     }
     return false;
 }
+
+bool CServiceItemList::UpdateNPList(const std::map<std::string, std::tuple<std::string, std::string, std::string> > &map)
+{
+    for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
+    {
+        std::cout << get<2>(it->second) << std::endl;
+
+        if (get<0>(it->second) == "DN") { // If op_return begins with DN (delete np)
+            mapServiceNPList::iterator itNP = naddresses.find(it->first);
+            // If key is found in dex list
+            if (itNP != naddresses.end()) {
+                naddresses.erase(itNP);
+            }
+        } else if (get<0>(it->second) == "NN") { // If op_return begins with NN (new np)
+            naddresses.insert(*it);
+        }
+    }
+    return true;
+}
+
+// The heights need to be rolled back before new blocks are connected if any were disconnected.
+// TODO: We should try to get rid of this and write the height undo information to the disk instead.
+bool CServiceItemList::UpdateNPListHeights()
+{
+    if(!fForked)
+        return true;
+
+    CBlockIndex* pindexSeek = mapBlockIndex.find(pcoinsTip->GetBestBlock())->second;
+    if(!chainActive.Contains(pindexSeek)) {
+        return false;
+    }
+
+    CBlock block;
+    std::map<std::string, std::tuple<std::string, std::string, std::string> > npItem;
+    mapServiceNPList mforkedServiceNPList;
+
+    for(mapServiceNPList::const_iterator it = naddresses.begin(); it!=naddresses.end(); it++)
+    {
+        if (get<0>(it->second) == "DN") { // If op_return begins with DN (delete np)
+            mapServiceNPList::iterator itNP = naddresses.find(it->first);
+            // If key is found in dex list
+            if (itNP != naddresses.end()) {
+                naddresses.erase(itNP);
+            }
+        } else if (get<0>(it->second) == "NN") { // If op_return begins with NN (new np)
+            naddresses.insert(*it);
+        }
+    }
+
+    if(fDebug) {
+        LogPrintf("%d addresses seen at fork and need to be relocated\n", mforkedServiceNPList.size());
+    }
+
+    while(pindexSeek->pprev && !mforkedServiceNPList.empty())
+    {
+
+        // return false;
+
+        ReadBlockFromDisk(block,pindexSeek);
+        block.BuildMerkleTree();
+        BOOST_FOREACH(const CTransaction &tx, block.vtx)
+        {
+            for(unsigned int j = 0; j < tx.vout.size(); j++)
+            {
+                CScript key = tx.vout[j].scriptPubKey;
+                /*mapServiceNPList::iterator it = mforkedServiceNPList.find(key);
+                if(it == mforkedServiceNPList.end())
+                    continue;
+
+                dexItem.insert(std::make_pair(key, std::make_tuple(NPToAddress(it), NPAddress(it), NPDescription(it))));
+                mforkedServiceNPList.erase(it);*/
+                if(fDebug) {
+                    CTxDestination dest;
+                    ExtractDestination(key, dest);
+                    CBitcoinAddress addr;
+                    addr.Set(dest);
+                    LogPrintf("%s found at height %d\n",addr.ToString(),pindexSeek->nHeight);
+                }
+            }
+        }
+
+        CBlockUndo undo;
+        CDiskBlockPos pos = pindexSeek ->GetUndoPos();
+        if (undo.ReadFromDisk(pos, pindexSeek->pprev->GetBlockHash())) //TODO: hvenær klikkar þetta?
+        {
+            for (unsigned int i=0; i<undo.vtxundo.size(); i++)
+            {
+                for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
+                {
+                    CScript key = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
+                    /*mapServiceNPList::iterator it = mforkedServiceNPList.find(key);
+                    if(it == mforkedServiceNPList.end())
+                        continue;
+                    dexItem.insert(std::make_pair(it->first, std::make_tuple(NPToAddress(it), NPAddress(it), NPDescription(it))));
+                    mforkedServiceNPList.erase(it);*/
+                    if(fDebug) {
+                        CTxDestination dest;
+                        ExtractDestination(key, dest);
+                        CBitcoinAddress addr;
+                        addr.Set(dest);
+                        LogPrintf("%s found at height %d\n",addr.ToString(),pindexSeek->nHeight);
+                    }
+                }
+            }
+        }
+        else {
+            LogPrintf("UpdateNPListHeights(): Failed to read undo information\n");
+            break;
+        }
+        pindexSeek = pindexSeek -> pprev;
+    }
+
+    bool ret;
+    typedef std::pair<std::string, std::tuple<std::string, std::string, std::string> > pairType;
+    BOOST_FOREACH(const pairType &pair, npItem) {
+        ret = pcoinsTip->SetNPList(pair.first, pair.second);
+        assert(ret);
+    }
+
+    if(!UpdateNPList(npItem))
+        return false;
+    return mforkedServiceNPList.empty();
+}
+
+bool CServiceItemList::GetNPList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> &retset) const {
+    for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it=naddresses.begin(); it!=naddresses.end(); it++)
+    {
+        retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second))));
+    }
+    return true;
+}
+
+bool CServiceItemList::IsNP(std::string address) {
+    for (std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = naddresses.begin();it != naddresses.end(); it++)
+    {
+        // If address found on np list
+        if (address == it->first) {
+            return true;
+        }
+    }
+    return false;
+}
+
