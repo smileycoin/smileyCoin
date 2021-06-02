@@ -2634,7 +2634,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         }
                                     }
                                 }
-                                std::cout << hexData.substr(0, 4) << std::endl;
                             }
                         }
                     }

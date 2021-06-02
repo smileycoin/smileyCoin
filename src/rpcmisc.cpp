@@ -1032,7 +1032,7 @@ Value getnpolist(const Array& params, bool fHelp)
     
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++)
     {
-        if (toAddress == address.ToString()) {
+        if (get<1>(it->second) == address.ToString()) {
             obj.push_back(Pair("Non-profit name: ", get<2>(it->second)));
             obj.push_back(Pair("Non-profit address: ", it->first));
         }
