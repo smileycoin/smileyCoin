@@ -8,6 +8,7 @@
 #include "base58.h"
 #include "checkpoints.h"
 #include "coincontrol.h"
+#include "core.h"
 #include "net.h"
 
 #include <boost/algorithm/string/replace.hpp>
@@ -1229,6 +1230,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
     }
 
     wtxNew.BindWallet(this);
+    CMutableTransaction txNew;
 
     {
         LOCK2(cs_main, cs_wallet);
@@ -1236,8 +1238,8 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
             nFeeRet = nTransactionFee;
             while (true)
             {
-                wtxNew.vin.clear();
-                wtxNew.vout.clear();
+                txNew.vin.clear();
+                txNew.vout.clear();
                 wtxNew.fFromMe = true;
 
                 int64_t nTotalValue = nValue + nFeeRet;
@@ -1259,7 +1261,7 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
                         strFailReason = _("Transaction amount too small");
                         return false;
                     }
-                    wtxNew.vout.push_back(txout);
+                    txNew.vout.push_back(txout);
                 }
 
                 // Choose coins to use
@@ -1333,8 +1335,8 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
                     else
                     {
                         // Insert change txn at random position:
-                        vector<CTxOut>::iterator position = wtxNew.vout.begin()+GetRandInt(wtxNew.vout.size()+1);
-                        wtxNew.vout.insert(position, newTxOut);
+                        vector<CTxOut>::iterator position = txNew.vout.begin()+GetRandInt(txNew.vout.size()+1);
+                        txNew.vout.insert(position, newTxOut);
                     }
                 }
                 else
@@ -1342,16 +1344,19 @@ bool CWallet::CreateTransaction(const vector<pair<CScript, int64_t> >& vecSend,
 
                 // Fill vin
                 BOOST_FOREACH(const PAIRTYPE(const CWalletTx*,unsigned int)& coin, setCoins)
-                    wtxNew.vin.push_back(CTxIn(coin.first->GetHash(),coin.second));
+                    txNew.vin.push_back(CTxIn(coin.first->GetHash(),coin.second));
 
                 // Sign
                 int nIn = 0;
                 BOOST_FOREACH(const PAIRTYPE(const CWalletTx*,unsigned int)& coin, setCoins)
-                    if (!SignSignature(*this, *coin.first, wtxNew, nIn++))
+                    if (!SignSignature(*this, *coin.first, txNew, nIn++))
                     {
                         strFailReason = _("Signing transaction failed");
                         return false;
                     }
+
+                // Embed the constructed transaction data in wtxNew.
+                *static_cast<CTransaction*>(&wtxNew) = CTransaction(txNew);
 
                 // Limit size
                 unsigned int nBytes = ::GetSerializeSize(*(CTransaction*)&wtxNew, SER_NETWORK, PROTOCOL_VERSION);
@@ -2088,4 +2093,101 @@ bool CWallet::GetDestData(const CTxDestination &dest, const std::string &key, st
         }
     }
     return false;
+}
+
+int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
+{
+	AssertLockHeld(cs_main);
+	CBlock blockTmp;
+
+	if (pblock == NULL) {
+		CCoins coins;
+		if (pcoinsTip->GetCoins(GetHash(), coins)) {
+			CBlockIndex *pindex = chainActive[coins.nHeight];
+			if (pindex) {
+				if (!ReadBlockFromDisk(blockTmp, pindex))
+					return 0;
+				pblock = &blockTmp;
+			}
+		}
+	}
+
+	if (pblock) {
+		// Update the tx's hashBlock
+		hashBlock = pblock->GetHash();
+
+		// Locate the transaction
+		for (nIndex = 0; nIndex < (int)pblock->vtx.size(); nIndex++)
+			if (pblock->vtx[nIndex] == *(CTransaction*)this)
+				break;
+		if (nIndex == (int)pblock->vtx.size())
+		{
+			vMerkleBranch.clear();
+			nIndex = -1;
+			LogPrintf("ERROR: SetMerkleBranch() : couldn't find tx in block\n");
+			return 0;
+		}
+
+		// Fill in merkle branch
+		vMerkleBranch = pblock->GetMerkleBranch(nIndex);
+	}
+
+	// Is the tx in a block that's in the main chain
+	map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
+	if (mi == mapBlockIndex.end())
+		return 0;
+	CBlockIndex* pindex = (*mi).second;
+	if (!pindex || !chainActive.Contains(pindex))
+		return 0;
+
+	return chainActive.Height() - pindex->nHeight + 1;
+}
+
+int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex* &pindexRet) const
+{
+	if (hashBlock == 0 || nIndex == -1)
+		return 0;
+	AssertLockHeld(cs_main);
+
+	// Find the block it claims to be in
+	map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
+	if (mi == mapBlockIndex.end())
+		return 0;
+	CBlockIndex* pindex = (*mi).second;
+	if (!pindex || !chainActive.Contains(pindex))
+		return 0;
+
+	// Make sure the merkle branch connects to this block
+	if (!fMerkleVerified)
+	{
+		if (CBlock::CheckMerkleBranch(GetHash(), vMerkleBranch, nIndex) != pindex->hashMerkleRoot)
+			return 0;
+		fMerkleVerified = true;
+	}
+
+	pindexRet = pindex;
+	return chainActive.Height() - pindex->nHeight + 1;
+}
+
+int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet) const
+{
+	AssertLockHeld(cs_main);
+	int nResult = GetDepthInMainChainINTERNAL(pindexRet);
+	if (nResult == 0 && !mempool.exists(GetHash()))
+		return -1; // Not in chain, not in mempool
+
+	return nResult;
+}
+
+int CMerkleTx::GetBlocksToMaturity(int nHeight) const
+{
+	if (!IsCoinBase())
+		return 0;
+	return max(0, (COINBASE_MATURITY+1) - GetDepthInMainChain());
+}
+
+bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree)
+{
+	CValidationState state;
+	return ::AcceptToMemoryPool(mempool, state, *this, fLimitFree, NULL);
 }

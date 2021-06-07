@@ -5,6 +5,7 @@
 
 #include "core.h"
 
+#include "hash.h"
 #include "util.h"
 
 std::string COutPoint::ToString() const
@@ -72,38 +73,32 @@ void CTxOut::print() const
     LogPrintf("%s\n", ToString());
 }
 
-uint256 CTransaction::GetHash() const
+CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nLockTime(0) {}
+CMutableTransaction::CMutableTransaction(const CTransaction& tx) : nVersion(tx.nVersion), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {}
+
+uint256 CMutableTransaction::GetHash() const
 {
     return SerializeHash(*this);
 }
 
-bool CTransaction::IsNewerThan(const CTransaction& old) const
+void CTransaction::UpdateHash() const
 {
-    if (vin.size() != old.vin.size())
-        return false;
-    for (unsigned int i = 0; i < vin.size(); i++)
-        if (vin[i].prevout != old.vin[i].prevout)
-            return false;
+    *const_cast<uint256*>(&hash) = SerializeHash(*this);
+}
 
-    bool fNewer = false;
-    unsigned int nLowest = std::numeric_limits<unsigned int>::max();
-    for (unsigned int i = 0; i < vin.size(); i++)
-    {
-        if (vin[i].nSequence != old.vin[i].nSequence)
-        {
-            if (vin[i].nSequence <= nLowest)
-            {
-                fNewer = false;
-                nLowest = vin[i].nSequence;
-            }
-            if (old.vin[i].nSequence < nLowest)
-            {
-                fNewer = true;
-                nLowest = old.vin[i].nSequence;
-            }
-        }
-    }
-    return fNewer;
+CTransaction::CTransaction() : hash(0), nVersion(CTransaction::CURRENT_VERSION), vin(), vout(), nLockTime(0) { }
+
+CTransaction::CTransaction(const CMutableTransaction &tx) : nVersion(tx.nVersion), vin(tx.vin), vout(tx.vout), nLockTime(tx.nLockTime) {
+    UpdateHash();
+}
+
+CTransaction& CTransaction::operator=(const CTransaction &tx) {
+    *const_cast<int*>(&nVersion) = tx.nVersion;
+    *const_cast<std::vector<CTxIn>*>(&vin) = tx.vin;
+    *const_cast<std::vector<CTxOut>*>(&vout) = tx.vout;
+    *const_cast<unsigned int*>(&nLockTime) = tx.nLockTime;
+    *const_cast<uint256*>(&hash) = tx.hash;
+    return *this;
 }
 
 int64_t CTransaction::GetValueOut() const
