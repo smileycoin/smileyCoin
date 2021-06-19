@@ -289,6 +289,7 @@ static const CRPCCommand vRPCCommands[] =
     /* Wallet */
     { "addmultisigaddress",     &addmultisigaddress,     false,     false,      true },
     { "backupwallet",           &backupwallet,           true,      false,      true },
+    { "consolidate",            &consolidate,            false,     false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
     { "dumpwallet",             &dumpwallet,             true,      false,      true },
     { "encryptwallet",          &encryptwallet,          false,     false,      true },
@@ -332,6 +333,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getgenerate",            &getgenerate,            true,      false,      false },
     { "gethashespersec",        &gethashespersec,        true,      false,      false },
     { "setgenerate",            &setgenerate,            true,      true,       false },
+    { "sendtoteitur",           &sendtoteitur,            false,     false,      true  },
 #endif // ENABLE_WALLET
 };
 
