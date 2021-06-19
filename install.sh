@@ -38,6 +38,9 @@ EOF
 chown root:root "${BINDIR}/smileycoin-cli"
 chmod a+rwx "${BINDIR}/smileycoin-cli"
 
+# install command completion
+cp contrib/smileycoin-cli-completion /usr/share/bash-completion/completions/smileycoin-cli
+
 cat <<EOF > "${BINDIR}/smileycoin-walletunlock"
 #!/bin/bash
 echo -n "Passphrase: "
@@ -84,3 +87,4 @@ groupadd -f smly-users
 cat <<EOF > /etc/sudoers.d/smly
 %smly-users        ALL=(smly) ${SMLY_BIN}
 EOF
+
