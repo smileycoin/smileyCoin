@@ -239,7 +239,7 @@ static const CRPCCommand vRPCCommands[] =
 
     /* Block chain and UTXO */
     { "adddex",                 &adddex,                 false,     false,      false },
-    { "addnpo",                 &addnpo,                 false,     false,      false },
+    { "addorg",                 &addorg,                 false,     false,      false },
     { "addubi",                 &addubi,                 false,     false,      false },
     { "addchapter",             &addchapter,             false,     false,      false },
     { "getaddressinfo",         &getaddressinfo,         false,     false,      false },
@@ -252,9 +252,8 @@ static const CRPCCommand vRPCCommands[] =
     { "getticketlist",          &getticketlist,          false,     false,      false },
     { "getubilist",             &getubilist,             false,     false,      false },
     { "getdexlist",             &getdexlist,             false,     false,      false },
-    { "getnpolist",             &getnpolist,             false,     false,      false },
+    { "getorglist",             &getorglist,             false,     false,      false },
     { "getbooklist",            &getbooklist,            false,     false,      false },
-    { "getnpolist",             &getnpolist,            false,     false,      false },
     { "getblockchaininfo",      &getblockchaininfo,      true,      false,      false },
     { "getbestblockhash",       &getbestblockhash,       true,      false,      false },
     { "getblockcount",          &getblockcount,          true,      false,      false },

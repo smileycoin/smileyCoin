@@ -218,24 +218,24 @@ Value adddex(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
-Value addnpo(const Array& params, bool fHelp)
+// note that in the code org == npo/NP
+Value addorg(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 3)
         throw runtime_error(
-                "addnpo \"nptype\" \"npaddress\" \"npname\" \n"
-                "\n Add new non-profit address to a non-profit group/type.\n"
+                "addorg \"orgtype\" \"orgaddress\" \"orgname\" \n"
+                "\n Add new organization address to an organization group/type.\n"
                 + HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1. \"nptype\"  (string, required) The DEX service name associated with the new DEX address.\n"
-                "2. \"npaddress\"  (string, required) The smileycoin DEX address associated with the DEX service.\n"
-                "3. \"npname\"   (string, required) A short description of the DEX. \n"
+                "1. \"orgtype\"  (string, required) The DEX service name associated with the new DEX address.\n"
+                "2. \"orgaddress\"  (string, required) The smileycoin DEX address associated with the DEX service.\n"
+                "3. \"orgname\"   (string, required) A short description of the DEX. \n"
 
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
                 "\nExamples:\n"
-                + HelpExampleCli("adddex", "SmileyDEX 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd dexdescription")
-                + HelpExampleCli("adddex", "SmileyDEX 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd dexdescription")
-                + HelpExampleRpc("adddex", "SmileyDEX 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd dexdescription")
+                + HelpExampleCli("addorg", "women 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd konukot")
+                + HelpExampleRpc("addorg", "women 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd konukot")
         );
 
     std::string serviceName = params[0].get_str();
@@ -246,9 +246,9 @@ Value addnpo(const Array& params, bool fHelp)
     if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
     } else if (ServiceItemList.IsNP(npAddress)) {
-        throw runtime_error("The entered address is already on the non-profit list. Please use another address.");
+        throw runtime_error("The entered address is already on the organization list. Please use another address.");
     } else if (npName.length() > 30) {
-        throw runtime_error("Non-profit name cannot be more than 30 characters long.");
+        throw runtime_error("Organization name cannot be more than 30 characters long.");
     }
 
     // Amount
@@ -270,7 +270,7 @@ Value addnpo(const Array& params, bool fHelp)
     }
 
     if (!ServiceList.IsService(npServiceAddress)) {
-        throw runtime_error("The entered non-profit group name cannot be found on service list.");
+        throw runtime_error("The entered organization group name cannot be found on service list.");
     }
 
     // Parse Smileycoin address
@@ -500,7 +500,7 @@ Value createservice(const Array& params, bool fHelp)
                 "5 = Nonprofit Organization \n"
                 "6 = DEX \n"
                 "7 = Survey \n \n"
-                "8 = Non-profit groups \n \n"
+                "8 = Organization groups \n \n"
 
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
@@ -877,7 +877,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     root.push_back(Pair("Nonprofit Organization", nservices));
     root.push_back(Pair("DEX", dservices));
     root.push_back(Pair("Survey", sservices));
-    root.push_back(Pair("Non-profit Group", nposervices));
+    root.push_back(Pair("Organizations", nposervices));
 
     return root;
 }
@@ -1011,12 +1011,13 @@ Value getbooklist(const Array& params, bool fHelp)
     return obj;
 }
 
-Value getnpolist(const Array& params, bool fHelp)
+// note that org == npo/NP
+Value getorglist(const Array& params, bool fHelp)
 {
 
     if (fHelp || params.size() != 1)
-        throw runtime_error("getnpolist \"address\"\n"
-                            "Returns all nps that belong to the service/type of np\n"
+        throw runtime_error("getorglist \"address\"\n"
+                            "Returns all organizations that belong to the organization group's address\n"
                             );
     
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
@@ -1033,8 +1034,8 @@ Value getnpolist(const Array& params, bool fHelp)
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++)
     {
         if (get<1>(it->second) == address.ToString()) {
-            obj.push_back(Pair("Non-profit name: ", get<2>(it->second)));
-            obj.push_back(Pair("Non-profit address: ", it->first));
+            obj.push_back(Pair("Name: ", get<2>(it->second)));
+            obj.push_back(Pair("Address: ", it->first));
         }
     }
     
