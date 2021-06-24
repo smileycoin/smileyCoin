@@ -85,14 +85,6 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent)
     widget->setCheckValidator(new BitcoinAddressCheckValidator(parent));
 }
 
-void setupSendAddressWidget(QValidatedLineEdit *widget, QWidget *parent)
-{
-    // Removes validator to allow public keys.
-    parent->setFocusProxy(widget);
-    widget->setFont(bitcoinAddressFont());
-    widget->setPlaceholderText(QObject::tr("Enter a Smileycoin address (e.g. AafeSfiXVkHpcPmb9nQJTDAE5sKybkJAzz)"));
-}
-
 void setupAmountWidget(QLineEdit *widget, QWidget *parent)
 {
     QDoubleValidator *amountValidator = new QDoubleValidator(parent);

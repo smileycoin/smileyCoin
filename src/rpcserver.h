@@ -151,6 +151,7 @@ extern json_spirit::Value getnpolist(const json_spirit::Array& params, bool fHel
 extern json_spirit::Value getbooklist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getaddressinfo(const json_spirit::Array& params, bool fHelp); //in rpcmisc.cpp
 extern json_spirit::Value sendencryptedmessage(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getencryptedmessages(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getgenerate(const json_spirit::Array& params, bool fHelp); // in rpcmining.cpp
 extern json_spirit::Value setgenerate(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getnetworkhashps(const json_spirit::Array& params, bool fHelp);

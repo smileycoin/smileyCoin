@@ -955,8 +955,6 @@ Value getubilist(const Array& params, bool fHelp)
 
     ServiceItemList.GetUbiList(info);
 
-    int i = 0;
-
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         std::string toAddress = get<1>(it->second);
@@ -1001,14 +999,14 @@ Value getbooklist(const Array& params, bool fHelp)
     Object obj;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> info;
     ServiceItemList.GetBookList(info);
-    
+
     //TODO bæta við book name, book author og year
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         obj.push_back(Pair("Chapter Number: ", get<2>(it->second)));
         obj.push_back(Pair("Chapter Address: ", it->first));
     }
-    
+
     /*std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> info;
 
     ServiceItemList.GetNpoList(info);
@@ -1029,18 +1027,18 @@ Value getnpolist(const Array& params, bool fHelp)
         throw runtime_error("getnpolist \"address\"\n"
                             "Returns all nps that belong to the service/type of np\n"
                             );
-    
+
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
     if(!address.IsValid())
         throw runtime_error("Not a valid Smileycoin address");
-    
+
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
     Object obj;
 
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> info;
     ServiceItemList.GetNPList(info);
-    
+
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++)
     {
         if (get<1>(it->second) == address.ToString()) {
@@ -1364,7 +1362,6 @@ Value sendencryptedmessage(const Array &params, bool fHelp)
         if (!pubkey.IsValid())
             throw JSONRPCError(RPC_TYPE_ERROR,
                     "The address has not been spent on the blockchain so its public key is unavailable");
-
     }
 
     vector<uint8_t> vchEnc;
@@ -1400,6 +1397,59 @@ Value sendencryptedmessage(const Array &params, bool fHelp)
         throw JSONRPCError(RPC_WALLET_ERROR, "Committing transaction failed.");
 
     return wtx.GetHash().GetHex();
+}
+
+Value getencryptedmessages(const Array &params, bool fHelp)
+{
+	if (fHelp || params.size() != 0) {
+		throw runtime_error(
+			"getencryptedmessages\n"
+			"\nGets encrypted messages sent to the wallet and decrypts them\n"
+
+			"\nResult:\n"
+			"messages            (string) The decrypted messages.\n"
+			"\nExamples:\n"
+			"\nUnlock the wallet for 30 seconds\n" +
+			HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
+			"\nSend the message\n" + HelpExampleCli("sendencryptedmessage", "\"03d9f7c799c1fb80334ba8244bd73061917a3f2f5fd20ac9549d6992cb45ae52c4\" \"100\" \"my message\""));
+    }
+
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+
+    Array ret;
+
+    for (std::map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
+    {
+        auto wtx = it->second;
+        if (ContainsOpReturn(wtx)) {
+            CTxDestination dest;
+            ExtractDestination(wtx.vout[0].scriptPubKey, dest);
+
+            CBitcoinAddress address(dest);
+
+            // get pubkey
+            CKeyID keyID;
+            address.GetKeyID(keyID);
+            CKey privkey;
+            pwalletMain->GetKey(keyID, privkey);
+
+            // this is whatever follows the op_return
+            std::vector<unsigned char>
+                data(wtx.vout[1].scriptPubKey.begin() + 2, wtx.vout[1].scriptPubKey.end());
+            std::vector<unsigned char>
+                data_prefix(wtx.vout[1].scriptPubKey.begin() + 2, wtx.vout[1].scriptPubKey.begin() + 6);
+
+
+            unsigned char pre[] = {'\x6a', '\x6a', '\x00', '\x00'};
+            std::vector<unsigned char> prefix(pre, pre+4);
+
+            // check if it's encrypted data
+            if (data_prefix == prefix) {
+                ret.push_back(Jeeq::DecryptMessage(privkey, data));
+            }
+        }
+    }
+    return ret;
 }
 
 #pragma clang diagnostic pop
