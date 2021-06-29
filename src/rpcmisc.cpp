@@ -32,6 +32,37 @@ using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
 
+CPubKey GetPubKeyFromTx(uint256 hash)
+{
+    CTransaction tx;
+    uint256 hashBlock = 0;
+    if (!GetTransaction(hash, tx, hashBlock, true))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available about transaction");
+
+    // we use the first pubkey we find
+    // must be a P2PKH address
+    std::vector<unsigned char> pkdata;
+    bool found_p2pkh = false;
+    for (unsigned int i = 0; i < tx.vin.size(); i++)
+    {
+        CScript ssig = tx.vin[i].scriptSig;
+        if (ssig.IsPayToScriptHash())
+            continue;
+
+        opcodetype opcode;
+        auto pc = ssig.begin();
+
+        // we do it twice since the pubkey is the second item
+        ssig.GetOp(pc, opcode, pkdata);
+        ssig.GetOp(pc, opcode, pkdata);
+        found_p2pkh = true;
+
+    }
+    if (!found_p2pkh)
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction did not contain any P2PKH inputs");
+        
+    return CPubKey(pkdata.begin(), pkdata.end());
+}
 
 Value getinfo(const Array& params, bool fHelp)
 {
@@ -1313,10 +1344,12 @@ Value sendencryptedmessage(const Array &params, bool fHelp)
 {
 	if (fHelp || params.size() != 3)
 		throw runtime_error(
-			"sendencryptedmessage \"address\" \"value\" \"message\"\n"
-			"\nSend an encrypted message\n"
+			"sendencryptedmessage \"txid\" \"value\" \"message\"\n"
+			"\nSend an encrypted message to the sender of a transaction,\n"
+            "we find one public key used in its inputs, encrypt the message\n"
+            "with that public key and send it to the corresponding address.\n"
 			"\nArguments:\n"
-			"1. \"address\"            (string, required) Spent smileycoin address used to encrypt the message. \n"
+			"1. \"txid\"               (string, required) A txid representing a transaction on the blockchain. \n"
             ".  \"value\"              (number, required) The amount of coins to be sent along with the message. \n"
 			"2. \"message\"            (string, required) The message to encrypt.\n"
 			"\nResult:\n"
@@ -1324,9 +1357,9 @@ Value sendencryptedmessage(const Array &params, bool fHelp)
 			"\nExamples:\n"
 			"\nUnlock the wallet for 30 seconds\n" +
 			HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
-			"\nSend the message\n" + HelpExampleCli("sendencryptedmessage", "\"03d9f7c799c1fb80334ba8244bd73061917a3f2f5fd20ac9549d6992cb45ae52c4\" \"100\" \"my message\""));
+			"\nSend the message\n" + HelpExampleCli("sendencryptedmessage", "\"a037cfd75cdf4f864bf76eb85a97c5352e48c6a1dde919115e45c13e7e2beaac\" \"100\" \"my message\""));
 
-	string strAddress = params[0].get_str();
+    uint256 txid = ParseHashV(params[0], "parameter 1");
     double value = params[1].get_real();
 	string strMessage = params[2].get_str();
 
@@ -1338,31 +1371,7 @@ Value sendencryptedmessage(const Array &params, bool fHelp)
     if (strMessage.empty())
         throw JSONRPCError(RPC_TYPE_ERROR, "No message to encrypt");
 
-    CBitcoinAddress addr(strAddress);
-    if (!addr.IsValid())
-        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid address");
-    if (addr.IsScript())
-        throw JSONRPCError(RPC_TYPE_ERROR, "Address must be a P2PKH address");
-
-
-    CKeyID keyID;
-    if (!addr.GetKeyID(keyID))
-        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
-
-    CKey key;
-    CPubKey pubkey;
-    // if the key is in our wallet, we use it, else we search the blockchain
-    if (pwalletMain->GetKey(keyID, key))
-    {
-        pubkey = key.GetPubKey();
-    }
-    else
-    {
-        pubkey = Jeeq::SearchForPubKey(addr);
-        if (!pubkey.IsValid())
-            throw JSONRPCError(RPC_TYPE_ERROR,
-                    "The address has not been spent on the blockchain so its public key is unavailable");
-    }
+    CPubKey pubkey = GetPubKeyFromTx(txid);
 
     vector<uint8_t> vchEnc;
     vchEnc = Jeeq::EncryptMessage(pubkey, strMessage);
@@ -1376,7 +1385,7 @@ Value sendencryptedmessage(const Array &params, bool fHelp)
     // Build transaction outputs
     CScript scriptPubKey;
     CScript messageScript;
-    scriptPubKey.SetDestination(addr.Get());
+    scriptPubKey.SetDestination(pubkey.GetID());
     messageScript << OP_RETURN << vchEnc;
 
     // Prepare parameters for CreateTransaction()x
@@ -1451,6 +1460,7 @@ Value getencryptedmessages(const Array &params, bool fHelp)
     }
     return ret;
 }
+
 
 #pragma clang diagnostic pop
 
