@@ -604,7 +604,6 @@ string DecryptMessage(const CKey privkey, const vector<uint8_t> enc)
                       enc.data(), enc.size());
     if (bdec == NULL || dec_len == 0)
         return string();
-       // throw runtime_error("Jeeq::DecryptMessage(): failed to decrypt encoded message");
 
 
     string dec(bdec, bdec+dec_len);
