@@ -226,9 +226,9 @@ Value addorg(const Array& params, bool fHelp)
                 "\n Add new organization address to an organization group/type.\n"
                 + HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1. \"orgtype\"  (string, required) The DEX service name associated with the new DEX address.\n"
-                "2. \"orgaddress\"  (string, required) The smileycoin DEX address associated with the DEX service.\n"
-                "3. \"orgname\"   (string, required) A short description of the DEX. \n"
+                "1. \"orgtype\"  (string, required) The type or group of organization that will be added.\n"
+                "2. \"orgaddress\"  (string, required) The address associated with the orgazination.\n"
+                "3. \"orgname\"   (string, required) The organization's name. \n"
 
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
