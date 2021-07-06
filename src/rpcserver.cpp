@@ -254,7 +254,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getdexlist",             &getdexlist,             false,     false,      false },
     { "getnpolist",             &getnpolist,             false,     false,      false },
     { "getbooklist",            &getbooklist,            false,     false,      false },
-    { "getnpolist",             &getnpolist,            false,     false,      false },
     { "getblockchaininfo",      &getblockchaininfo,      true,      false,      false },
     { "getbestblockhash",       &getbestblockhash,       true,      false,      false },
     { "getblockcount",          &getblockcount,          true,      false,      false },
@@ -328,6 +327,8 @@ static const CRPCCommand vRPCCommands[] =
     { "walletlock",             &walletlock,             true,      false,      true },
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
     { "walletpassphrase",       &walletpassphrase,       true,      false,      true },
+    { "replywithmessage",       &replywithmessage,       false,     false,      true },
+    { "getmessages",            &getmessages,            true,      false,      true },
 
     /* Wallet-enabled mining */
     { "getgenerate",            &getgenerate,            true,      false,      false },

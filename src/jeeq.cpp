@@ -605,6 +605,7 @@ string DecryptMessage(const CKey privkey, const vector<uint8_t> enc)
     if (bdec == NULL || dec_len == 0)
         return string();
 
+
     string dec(bdec, bdec+dec_len);
     free(bdec);
     return dec;
