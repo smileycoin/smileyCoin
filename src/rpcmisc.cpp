@@ -1025,19 +1025,67 @@ Value getnpolist(const Array& params, bool fHelp)
     
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
-    Object obj;
 
+    string npAddressName;
+
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++)
+    {
+        if (get<2>(it->second) == "Non-profit Group") {
+            if(it->first == address.ToString()){
+                npAddressName = get<1>(it->second);
+                break;
+            }
+            
+        }
+    }
+
+    Object root;
+    Object obj;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> info;
     ServiceItemList.GetNPList(info);
     
+    Array arr;
+    
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++)
     {
+        obj.clear();
         if (get<1>(it->second) == address.ToString()) {
             obj.push_back(Pair("Non-profit name: ", get<2>(it->second)));
             obj.push_back(Pair("Non-profit address: ", it->first));
+            arr.push_back(obj);
         }
     }
+
+    root.push_back(Pair(npAddressName, arr));
     
+    return root;
+}
+
+
+Value getallnpolists(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error("getallnpolists\n"
+                            "Returns all organization groups.\n"
+                            );
+
+
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
+    ServiceList.GetServiceAddresses(services);
+    
+    Object obj;
+    Array npos;
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++)
+    {
+        if (get<2>(it->second) == "Non-profit Group") { 
+            Array param;
+            param.push_back(it->first);
+            Value npolst = getnpolist(param, false);
+            npos.push_back(npolst);
+        }
+    }
+    obj.push_back(Pair("Non-profit Groups", npos));
+
     return obj;
 }
 
