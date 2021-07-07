@@ -2101,3 +2101,167 @@ Value getwalletinfo(const Array& params, bool fHelp)
     return obj;
 }
 
+CPubKey GetPubKeyFromTx(uint256 hash)
+{
+    CTransaction tx;
+    uint256 hashBlock = 0;
+    if (!GetTransaction(hash, tx, hashBlock, true))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available about transaction");
+
+    // we use the first pubkey we find
+    // must be a P2PKH address
+    std::vector<unsigned char> pkdata;
+    bool found_p2pkh = false;
+    for (unsigned int i = 0; i < tx.vin.size(); i++)
+    {
+        CScript ssig = tx.vin[i].scriptSig;
+        if (ssig.IsPayToScriptHash())
+            continue;
+
+        opcodetype opcode;
+        auto pc = ssig.begin();
+
+        // we do it twice since the pubkey is the second item
+        ssig.GetOp(pc, opcode, pkdata);
+        ssig.GetOp(pc, opcode, pkdata);
+        found_p2pkh = true;
+
+    }
+    if (!found_p2pkh)
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction did not contain any P2PKH inputs");
+        
+    return CPubKey(pkdata.begin(), pkdata.end());
+}
+
+Value replywithmessage(const Array &params, bool fHelp)
+{
+	if (fHelp || params.size() != 3)
+		throw runtime_error(
+			"replywithmessage \"txid\" \"value\" \"message\"\n"
+			"\nSend an encrypted message to the sender of a transaction,\n"
+            "we find one public key used in its inputs, encrypt the message\n"
+            "with that public key and send it to the corresponding address.\n"
+			"\nArguments:\n"
+			"1. \"txid\"               (string, required) A txid representing a transaction on the blockchain. \n"
+            ".  \"value\"              (number, required) The amount of coins to be sent along with the message. \n"
+			"2. \"message\"            (string, required) The message to encrypt.\n"
+			"\nResult:\n"
+			"hex            (string) The transaction hash in hex.\n"
+			"\nExamples:\n"
+			"\nUnlock the wallet for 30 seconds\n" +
+			HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
+			"\nSend the message\n" + HelpExampleCli("replywithmessage", "\"a037cfd75cdf4f864bf76eb85a97c5352e48c6a1dde919115e45c13e7e2beaac\" \"100\" \"my message\""));
+
+    uint256 txid = ParseHashV(params[0], "parameter 1");
+    int64_t nAmount = COIN * stod(params[1].get_str());
+	string strMessage = params[2].get_str();
+
+    EnsureWalletIsUnlocked();
+
+    if (!fTxIndex)
+        throw JSONRPCError(RPC_MISC_ERROR, "Transaction indexing (txindex=1) must be set");
+
+    if (strMessage.empty())
+        throw JSONRPCError(RPC_TYPE_ERROR, "No message to encrypt");
+
+    CPubKey pubkey = GetPubKeyFromTx(txid);
+
+    vector<uint8_t> vchEnc;
+    vchEnc = Jeeq::EncryptMessage(pubkey, strMessage);
+    if (vchEnc.empty())
+        throw JSONRPCError(RPC_MISC_ERROR, "Could not encrypt message");
+
+    // OP_RETURN data can not be over 80 bytes
+    if (vchEnc.size() > 80)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The message must be 32 bytes or less");
+
+    // Build transaction outputs
+    CScript scriptPubKey;
+    CScript messageScript;
+    scriptPubKey.SetDestination(pubkey.GetID());
+    messageScript << OP_RETURN << vchEnc;
+
+    // Prepare parameters for CreateTransaction()
+    vector<pair<CScript, int64_t>> sendVec;
+    sendVec.push_back(make_pair(scriptPubKey, nAmount));
+    sendVec.push_back(make_pair(messageScript, 0));
+
+    CWalletTx wtx;
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+
+    // Create and send tranasction
+    bool fCreated = pwalletMain->CreateTransaction(sendVec, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_ERROR, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Committing transaction failed.");
+
+    return wtx.GetHash().GetHex();
+}
+
+Value getmessages(const Array &params, bool fHelp)
+{
+	if (fHelp || params.size() != 0) {
+		throw runtime_error(
+			"getmessages\n"
+			"\nGets encrypted messages sent to the wallet and decrypts them\n"
+
+			"\nResult:\n"
+			"messages            (string) The decrypted messages.\n"
+			"\nExamples:\n"
+			"\nUnlock the wallet for 30 seconds\n" +
+			HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
+			"\nSend the message\n" + HelpExampleCli("getmessages", ""));
+    }
+
+    Array ret;
+    for (std::map<uint256, CWalletTx>::iterator it = pwalletMain->mapWallet.begin(); it != pwalletMain->mapWallet.end(); ++it)
+    {
+        auto wtx = it->second;
+        if (!ContainsOpReturn(wtx))
+            continue;
+
+        unsigned int op_return_index = 0;
+        // find the out that contains the op_return
+        for (; op_return_index < wtx.vout.size(); op_return_index++)
+        {
+            if (wtx.vout[op_return_index].scriptPubKey.IsUnspendable())
+                break;
+        }
+
+        CScript pub = wtx.vout[op_return_index].scriptPubKey;
+        std::vector<unsigned char> data(pub.begin() + 2, pub.end());
+        std::vector<unsigned char> data_prefix(pub.begin() + 2, pub.begin() + 6);
+
+        unsigned char pre[] = {'\x6a', '\x6a', '\x00', '\x00'};
+        std::vector<unsigned char> prefix(pre, pre+4);
+
+        // the op_return data is encrypted
+        if (data_prefix != prefix)
+            continue;
+
+        // for each out: check if we have a privkey for the output and test whether
+        // it matches to the encrytpted data in the op_return
+        for (unsigned int i = 0; i < wtx.vout.size(); i++)
+        {
+            CTxDestination dest;
+            ExtractDestination(wtx.vout[i].scriptPubKey, dest);
+            CBitcoinAddress addr(dest);
+            CKeyID keyID;
+            addr.GetKeyID(keyID);
+            CKey privkey;
+            // privkey found
+            if (!pwalletMain->GetKey(keyID, privkey))
+                continue;
+
+            std::string decrypted;
+            decrypted = Jeeq::DecryptMessage(privkey, data);
+            if (decrypted != "")
+                ret.push_back(decrypted);
+        }
+    }
+    return ret;
+}
+
