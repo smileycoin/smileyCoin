@@ -614,6 +614,7 @@ bool CServiceItemList::UpdateNPList(const std::map<std::string, std::tuple<std::
 {
     for(std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
+        std::cout << "this: " << get<0>(it->second) << std::endl;
         if (get<0>(it->second) == "DN") { // If op_return begins with DN (delete np)
             mapServiceNPList::iterator itNP = naddresses.find(it->first);
             // If key is found in dex list
@@ -645,6 +646,7 @@ bool CServiceItemList::UpdateNPListHeights()
 
     for(mapServiceNPList::const_iterator it = naddresses.begin(); it!=naddresses.end(); it++)
     {
+        std::cout << "other: " << get<0>(it->second) << std::endl;
         if (get<0>(it->second) == "DN") { // If op_return begins with DN (delete np)
             mapServiceNPList::iterator itNP = naddresses.find(it->first);
             // If key is found in dex list

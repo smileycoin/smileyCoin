@@ -307,6 +307,80 @@ Value addorg(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
+Value deleteorg(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 2)
+        throw runtime_error(
+                "deleteorg \"orgaddress\" \n"
+                "\nThis organization address, name pair will be deleted when the transaction has been confirmed if you own the address. You can't undo this action.\n"
+                + HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1. \"serviceaddress\"   (string, required) The smileycoin service address associated with the service. \n"
+
+                "\nResult:\n"
+                "\"transactionid\"  (string) The transaction id.\n"
+                "\nExamples:\n"
+                + HelpExampleCli("deleteorg", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleCli("deleteorg", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleRpc("deleteorg", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+        );
+
+    CBitcoinAddress serviceAddress(params[0].get_str());
+    CBitcoinAddress orgAddress(params[1].get_str());
+
+    if (!serviceAddress.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid service address");
+    } else if (!orgAddress.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid organization address");
+    } else if (!IsMine(*pwalletMain, serviceAddress.Get())) {
+        throw runtime_error("Permission denied. The service address is not owned by you.");
+    } else if (!IsMine(*pwalletMain, orgAddress.Get())) {
+        throw runtime_error("Permission denied. The organization address is not owned by you.");
+    } else if (!ServiceList.IsService(serviceAddress.ToString())) {
+        throw runtime_error("Service address is not on the list");
+    }
+
+    // Amount
+    int64_t nValue = 1*COIN;
+    int64_t DEFAULT_AMOUNT = 0;
+
+    vector<pair<CScript, int64_t> > vecSend;
+
+    // Parse Smileycoin address
+    CBitcoinAddress toAddress(serviceAddress);
+    CScript scriptPubKey;
+    scriptPubKey.SetDestination(toAddress.Get());
+
+    // Pay 1 SMLY to org address
+    vecSend.push_back(make_pair(scriptPubKey, nValue));
+
+    vector<string> str;
+    int64_t amount = 0;
+
+    std::string txData = HexStr("DN " + orgAddress.ToString(), false);
+    str.push_back(txData);
+    vector<unsigned char> data = ParseHexV(str[0], "Data");
+
+    // Create op_return script in the form -> DS orgAddress
+    vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
+
+    CWalletTx wtx;
+
+    EnsureWalletIsUnlocked();
+
+    // Send
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
+
+    return wtx.GetHash().GetHex();
+}
+
 Value addubi(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)

@@ -1909,7 +1909,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 												return state.Abort(_("Failed to read np index"));
 											else {
 												value = std::make_tuple("NN", toAddress, hexToAscii(npName));
-												assert(view.SetNPList(asciiAddress, value));
+												//assert(view.SetNPList(asciiAddress, value));
 												serviceNPList[asciiAddress]=value;
 											}
 										}
@@ -1956,6 +1956,33 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                                     "", CT_DELETED);
                                         }
                                     }
+                                }
+                                // delete np, opreturn begins with "DN "
+                                else if (hexData.substr(0, 6) == "444e20") {
+									std::string newDex = hexData.substr(6, hexString.size());
+									std::vector<std::string> strs = splitString(newDex, "20");
+									// The string has to have 2 params to be valid as a np and saved into the db
+									if (strs.size() == 1) {
+										std::string npAddress = strs.at(0);
+                                        std::string asciiAddress = hexToAscii(npAddress);
+                                        CBitcoinAddress nAddress = CBitcoinAddress(asciiAddress);
+										if (nAddress.IsValid() && ServiceList.IsService(toAddress)) {
+											std::tuple<std::string, std::string, std::string> value;
+											if (!view.GetNPList(asciiAddress, value))
+												return state.Abort(_("Failed to read np index"));
+											else {
+												value = std::make_tuple("DN", asciiAddress, "");
+												//assert(view.SetNPList(asciiAddress, value));
+                                                std::cout << "2DN : " << asciiAddress << std::endl;
+												serviceNPList[asciiAddress]=value;
+
+                                                if (pwalletMain) {
+                                                    pwalletMain->NotifyServicePageChanged(pwalletMain, "", asciiAddress,
+                                                            "", CT_DELETED);
+                                                }
+											}
+										}
+									}
                                 }
                                 // Delete ticket
                                 // If op_return begins with "DT"
@@ -2129,7 +2156,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
     }
 
     if(!ServiceItemList.UpdateNPList(serviceNPList)) {
-        return state.Abort(_("Failed to update np chapter list"));
+        return state.Abort(_("Failed to update np list"));
     }
 
 	return fClean;
@@ -2444,6 +2471,32 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         }
                                     }
                                 }
+                                // if starts with "DN "
+                                else if (hexData.substr(0, 6) == "444e20") {
+									std::string newDex = hexData.substr(6, hexString.size());
+									std::vector<std::string> strs = splitString(newDex, "20");
+									// The string has to have 2 params to be valid as a np and saved into the db
+									if (strs.size() == 1) {
+										std::string npAddress = strs.at(0);
+                                        std::string asciiAddress = hexToAscii(npAddress);
+                                        CBitcoinAddress nAddress = CBitcoinAddress(asciiAddress);
+										if (nAddress.IsValid() && ServiceList.IsService(toAddress)) {
+											std::tuple<std::string, std::string, std::string> value;
+											if (!view.GetNPList(asciiAddress, value))
+												return state.Abort(_("Failed to read np index"));
+											else {
+												value = std::make_tuple("DN", asciiAddress, "");
+												//assert(view.SetNPList(asciiAddress, value));
+                                                std::cout << "1DN : " << asciiAddress << std::endl;
+												serviceNPList[asciiAddress]=value;
+                                                if (pwalletMain) {
+                                                    pwalletMain->NotifyServicePageChanged(pwalletMain, "", asciiAddress,
+                                                            "", CT_DELETED);
+                                                }
+											}
+										}
+									}
+                                }
                                 // If the string starts with "NB" (new book chapter)
                                 else if (hexData.substr(0, 4) == "4e42") {
                                     std::string newBookChapter = hexData.substr(4, hexString.size());
@@ -2676,6 +2729,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     if(!ServiceItemList.UpdateBookList(serviceBookList)) {
         return state.Abort(_("Failed to update book chapter list"));
+    }
+
+    if(!ServiceItemList.UpdateNPList(serviceNPList)) {
+        return state.Abort(_("Failed to update np list"));
     }
 
 	// add this block to the view's block chain

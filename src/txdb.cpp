@@ -118,12 +118,15 @@ void static BatchWriteServiceBookList(CLevelDBBatch &batch, const std::string &k
 }
 
 void static BatchWriteServiceNPList(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
+    std::cout << "value: " << get<0>(value) << std::endl;
     // If op_return begins with "DN" (delete np )
     if (get<0>(value) == "DN") {
         // Erase the ticket associated with address
         batch.Erase(make_pair(DB_SERVICENPLIST, key));
+        std::cout << "DN: " << key << std::endl;
     } else if (get<0>(value) == "NN") { // If op_return begins with NN
         batch.Write(make_pair(DB_SERVICENPLIST, key), value);
+        std::cout << "NN: " << key << std::endl;
     }
 }
 
