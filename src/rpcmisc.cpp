@@ -1107,18 +1107,66 @@ Value getorglist(const Array& params, bool fHelp)
 
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
-    Object obj;
 
-    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> info;
-    ServiceItemList.GetNPList(info);
+    string npAddressName;
 
-    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++)
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++)
     {
-        if (get<1>(it->second) == address.ToString()) {
-            obj.push_back(Pair("Name: ", get<2>(it->second)));
-            obj.push_back(Pair("Address: ", it->first));
+        if (get<2>(it->second) == "Non-profit Group") {
+            if(it->first == address.ToString()){
+                npAddressName = get<1>(it->second);
+                break;
+            }
+            
         }
     }
+
+    Object root;
+    Object obj;
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> info;
+    ServiceItemList.GetNPList(info);
+    
+    Array arr;
+    
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++)
+    {
+        obj.clear();
+        if (get<1>(it->second) == address.ToString()) {
+            obj.push_back(Pair("Non-profit name: ", get<2>(it->second)));
+            obj.push_back(Pair("Non-profit address: ", it->first));
+            arr.push_back(obj);
+        }
+    }
+
+    root.push_back(Pair(npAddressName, arr));
+    
+    return root;
+}
+
+
+Value getallorglists(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error("getallorglists\n"
+                            "Returns all listed organization groups.\n"
+                            );
+
+
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
+    ServiceList.GetServiceAddresses(services);
+    
+    Object obj;
+    Array orgs;
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++)
+    {
+        if (get<2>(it->second) == "Non-profit Group") { 
+            Array param;
+            param.push_back(it->first);
+            Value orglst = getorglist(param, false);
+            orgs.push_back(orglst);
+        }
+    }
+    obj.push_back(Pair("Organizations", orgs));
 
     return obj;
 }
@@ -1385,3 +1433,4 @@ Value verifymessage(const Array& params, bool fHelp)
 
 #pragma clang diagnostic pop
 
+ 

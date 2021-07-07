@@ -149,6 +149,7 @@ extern json_spirit::Value getticketlist(const json_spirit::Array& params, bool f
 extern json_spirit::Value getubilist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdexlist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getorglist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getallorglists(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getbooklist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getaddressinfo(const json_spirit::Array& params, bool fHelp); //in rpcmisc.cpp
 extern json_spirit::Value replywithmessage(const json_spirit::Array& params, bool fHelp);
