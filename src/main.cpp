@@ -1909,7 +1909,6 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 												return state.Abort(_("Failed to read np index"));
 											else {
 												value = std::make_tuple("NN", toAddress, hexToAscii(npName));
-												//assert(view.SetNPList(asciiAddress, value));
 												serviceNPList[asciiAddress]=value;
 											}
 										}
@@ -1973,7 +1972,6 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 											else {
 												value = std::make_tuple("DN", asciiAddress, "");
 												//assert(view.SetNPList(asciiAddress, value));
-                                                std::cout << "2DN : " << asciiAddress << std::endl;
 												serviceNPList[asciiAddress]=value;
 
                                                 if (pwalletMain) {
@@ -2487,7 +2485,6 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 											else {
 												value = std::make_tuple("DN", asciiAddress, "");
 												//assert(view.SetNPList(asciiAddress, value));
-                                                std::cout << "1DN : " << asciiAddress << std::endl;
 												serviceNPList[asciiAddress]=value;
                                                 if (pwalletMain) {
                                                     pwalletMain->NotifyServicePageChanged(pwalletMain, "", asciiAddress,
