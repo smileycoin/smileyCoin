@@ -31,7 +31,6 @@ using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
 
-
 Value getinfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
@@ -218,24 +217,24 @@ Value adddex(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
-Value addnpo(const Array& params, bool fHelp)
+// note that in the code org == npo/NP
+Value addorg(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 3)
         throw runtime_error(
-                "addnpo \"nptype\" \"npaddress\" \"npname\" \n"
-                "\n Add new non-profit address to a non-profit group/type.\n"
+                "addorg \"orgtype\" \"orgaddress\" \"orgname\" \n"
+                "\n Add new organization address to an organization group/type.\n"
                 + HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1. \"nptype\"  (string, required) The DEX service name associated with the new DEX address.\n"
-                "2. \"npaddress\"  (string, required) The smileycoin DEX address associated with the DEX service.\n"
-                "3. \"npname\"   (string, required) A short description of the DEX. \n"
+                "1. \"orgtype\"  (string, required) The DEX service name associated with the new DEX address.\n"
+                "2. \"orgaddress\"  (string, required) The smileycoin DEX address associated with the DEX service.\n"
+                "3. \"orgname\"   (string, required) A short description of the DEX. \n"
 
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
                 "\nExamples:\n"
-                + HelpExampleCli("adddex", "SmileyDEX 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd dexdescription")
-                + HelpExampleCli("adddex", "SmileyDEX 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd dexdescription")
-                + HelpExampleRpc("adddex", "SmileyDEX 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd dexdescription")
+                + HelpExampleCli("addorg", "women 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd konukot")
+                + HelpExampleRpc("addorg", "women 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd konukot")
         );
 
     std::string serviceName = params[0].get_str();
@@ -246,9 +245,9 @@ Value addnpo(const Array& params, bool fHelp)
     if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
     } else if (ServiceItemList.IsNP(npAddress)) {
-        throw runtime_error("The entered address is already on the non-profit list. Please use another address.");
+        throw runtime_error("The entered address is already on the organization list. Please use another address.");
     } else if (npName.length() > 30) {
-        throw runtime_error("Non-profit name cannot be more than 30 characters long.");
+        throw runtime_error("Organization name cannot be more than 30 characters long.");
     }
 
     // Amount
@@ -270,7 +269,7 @@ Value addnpo(const Array& params, bool fHelp)
     }
 
     if (!ServiceList.IsService(npServiceAddress)) {
-        throw runtime_error("The entered non-profit group name cannot be found on service list.");
+        throw runtime_error("The entered organization group name cannot be found on service list.");
     }
 
     // Parse Smileycoin address
@@ -500,7 +499,7 @@ Value createservice(const Array& params, bool fHelp)
                 "5 = Nonprofit Organization \n"
                 "6 = DEX \n"
                 "7 = Survey \n \n"
-                "8 = Non-profit groups \n \n"
+                "8 = Organization groups \n \n"
 
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
@@ -877,7 +876,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     root.push_back(Pair("Nonprofit Organization", nservices));
     root.push_back(Pair("DEX", dservices));
     root.push_back(Pair("Survey", sservices));
-    root.push_back(Pair("Non-profit Group", nposervices));
+    root.push_back(Pair("Organizations", nposervices));
 
     return root;
 }
@@ -930,11 +929,11 @@ Value getubilist(const Array& params, bool fHelp)
         throw runtime_error("getubilist \"address\"\n"
                             "Returns all UBI recipient addresses that belong to the specified UBI service address\n"
                             );
-    
+
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
     if(!address.IsValid())
         throw runtime_error("Not a valid Smileycoin address");
-    
+
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
     bool isUbi = false;
@@ -954,8 +953,6 @@ Value getubilist(const Array& params, bool fHelp)
 
     ServiceItemList.GetUbiList(info);
 
-    int i = 0;
-    
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         std::string toAddress = get<1>(it->second);
@@ -963,7 +960,7 @@ Value getubilist(const Array& params, bool fHelp)
             obj.push_back(Pair("UBI Recipient Address: ", it->first));
         }
     }
-    
+
     return obj;
 }
 
@@ -974,18 +971,18 @@ Value getdexlist(const Array& params, bool fHelp)
         throw runtime_error("getdexlist \"address\"\n"
                             "Returns all DEX addresses that belong to the specified DEX service address\n"
                             );
-    
+
     Object obj;
     std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> info;
 
     ServiceItemList.GetDexList(info);
-    
+
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         obj.push_back(Pair("DEX Address: ", it->first));
         obj.push_back(Pair("Description: ", get<2>(it->second)));
     }
-    
+
     return obj;
 }
 
@@ -996,48 +993,107 @@ Value getbooklist(const Array& params, bool fHelp)
         throw runtime_error("getbooklist \"address\"\n"
                             "Returns all book chapters that belong to the specified book service address\n"
                             );
-    
+
     Object obj;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> info;
     ServiceItemList.GetBookList(info);
-    
+
     //TODO bæta við book name, book author og year
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         obj.push_back(Pair("Chapter Number: ", get<2>(it->second)));
         obj.push_back(Pair("Chapter Address: ", it->first));
     }
-    
+
+    /*std::multiset<std::pair< CScript, std::tuple<std::string, std::string, std::string>>> info;
+
+    ServiceItemList.GetNpoList(info);
+
+    for(std::set< std::pair< CScript, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
+    {
+        obj.push_back(Pair("Npo name: ", get<1>(it->second)));
+        obj.push_back(Pair("Npo address: ", get<2>(it->second)));
+    }*/
+
     return obj;
 }
 
-Value getnpolist(const Array& params, bool fHelp)
+// note that org == npo/NP
+Value getorglist(const Array& params, bool fHelp)
 {
 
     if (fHelp || params.size() != 1)
-        throw runtime_error("getnpolist \"address\"\n"
-                            "Returns all nps that belong to the service/type of np\n"
+        throw runtime_error("getorglist \"address\"\n"
+                            "Returns all organizations that belong to the organization group's address\n"
                             );
-    
+
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
     if(!address.IsValid())
         throw runtime_error("Not a valid Smileycoin address");
-    
+
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
     ServiceList.GetServiceAddresses(services);
-    Object obj;
 
+    string npAddressName;
+
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++)
+    {
+        if (get<2>(it->second) == "Non-profit Group") {
+            if(it->first == address.ToString()){
+                npAddressName = get<1>(it->second);
+                break;
+            }
+            
+        }
+    }
+
+    Object root;
+    Object obj;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> info;
     ServiceItemList.GetNPList(info);
     
+    Array arr;
+    
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++)
     {
+        obj.clear();
         if (get<1>(it->second) == address.ToString()) {
             obj.push_back(Pair("Non-profit name: ", get<2>(it->second)));
             obj.push_back(Pair("Non-profit address: ", it->first));
+            arr.push_back(obj);
         }
     }
+
+    root.push_back(Pair(npAddressName, arr));
     
+    return root;
+}
+
+
+Value getallorglists(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 0)
+        throw runtime_error("getallorglists\n"
+                            "Returns all listed organization groups.\n"
+                            );
+
+
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
+    ServiceList.GetServiceAddresses(services);
+    
+    Object obj;
+    Array orgs;
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++)
+    {
+        if (get<2>(it->second) == "Non-profit Group") { 
+            Array param;
+            param.push_back(it->first);
+            Value orglst = getorglist(param, false);
+            orgs.push_back(orglst);
+        }
+    }
+    obj.push_back(Pair("Organizations", orgs));
+
     return obj;
 }
 
@@ -1051,7 +1107,7 @@ Value getaddressinfo(const Array& params, bool fHelp)
     if(!address.IsValid())
         throw runtime_error("Invalid Smileycoin address");
     Object obj;
-    CScript key;    
+    CScript key;
     key.SetDestination(address.Get());
     std::pair<int64_t, int> value;
     if(!pcoinsTip->GetAddressInfo(key, value))
@@ -1059,7 +1115,7 @@ Value getaddressinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("Balance", ValueFromAmount(value.first)));
     obj.push_back(Pair("Height", value.second));
 
-    return obj; 
+    return obj;
 }
 
 #ifdef ENABLE_WALLET
@@ -1245,7 +1301,7 @@ Value createmultisig(const Array& params, bool fHelp)
     result.push_back(Pair("address", address.ToString()));
     result.push_back(Pair("redeemScript", HexStr(inner.begin(), inner.end())));
 
-    return result;
+        return result;
 }
 
 Value verifymessage(const Array& params, bool fHelp)
@@ -1300,4 +1356,7 @@ Value verifymessage(const Array& params, bool fHelp)
     return (pubkey.GetID() == keyID);
 }
 
+
 #pragma clang diagnostic pop
+
+ 
