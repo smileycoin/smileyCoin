@@ -333,7 +333,7 @@ Value deleteorg(const Array& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid service address");
     } else if (!orgAddress.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid organization address");
-    } else if (!(IsMine(*pwalletMain, serviceAddress.Get()) || IsMine(*pwalletMain, orgAddress.Get()))) {
+    } else if (!IsMine(*pwalletMain, serviceAddress.Get()) && !IsMine(*pwalletMain, orgAddress.Get())) {
         throw runtime_error("Permission denied. The organization or service address is not owned by you.");
     } else if (!ServiceList.IsService(serviceAddress.ToString())) {
         throw runtime_error("Service address is not on the list");
