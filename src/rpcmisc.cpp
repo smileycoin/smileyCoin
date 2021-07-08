@@ -311,11 +311,12 @@ Value deleteorg(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-                "deleteorg \"orgaddress\" \n"
-                "\nThis organization address, name pair will be deleted when the transaction has been confirmed if you own the address. You can't undo this action.\n"
+                "deleteorg \"serviceaddress \" \"orgaddress\" \n"
+                "\nDelete the organization associated with the service address, organization address pair\n"
                 + HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1. \"serviceaddress\"   (string, required) The smileycoin service address associated with the service. \n"
+                "1. \"serviceaddress\"   (string, required) The service address associated with the service. \n"
+                "2. \"orgaddress\"       (string, required) The organization address associated with the organization. \n"
 
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
@@ -1095,7 +1096,6 @@ Value getbooklist(const Array& params, bool fHelp)
 // note that org == npo/NP
 Value getorglist(const Array& params, bool fHelp)
 {
-
     if (fHelp || params.size() != 1)
         throw runtime_error("getorglist \"address\"\n"
                             "Returns all organizations that belong to the organization group's address\n"
@@ -1132,8 +1132,8 @@ Value getorglist(const Array& params, bool fHelp)
     {
         obj.clear();
         if (get<1>(it->second) == address.ToString()) {
-            obj.push_back(Pair("Non-profit name: ", get<2>(it->second)));
-            obj.push_back(Pair("Non-profit address: ", it->first));
+            obj.push_back(Pair("Organization name: ", get<2>(it->second)));
+            obj.push_back(Pair("Organization address: ", it->first));
             arr.push_back(obj);
         }
     }
