@@ -1132,8 +1132,8 @@ Value getorglist(const Array& params, bool fHelp)
     {
         obj.clear();
         if (get<1>(it->second) == address.ToString()) {
-            obj.push_back(Pair("Non-profit name: ", get<2>(it->second)));
-            obj.push_back(Pair("Non-profit address: ", it->first));
+            obj.push_back(Pair("Organization name: ", get<2>(it->second)));
+            obj.push_back(Pair("Organization address: ", it->first));
             arr.push_back(obj);
         }
     }
