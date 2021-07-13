@@ -61,7 +61,7 @@ Notificator::Notificator(const QString &programName, QSystemTrayIcon *trayicon, 
     else {
         // Check if Growl is installed (based on Qt's tray icon implementation)
         CFURLRef cfurl;
-        OSStatus status = LSGetApplicationForInfo(kLSUnknownType, kLSUnknownCreator, CFSTR("growlTicket"), kLSRolesAll, 0, &cfurl);
+        OSStatus status = LSGetApplicationForInfo(kLSUnknownType, kLSUnknownCreator, CFSTR("growlCoupon"), kLSRolesAll, 0, &cfurl);
         if (status != kLSApplicationNotFoundErr) {
             CFBundleRef bundle = CFBundleCreate(0, cfurl);
             if (CFStringCompare(CFBundleGetIdentifier(bundle), CFSTR("com.Growl.GrowlHelperApp"), kCFCompareCaseInsensitive | kCFCompareBackwards) == kCFCompareEqualTo) {

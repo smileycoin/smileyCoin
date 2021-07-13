@@ -21,12 +21,12 @@
 #include "sync.h"
 #include "wallet.h"
 
-inline std::string TicketAction(const CServiceTicket &ai) {return get<0>(ai);}
-inline std::string TicketToAddress(const CServiceTicket &ai) {return get<1>(ai);}
-inline std::string TicketLocation(const CServiceTicket &ai) {return get<2>(ai);}
-inline std::string TicketName(const CServiceTicket &ai) {return get<3>(ai);}
-inline std::string TicketDateAndTime(const CServiceTicket &ai) {return get<4>(ai);}
-inline std::string TicketValue(const CServiceTicket &ai) {return get<5>(ai);}
+inline std::string CouponAction(const CServiceCoupon &ai) {return get<0>(ai);}
+inline std::string CouponToAddress(const CServiceCoupon &ai) {return get<1>(ai);}
+inline std::string CouponLocation(const CServiceCoupon &ai) {return get<2>(ai);}
+inline std::string CouponName(const CServiceCoupon &ai) {return get<3>(ai);}
+inline std::string CouponDateAndTime(const CServiceCoupon &ai) {return get<4>(ai);}
+inline std::string CouponValue(const CServiceCoupon &ai) {return get<5>(ai);}
 
 inline std::string UbiAction(const CServiceUbi &ai) {return get<0>(ai);}
 inline std::string UbiToAddress(const CServiceUbi &ai) {return get<1>(ai);}
@@ -49,18 +49,18 @@ bool CServiceItemList::SetForked(const bool &fFork)
     return true;
 }
 
-bool CServiceItemList::UpdateTicketList(const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &map)
+bool CServiceItemList::UpdateCouponList(const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &map)
 {
     for(std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = map.begin(); it!= map.end(); it++)
     {
-        // If op_return begins with DT (delete ticket) or if ticket has expired
+        // If op_return begins with DT (delete coupon) or if coupon has expired
         if (get<0>(it->second) == "DT" || !is_before(get<4>(it->second)) ) {
-            mapServiceTicketList::iterator itTicket = taddresses.find(it->first);
-            // If key is found in ticket list
-            if (itTicket != taddresses.end()) {
-                taddresses.erase(itTicket);
+            mapServiceCouponList::iterator itCoupon = taddresses.find(it->first);
+            // If key is found in coupon list
+            if (itCoupon != taddresses.end()) {
+                taddresses.erase(itCoupon);
             }
-        } else if (get<0>(it->second) == "NT") { // If op_return begins with NT (new ticket)
+        } else if (get<0>(it->second) == "NT") { // If op_return begins with NT (new coupon)
             taddresses.insert(*it);
         }
     }
@@ -69,7 +69,7 @@ bool CServiceItemList::UpdateTicketList(const std::map<std::string, std::tuple<s
 
 // The heights need to be rolled back before new blocks are connected if any were disconnected.
 // TODO: We should try to get rid of this and write the height undo information to the disk instead.
-bool CServiceItemList::UpdateTicketListHeights()
+bool CServiceItemList::UpdateCouponListHeights()
 {
     if(!fForked)
         return true;
@@ -80,28 +80,28 @@ bool CServiceItemList::UpdateTicketListHeights()
     }
 
     CBlock block;
-    std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > ticketItem;
-    mapServiceTicketList mforkedServiceTicketList;
+    std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > couponItem;
+    mapServiceCouponList mforkedServiceCouponList;
 
-    for(mapServiceTicketList::const_iterator it = taddresses.begin(); it!=taddresses.end(); it++)
+    for(mapServiceCouponList::const_iterator it = taddresses.begin(); it!=taddresses.end(); it++)
     {
-        // If op_return begins with DT (delete ticket) or if ticket has expired
+        // If op_return begins with DT (delete coupon) or if coupon has expired
         if (get<0>(it->second) == "DT" || !is_before(get<4>(it->second))) {
-            mapServiceTicketList::iterator itTicket = taddresses.find(it->first);
-            // If key is found in ticket list
-            if (itTicket != taddresses.end()) {
-                taddresses.erase(itTicket);
+            mapServiceCouponList::iterator itCoupon = taddresses.find(it->first);
+            // If key is found in coupon list
+            if (itCoupon != taddresses.end()) {
+                taddresses.erase(itCoupon);
             }
-        } else if (get<0>(it->second) == "NT") { // If op_return begins with NT (new ticket)
+        } else if (get<0>(it->second) == "NT") { // If op_return begins with NT (new coupon)
             taddresses.insert(*it);
         }
     }
 
     if(fDebug) {
-        LogPrintf("%d addresses seen at fork and need to be relocated\n", mforkedServiceTicketList.size());
+        LogPrintf("%d addresses seen at fork and need to be relocated\n", mforkedServiceCouponList.size());
     }
 
-    while(pindexSeek->pprev && !mforkedServiceTicketList.empty())
+    while(pindexSeek->pprev && !mforkedServiceCouponList.empty())
     {
         // return false;
         ReadBlockFromDisk(block,pindexSeek);
@@ -111,12 +111,12 @@ bool CServiceItemList::UpdateTicketListHeights()
             for(unsigned int j = 0; j < tx.vout.size(); j++)
             {
                 CScript key = tx.vout[j].scriptPubKey;
-                /*mapServiceTicketList::iterator it = mforkedServiceTicketList.find(key);
-                if(it == mforkedServiceTicketList.end())
+                /*mapServiceCouponList::iterator it = mforkedServiceCouponList.find(key);
+                if(it == mforkedServiceCouponList.end())
                     continue;
 
-                ticketItem.insert(std::make_pair(key, std::make_tuple(TicketToAddress(it), TicketLocation(it), TicketName(it), TicketDateAndTime(it), TicketValue(it), TicketAddress(it))));
-                mforkedServiceTicketList.erase(it);*/
+                couponItem.insert(std::make_pair(key, std::make_tuple(CouponToAddress(it), CouponLocation(it), CouponName(it), CouponDateAndTime(it), CouponValue(it), CouponAddress(it))));
+                mforkedServiceCouponList.erase(it);*/
                 if(fDebug) {
                     CTxDestination dest;
                     ExtractDestination(key, dest);
@@ -136,11 +136,11 @@ bool CServiceItemList::UpdateTicketListHeights()
                 for (unsigned int j=0; j<undo.vtxundo[i].vprevout.size(); j++)
                 {
                     CScript key = undo.vtxundo[i].vprevout[j].txout.scriptPubKey;
-                    /*mapServiceTicketList::iterator it = mforkedServiceTicketList.find(key);
-                    if(it == mforkedServiceTicketList.end())
+                    /*mapServiceCouponList::iterator it = mforkedServiceCouponList.find(key);
+                    if(it == mforkedServiceCouponList.end())
                         continue;
-                    ticketItem.insert(std::make_pair(it->first, std::make_tuple(TicketToAddress(it), TicketLocation(it), TicketName(it), TicketDateAndTime(it), TicketValue(it), TicketAddress(it))));
-                    mforkedServiceTicketList.erase(it);*/
+                    couponItem.insert(std::make_pair(it->first, std::make_tuple(CouponToAddress(it), CouponLocation(it), CouponName(it), CouponDateAndTime(it), CouponValue(it), CouponAddress(it))));
+                    mforkedServiceCouponList.erase(it);*/
                     if(fDebug) {
                         CTxDestination dest;
                         ExtractDestination(key, dest);
@@ -152,7 +152,7 @@ bool CServiceItemList::UpdateTicketListHeights()
             }
         }
         else {
-            LogPrintf("UpdateTicketListHeights(): Failed to read undo information\n");
+            LogPrintf("UpdateCouponListHeights(): Failed to read undo information\n");
             break;
         }
         pindexSeek = pindexSeek -> pprev;
@@ -160,18 +160,18 @@ bool CServiceItemList::UpdateTicketListHeights()
 
     bool ret;
     typedef std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > pairType;
-    BOOST_FOREACH(const pairType &pair, ticketItem) {
-        ret = pcoinsTip->SetTicketList(pair.first, pair.second);
+    BOOST_FOREACH(const pairType &pair, couponItem) {
+        ret = pcoinsTip->SetCouponList(pair.first, pair.second);
         assert(ret);
     }
 
-    if(!UpdateTicketList(ticketItem))
+    if(!UpdateCouponList(couponItem))
         return false;
-    return mforkedServiceTicketList.empty();
+    return mforkedServiceCouponList.empty();
 }
 
 
-bool CServiceItemList::GetTicketList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> &retset) const {
+bool CServiceItemList::GetCouponList(std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> &retset) const {
     for(std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it=taddresses.begin(); it!=taddresses.end(); it++)
     {
         retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second), get<3>(it->second), get<4>(it->second), get<5>(it->second))));
@@ -179,10 +179,10 @@ bool CServiceItemList::GetTicketList(std::multiset<std::pair<std::string, std::t
     return true;
 }
 
-bool CServiceItemList::IsTicket(std::string address) {
+bool CServiceItemList::IsCoupon(std::string address) {
     for (std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = taddresses.begin();it != taddresses.end(); it++)
     {
-        // If address found on ticket list
+        // If address found on coupon list
         if (address == it->first) {
             return true;
         }

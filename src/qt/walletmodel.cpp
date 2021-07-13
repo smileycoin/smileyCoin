@@ -9,7 +9,7 @@
 #include "recentrequeststablemodel.h"
 #include "transactiontablemodel.h"
 #include "servicetablemodel.h"
-#include "tickettablemodel.h"
+#include "coupontablemodel.h"
 
 #include "base58.h"
 #include "db.h"
@@ -33,7 +33,7 @@
 WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent) :
     QObject(parent), wallet(wallet), optionsModel(optionsModel), addressTableModel(0),
     serviceTableModel(0),
-    ticketTableModel(0),
+    couponTableModel(0),
     transactionTableModel(0),
     recentRequestsTableModel(0),
     cachedBalance(0), cachedUnconfirmedBalance(0), cachedImmatureBalance(0),
@@ -43,7 +43,7 @@ WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *p
 {
     addressTableModel = new AddressTableModel(wallet, this);
     serviceTableModel = new ServiceTableModel(true, wallet, this);
-    ticketTableModel = new TicketTableModel("All", wallet, this);
+    couponTableModel = new CouponTableModel("All", wallet, this);
     transactionTableModel = new TransactionTableModel(wallet, this);
     recentRequestsTableModel = new RecentRequestsTableModel(wallet, this);
 
@@ -174,11 +174,11 @@ void WalletModel::updateServicePage(const QString &serviceName, const QString &s
         serviceTableModel->updateEntry(serviceName, serviceAddress, serviceType, status);
 }
 
-void WalletModel::updateTicketPage(const QString &name, const QString &location, const QString &datetime,
+void WalletModel::updateCouponPage(const QString &name, const QString &location, const QString &datetime,
                                    const QString &price, const QString &address, const QString &service, int status)
 {
-    if(ticketTableModel)
-        ticketTableModel->updateTicketEntry(name, location, datetime, price, address, service, status);
+    if(couponTableModel)
+        couponTableModel->updateCouponEntry(name, location, datetime, price, address, service, status);
 }
 
 bool WalletModel::validateAddress(const QString &address)
@@ -429,9 +429,9 @@ ServiceTableModel *WalletModel::getServiceTableModel()
     return serviceTableModel;
 }
 
-TicketTableModel *WalletModel::getTicketTableModel()
+CouponTableModel *WalletModel::getCouponTableModel()
 {
-    return ticketTableModel;
+    return couponTableModel;
 }
 
 TransactionTableModel *WalletModel::getTransactionTableModel()
@@ -543,7 +543,7 @@ static void NotifyServicePageChanged(WalletModel *walletmodel, CWallet *wallet, 
                               Q_ARG(int, status));
 }
 
-static void NotifyTicketPageChanged(WalletModel *walletmodel, CWallet *wallet, const std::string &name,
+static void NotifyCouponPageChanged(WalletModel *walletmodel, CWallet *wallet, const std::string &name,
         const std::string &location, const std::string &datetime, const std::string &price, const std::string &address,
         const std::string &service, ChangeType status)
 {
@@ -554,7 +554,7 @@ static void NotifyTicketPageChanged(WalletModel *walletmodel, CWallet *wallet, c
     QString strAddress = QString::fromStdString(address);
     QString strService = QString::fromStdString(service);
 
-    QMetaObject::invokeMethod(walletmodel, "updateTicketPage", Qt::QueuedConnection,
+    QMetaObject::invokeMethod(walletmodel, "updateCouponPage", Qt::QueuedConnection,
                               Q_ARG(QString, strName),
                               Q_ARG(QString, strLocation),
                               Q_ARG(QString, strDateTime),
@@ -608,7 +608,7 @@ void WalletModel::subscribeToCoreSignals()
     wallet->NotifyStatusChanged.connect(boost::bind(&NotifyKeyStoreStatusChanged, this, _1));
     wallet->NotifyAddressBookChanged.connect(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5, _6));
     wallet->NotifyServicePageChanged.connect(boost::bind(NotifyServicePageChanged, this, _1, _2, _3, _4, _5 ));
-    wallet->NotifyTicketPageChanged.connect(boost::bind(NotifyTicketPageChanged, this, _1, _2, _3, _4, _5, _6, _7, _8));
+    wallet->NotifyCouponPageChanged.connect(boost::bind(NotifyCouponPageChanged, this, _1, _2, _3, _4, _5, _6, _7, _8));
     wallet->NotifyTransactionChanged.connect(boost::bind(NotifyTransactionChanged, this, _1, _2, _3));
     wallet->ShowProgress.connect(boost::bind(ShowProgress, this, _1, _2));
 }
@@ -619,7 +619,7 @@ void WalletModel::unsubscribeFromCoreSignals()
     wallet->NotifyStatusChanged.disconnect(boost::bind(&NotifyKeyStoreStatusChanged, this, _1));
     wallet->NotifyAddressBookChanged.disconnect(boost::bind(NotifyAddressBookChanged, this, _1, _2, _3, _4, _5, _6));
     wallet->NotifyServicePageChanged.disconnect(boost::bind(NotifyServicePageChanged, this, _1, _2, _3, _4, _5));
-    wallet->NotifyTicketPageChanged.disconnect(boost::bind(NotifyTicketPageChanged, this, _1, _2, _3, _4, _5, _6, _7, _8));
+    wallet->NotifyCouponPageChanged.disconnect(boost::bind(NotifyCouponPageChanged, this, _1, _2, _3, _4, _5, _6, _7, _8));
     wallet->NotifyTransactionChanged.disconnect(boost::bind(NotifyTransactionChanged, this, _1, _2, _3));
     wallet->ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));
 }

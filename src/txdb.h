@@ -42,8 +42,8 @@ public:
     bool SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value);
     bool GetServiceInfo(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
     bool SetServiceInfo(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
-    bool GetTicketList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
-    bool SetTicketList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool GetCouponList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool SetCouponList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
     bool GetUbiList(const std::string &key, std::tuple<std::string, std::string> &value);
     bool SetUbiList(const std::string &key, const std::tuple<std::string, std::string> &value);
     bool GetDexList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
@@ -58,7 +58,7 @@ public:
     bool SetBestBlock(const uint256 &hashBlock);
     bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript,std::pair<int64_t,int> > &mapAddressInfo,
                     const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
-                    const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceTicketList,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceCouponList,
                     const std::map<std::string, std::tuple<std::string, std::string> > &mapServiceUbiList,
                     const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceDexList,
                     const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceBookList,
@@ -68,7 +68,7 @@ public:
 
     bool GetRichAddresses(CRichList &richlist);
     bool GetServiceAddresses(CServiceList &servicelist);
-    bool GetTicketList(CServiceItemList &ticketlist);
+    bool GetCouponList(CServiceItemList &couponlist);
     bool GetUbiList(CServiceItemList &ubilist);
     bool GetDexList(CServiceItemList &dexlist);
     bool GetBookList(CServiceItemList &booklist);
@@ -98,8 +98,8 @@ public:
     bool ReadRichListFork(bool &fForked);
     bool WriteServiceListFork(bool fForked);
     bool ReadServiceListFork(bool &fForked);
-    bool WriteServiceTicketListFork(bool fForked);
-    bool ReadServiceTicketListFork(bool &fForked);
+    bool WriteServiceCouponListFork(bool fForked);
+    bool ReadServiceCouponListFork(bool &fForked);
     bool WriteServiceUbiListFork(bool fForked);
     bool ReadServiceUbiListFork(bool &fForked);
     bool WriteServiceDexListFork(bool fForked);

@@ -52,7 +52,7 @@ class EditServiceDialog : public QDialog
 public:
     enum Mode {
         NewService,
-        NewTicket
+        NewCoupon
     };
 
     explicit EditServiceDialog(Mode mode, QWidget *parent);

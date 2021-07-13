@@ -2,25 +2,25 @@
 // Created by Lenovo on 7/3/2020.
 //
 
-#ifndef SMILEYCOIN_TICKETTABLEMODEL_H
-#define SMILEYCOIN_TICKETTABLEMODEL_H
+#ifndef SMILEYCOIN_COUPONTABLEMODEL_H
+#define SMILEYCOIN_COUPONTABLEMODEL_H
 
 #include <QAbstractTableModel>
 #include <QStringList>
 
-class TicketTablePriv;
+class CouponTablePriv;
 class WalletModel;
 
 class CWallet;
 
 
-class TicketTableModel : public QAbstractTableModel
+class CouponTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
-    explicit TicketTableModel(std::string serviceFilter, CWallet *wallet, WalletModel *parent = 0);
-    ~TicketTableModel();
+    explicit CouponTableModel(std::string serviceFilter, CWallet *wallet, WalletModel *parent = 0);
+    ~CouponTableModel();
 
     enum ColumnIndex {
         Name = 0,   /**< User specified label */
@@ -46,7 +46,7 @@ public:
 private:
     WalletModel *walletModel;
     CWallet *wallet;
-    TicketTablePriv *priv;
+    CouponTablePriv *priv;
     QStringList columns;
     std::string serviceFilter;
 
@@ -54,12 +54,12 @@ private:
     void emitDataChanged(int index);
 
 public slots:
-        /* Update ticket list from core.*/
-        void updateTicketEntry(const QString &name, const QString &location, const QString &datetime,
+        /* Update coupon list from core.*/
+        void updateCouponEntry(const QString &name, const QString &location, const QString &datetime,
                 const QString &price, const QString &address, const QString &service, int status);
 
-    friend class TicketTablePriv;
+    friend class CouponTablePriv;
 
 };
 
-#endif //SMILEYCOIN_TICKETTABLEMODEL_H
+#endif //SMILEYCOIN_COUPONTABLEMODEL_H

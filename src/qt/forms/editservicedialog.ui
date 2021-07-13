@@ -96,7 +96,7 @@
                 </widget>
             </item>
             <item>
-                <widget class="QWidget" name="ticketForm">
+                <widget class="QWidget" name="couponForm">
                     <layout class="QFormLayout" name="formLayout">
                         <property name="fieldGrowthPolicy">
                             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
@@ -107,14 +107,14 @@
                                     <string>Service</string>
                                 </property>
                                 <property name="buddy">
-                                    <cstring>ticketService</cstring>
+                                    <cstring>couponService</cstring>
                                 </property>
                             </widget>
                         </item>
                         <item row="0" column="1">
-                            <widget class="QComboBox" name="ticketService">
+                            <widget class="QComboBox" name="couponService">
                                 <property name="toolTip">
-                                    <string>Choose the service associated with this ticket</string>
+                                    <string>Choose the service associated with this coupon</string>
                                 </property>
                             </widget>
                         </item>
@@ -124,14 +124,14 @@
                                     <string>Name</string>
                                 </property>
                                 <property name="buddy">
-                                    <cstring>ticketName</cstring>
+                                    <cstring>couponName</cstring>
                                 </property>
                             </widget>
                         </item>
                         <item row="1" column="1">
-                            <widget class="QLineEdit" name="ticketName">
+                            <widget class="QLineEdit" name="couponName">
                                 <property name="toolTip">
-                                    <string>The label associated with this ticket</string>
+                                    <string>The label associated with this coupon</string>
                                 </property>
                             </widget>
                         </item>
@@ -162,14 +162,14 @@
                                     <string>Location</string>
                                 </property>
                                 <property name="buddy">
-                                    <cstring>ticketLocation</cstring>
+                                    <cstring>couponLocation</cstring>
                                 </property>
                             </widget>
                         </item>
                         <item row="3" column="1">
-                            <widget class="QLineEdit" name="ticketLocation">
+                            <widget class="QLineEdit" name="couponLocation">
                                 <property name="toolTip">
-                                    <string>The location associated with this ticket</string>
+                                    <string>The location associated with this coupon</string>
                                 </property>
                             </widget>
                         </item>
@@ -200,12 +200,12 @@
                                     <string>Date and time</string>
                                 </property>
                                 <property name="buddy">
-                                    <cstring>ticketDateTime</cstring>
+                                    <cstring>couponDateTime</cstring>
                                 </property>
                             </widget>
                         </item>
                         <item row="5" column="1">
-                            <widget class="QDateTimeEdit" name="ticketDateTime">
+                            <widget class="QDateTimeEdit" name="couponDateTime">
                             </widget>
                         </item>
                         <item row="6" column="0">
@@ -214,14 +214,14 @@
                                     <string>Price</string>
                                 </property>
                                 <property name="buddy">
-                                    <cstring>ticketPrice</cstring>
+                                    <cstring>couponPrice</cstring>
                                 </property>
                             </widget>
                         </item>
                         <item row="6" column="1">
-                            <widget class="QLineEdit" name="ticketPrice">
+                            <widget class="QLineEdit" name="couponPrice">
                                 <property name="toolTip">
-                                    <string>Set the ticket price</string>
+                                    <string>Set the coupon price</string>
                                 </property>
                             </widget>
                         </item>
@@ -231,14 +231,14 @@
                                     <string>Address</string>
                                 </property>
                                 <property name="buddy">
-                                    <cstring>ticketAddress</cstring>
+                                    <cstring>couponAddress</cstring>
                                 </property>
                             </widget>
                         </item>
                         <item row="7" column="1">
-                            <widget class="QValidatedLineEdit" name="ticketAddress">
+                            <widget class="QValidatedLineEdit" name="couponAddress">
                                 <property name="toolTip">
-                                    <string>The address associated with this ticket</string>
+                                    <string>The address associated with this coupon</string>
                                 </property>
                             </widget>
                         </item>

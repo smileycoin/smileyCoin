@@ -2,8 +2,8 @@
 // Created by Lenovo on 6/30/2020.
 //
 
-#include "ticketpage.h"
-#include "ui_ticketpage.h"
+#include "couponpage.h"
+#include "ui_couponpage.h"
 
 #include "bitcoingui.h"
 #include "bitcoinunits.h"
@@ -20,7 +20,7 @@
 #include "serviceitemlistdb.h"
 #include "init.h"
 #include "editservicedialog.h"
-#include "tickettablemodel.h"
+#include "coupontablemodel.h"
 #include "transactiondescdialog.h"
 
 #include <qvalidatedlineedit.h>
@@ -30,54 +30,54 @@
 #include <QPainter>
 #include <QStylePainter>
 
-TicketPage::TicketPage(QWidget *parent) :
+CouponPage::CouponPage(QWidget *parent) :
         QDialog(parent),
-        ui(new Ui::TicketPage),
-        ticketModel(0),
+        ui(new Ui::CouponPage),
+        couponModel(0),
         walletModel(0)
 {
     ui->setupUi(this);
 
     // Add current services to dropdown
     ServiceList.GetServiceAddresses(allServices);
-    ui->ticketService->addItem("All");
+    ui->couponService->addItem("All");
     for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = allServices.begin(); it!=allServices.end(); it++ )
     {
-        // If service type is Ticket Sales add to dropdown selection
-        if(get<2>(it->second) == "Ticket Sales") {
-            ui->ticketService->addItem(QString::fromStdString(get<1>(it->second)));
+        // If service type is Coupon Sales add to dropdown selection
+        if(get<2>(it->second) == "Coupon Sales") {
+            ui->couponService->addItem(QString::fromStdString(get<1>(it->second)));
         }
     }
 
     ServiceList.GetMyServiceAddresses(myServices);
     if (myServices.empty()) {
-        ui->newTicket->hide();
-        ui->deleteTicket->hide();
+        ui->newCoupon->hide();
+        ui->deleteCoupon->hide();
     } else {
-        ui->newTicket->show();
-        ui->deleteTicket->show();
+        ui->newCoupon->show();
+        ui->deleteCoupon->show();
     }
     ui->serviceLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
 
     // Connect signals for context menu actions
-    connect(ui->newTicket, SIGNAL(clicked()), this, SLOT(onNewTicketAction()));
-    connect(ui->deleteTicket, SIGNAL(clicked()), this, SLOT(onDeleteTicketAction()));
-    connect(ui->ticketService, SIGNAL(activated(QString)), this, SLOT(chooseService(QString)));
-    connect(ui->buyTicket, SIGNAL(clicked()), this, SLOT(onBuyTicketAction()));
+    connect(ui->newCoupon, SIGNAL(clicked()), this, SLOT(onNewCouponAction()));
+    connect(ui->deleteCoupon, SIGNAL(clicked()), this, SLOT(onDeleteCouponAction()));
+    connect(ui->couponService, SIGNAL(activated(QString)), this, SLOT(chooseService(QString)));
+    connect(ui->buyCoupon, SIGNAL(clicked()), this, SLOT(onBuyCouponAction()));
 }
 
-TicketPage::~TicketPage()
+CouponPage::~CouponPage()
 {
     delete ui;
 }
 
-void TicketPage::setTicketModel(TicketTableModel *ticketModel) {
-    this->ticketModel = ticketModel;
-    if(!ticketModel)
+void CouponPage::setCouponModel(CouponTableModel *couponModel) {
+    this->couponModel = couponModel;
+    if(!couponModel)
         return;
 
     proxyModel = new QSortFilterProxyModel(this);
-    proxyModel->setSourceModel(ticketModel);
+    proxyModel->setSourceModel(couponModel);
     proxyModel->setDynamicSortFilter(true);
     proxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
     proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
@@ -87,38 +87,38 @@ void TicketPage::setTicketModel(TicketTableModel *ticketModel) {
 
     // Set column widths
 #if QT_VERSION < 0x050000
-    ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Name, QHeaderView::ResizeToContents);
-    ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Location, QHeaderView::ResizeToContents);
-    ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::DateTime, QHeaderView::ResizeToContents);
-    ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Price, QHeaderView::ResizeToContents);
-    ui->tableView->horizontalHeader()->setResizeMode(TicketTableModel::Service, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setResizeMode(CouponTableModel::Name, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setResizeMode(CouponTableModel::Location, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setResizeMode(CouponTableModel::DateTime, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setResizeMode(CouponTableModel::Price, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setResizeMode(CouponTableModel::Service, QHeaderView::ResizeToContents);
 #else
-    ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Name, QHeaderView::ResizeToContents);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Location, QHeaderView::ResizeToContents);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::DateTime, QHeaderView::ResizeToContents);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Price, QHeaderView::ResizeToContents);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Address, QHeaderView::Stretch);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(TicketTableModel::Service, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(CouponTableModel::Name, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(CouponTableModel::Location, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(CouponTableModel::DateTime, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(CouponTableModel::Price, QHeaderView::ResizeToContents);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(CouponTableModel::Address, QHeaderView::Stretch);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(CouponTableModel::Service, QHeaderView::ResizeToContents);
 #endif
 
     // Select row for newly created address
-    connect(ticketModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(selectNewAddress(QModelIndex,int,int)));
+    connect(couponModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(selectNewAddress(QModelIndex,int,int)));
 }
 
-void TicketPage::setWalletModel(WalletModel *walletModel) {
+void CouponPage::setWalletModel(WalletModel *walletModel) {
     this->walletModel = walletModel;
     if(!walletModel)
         return;
 }
 
-void TicketPage::done(int retval)
+void CouponPage::done(int retval)
 {
     QTableView *table = ui->tableView;
     if(!table->selectionModel() || !table->model())
         return;
 
     // Figure out which address was selected, and return it
-    QModelIndexList indexes = table->selectionModel()->selectedRows(TicketTableModel::Address);
+    QModelIndexList indexes = table->selectionModel()->selectedRows(CouponTableModel::Address);
 
     foreach (QModelIndex index, indexes)
     {
@@ -135,17 +135,17 @@ void TicketPage::done(int retval)
     QDialog::done(retval);
 }
 
-void TicketPage::onNewTicketAction() {
+void CouponPage::onNewCouponAction() {
     if(!walletModel)
         return;
 
-    EditServiceDialog dlg(EditServiceDialog::NewTicket, this);
+    EditServiceDialog dlg(EditServiceDialog::NewCoupon, this);
     connect(&dlg, SIGNAL(accepted()), this, SLOT(EditServiceDialog::accept()));
     dlg.setModel(walletModel);
     dlg.exec();
 }
 
-void TicketPage::onDeleteTicketAction() {
+void CouponPage::onDeleteCouponAction() {
     if(!walletModel)
         return;
 
@@ -158,36 +158,36 @@ void TicketPage::onDeleteTicketAction() {
         QModelIndex idx = selection.at(0);
         int row = idx.row();
 
-        QString ticketName = idx.sibling(row, 0).data().toString();
-        QString ticketAddress = idx.sibling(row, 4).data().toString();
-        QString ticketService = idx.sibling(row, 5).data().toString();
+        QString couponName = idx.sibling(row, 0).data().toString();
+        QString couponAddress = idx.sibling(row, 4).data().toString();
+        QString couponService = idx.sibling(row, 5).data().toString();
 
         std::string serviceAddress = "";
         ServiceList.GetServiceAddresses(allServices);
         for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = allServices.begin(); it!=allServices.end(); it++ )
         {
-            if (ticketService.toStdString() == get<1>(it->second)) {
+            if (couponService.toStdString() == get<1>(it->second)) {
                 serviceAddress = it->first;
             }
         }
 
         CBitcoinAddress sAddress = CBitcoinAddress(serviceAddress);
-        CBitcoinAddress tAddress = CBitcoinAddress(ticketAddress.toStdString());
+        CBitcoinAddress tAddress = CBitcoinAddress(couponAddress.toStdString());
         if (!IsMine(*pwalletMain, sAddress.Get()) || !IsMine(*pwalletMain, tAddress.Get())) {
             QMessageBox::warning(this, windowTitle(),
-                    tr("Permission denied. Neither the ticket address \"%1\" nor the service address \"%2\" belong to this wallet.").arg(ticketAddress).arg(QString::fromStdString(serviceAddress)),
+                    tr("Permission denied. Neither the coupon address \"%1\" nor the service address \"%2\" belong to this wallet.").arg(couponAddress).arg(QString::fromStdString(serviceAddress)),
                     QMessageBox::Ok, QMessageBox::Ok);
             return;
         }
 
         SendCoinsRecipient issuer;
-        // Send delete service transaction to own ticket address
-        issuer.address = ticketAddress;
+        // Send delete service transaction to own coupon address
+        issuer.address = couponAddress;
         // Start with n = 1 to get rid of spam
         issuer.amount = 1*COIN;
 
-        // Create op_return in the following form OP_RETURN = "DT ticketAddress"
-        issuer.data = QString::fromStdString("445420") + ticketAddress.toLatin1().toHex();
+        // Create op_return in the following form OP_RETURN = "DT couponAddress"
+        issuer.data = QString::fromStdString("445420") + couponAddress.toLatin1().toHex();
 
         QList <SendCoinsRecipient> recipients;
         recipients.append(issuer);
@@ -204,14 +204,14 @@ void TicketPage::onDeleteTicketAction() {
                 BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(),
                         currentTransaction.getTransactionFee()));
 
-        QString deleteString = tr("Are you sure you want to delete \"%1\"?").arg(ticketName);
+        QString deleteString = tr("Are you sure you want to delete \"%1\"?").arg(couponName);
         deleteString.append("<br /><br />");
 
         deleteString.append("<span style='font-weight:normal;'>");
-        deleteString.append("This ticket will be deleted when the transaction has been confirmed. You can't undo this action.");
+        deleteString.append("This coupon will be deleted when the transaction has been confirmed. You can't undo this action.");
         deleteString.append("</span> ");
 
-        QMessageBox::StandardButton confirmDelete = QMessageBox::question(this, tr("Confirm Ticket Deletion"),
+        QMessageBox::StandardButton confirmDelete = QMessageBox::question(this, tr("Confirm Coupon Deletion"),
                 deleteString, QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
 
         if (confirmDelete == QMessageBox::Yes) {
@@ -229,7 +229,7 @@ void TicketPage::onDeleteTicketAction() {
     }
 }
 
-void TicketPage::onBuyTicketAction() {
+void CouponPage::onBuyCouponAction() {
     if(!walletModel)
         return;
 
@@ -242,21 +242,21 @@ void TicketPage::onBuyTicketAction() {
         QModelIndex idx = selection.at(0);
         int row = idx.row();
 
-        QString ticketName = idx.sibling(row, 0).data().toString();
-        QString ticketValue = idx.sibling(row, 3).data().toString();
-        QString ticketAddress = idx.sibling(row, 4).data().toString();
-        QString ticketService = idx.sibling(row, 5).data().toString();
+        QString couponName = idx.sibling(row, 0).data().toString();
+        QString couponValue = idx.sibling(row, 3).data().toString();
+        QString couponAddress = idx.sibling(row, 4).data().toString();
+        QString couponService = idx.sibling(row, 5).data().toString();
 
-        CBitcoinAddress tAddress = CBitcoinAddress(ticketAddress.toStdString());
+        CBitcoinAddress tAddress = CBitcoinAddress(couponAddress.toStdString());
 
         SendCoinsRecipient issuer;
-        // Send delete service transaction to own ticket address
-        issuer.address = ticketAddress;
-        // Pay ticket amount to ticket address
-        issuer.amount = ticketValue.toInt()*COIN;
+        // Send delete service transaction to own coupon address
+        issuer.address = couponAddress;
+        // Pay coupon amount to coupon address
+        issuer.amount = couponValue.toInt()*COIN;
 
-        // Create op_return in the following form OP_RETURN = "BT ticketAddress"
-        issuer.data = QString::fromStdString("425420") + ticketAddress.toLatin1().toHex();
+        // Create op_return in the following form OP_RETURN = "BT couponAddress"
+        issuer.data = QString::fromStdString("425420") + couponAddress.toLatin1().toHex();
 
         QList <SendCoinsRecipient> recipients;
         recipients.append(issuer);
@@ -273,14 +273,14 @@ void TicketPage::onBuyTicketAction() {
                 BitcoinUnits::formatWithUnit(walletModel->getOptionsModel()->getDisplayUnit(),
                         currentTransaction.getTransactionFee()));
 
-        QString buyString = tr("Are you sure you want to buy \"%1\"?").arg(ticketName);
+        QString buyString = tr("Are you sure you want to buy \"%1\"?").arg(couponName);
         buyString.append("<br /><br />");
 
         buyString.append("<span style='font-weight:normal;'>");
-        buyString.append("This ticket will be deleted when the transaction has been confirmed. You can't undo this action.");
+        buyString.append("This coupon will be deleted when the transaction has been confirmed. You can't undo this action.");
         buyString.append("</span> ");
 
-        QMessageBox::StandardButton confirmDelete = QMessageBox::question(this, tr("Confirm Ticket Purchase"),
+        QMessageBox::StandardButton confirmDelete = QMessageBox::question(this, tr("Confirm Coupon Purchase"),
                 buyString, QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
 
         if (confirmDelete == QMessageBox::Yes) {
@@ -298,12 +298,12 @@ void TicketPage::onBuyTicketAction() {
     }
 }
 
-void TicketPage::chooseService(QString text) {
-    ticketModel = new TicketTableModel(text.toStdString(), pwalletMain, walletModel);
-    setTicketModel(ticketModel);
+void CouponPage::chooseService(QString text) {
+    couponModel = new CouponTableModel(text.toStdString(), pwalletMain, walletModel);
+    setCouponModel(couponModel);
 }
 
-void TicketPage::processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg)
+void CouponPage::processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg)
 {
     QPair<QString, CClientUIInterface::MessageBoxFlags> msgParams;
     // Default to a warning message, override if error message is needed
