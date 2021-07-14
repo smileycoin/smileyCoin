@@ -710,11 +710,11 @@ Value deleteservice(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
-Value createcoupon(const Array& params, bool fHelp)
+Value addcoupon(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 6)
         throw runtime_error(
-                "createcoupon \"servicename\" \"couponlocation\" \"couponname\" \"coupondatetime\" \"couponprice\" \"couponaddress\" \n"
+                "addcoupon \"servicename\" \"couponlocation\" \"couponname\" \"coupondatetime\" \"couponprice\" \"couponaddress\" \n"
                 "\nCreate a new coupon on the blockchain. \n"
                 + HelpRequiringPassphrase() +
                 "\nArguments:\n"
@@ -731,9 +731,9 @@ Value createcoupon(const Array& params, bool fHelp)
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
                 "\nExamples:\n"
-                + HelpExampleCli("createcoupon", "Paradiso Alfabakka Shining 22/08/202022:00 30 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
-                + HelpExampleCli("createcoupon", "AirSmiley BSI Akureyri 10/12/202009:00 1500000 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
-                + HelpExampleRpc("createcoupon", "Paradiso Kringla Alien 30/10/202023:00 40 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleCli("addcoupon", "Paradiso Alfabakka Shining 22/08/202022:00 30 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleCli("addcoupon", "AirSmiley BSI Akureyri 10/12/202009:00 1500000 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleRpc("addcoupon", "Paradiso Kringla Alien 30/10/202023:00 40 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
         );
 
     std::string serviceName = params[0].get_str();

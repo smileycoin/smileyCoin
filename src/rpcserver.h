@@ -140,7 +140,7 @@ extern json_spirit::Value addubi(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value addchapter(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getrichaddresses(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value createservice(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value createcoupon(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value addcoupon(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value buycoupon(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value deleteservice(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value deleteorg(const json_spirit::Array& params, bool fHelp);
