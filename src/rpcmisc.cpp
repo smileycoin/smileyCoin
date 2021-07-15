@@ -170,7 +170,7 @@ Value adddex(const Array& params, bool fHelp)
     ServiceList.GetMyServiceAddresses(myServices);
 
     std::string dexServiceAddress = "";
-    // Send new ticket transaction to corresponding service address
+    // Send new coupon transaction to corresponding service address
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
     {
         if(serviceName == get<1>(it->second)) {
@@ -260,7 +260,7 @@ Value addorg(const Array& params, bool fHelp)
     ServiceList.GetMyServiceAddresses(myServices);
 
     std::string npServiceAddress = "";
-    // Send new ticket transaction to corresponding service address
+    // Send new coupon transaction to corresponding service address
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
     {
         if(serviceName == get<1>(it->second)) {
@@ -419,7 +419,7 @@ Value addubi(const Array& params, bool fHelp)
     ServiceList.GetMyServiceAddresses(myServices);
 
     std::string ubiServiceAddress = "";
-    // Send new ticket transaction to corresponding service address
+    // Send new coupon transaction to corresponding service address
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
     {
         if(serviceName == get<1>(it->second)) {
@@ -565,7 +565,7 @@ Value createservice(const Array& params, bool fHelp)
                 "2. \"serviceaddress\"   (string, required) The smileycoin service address associated with the service. \n"
                 "3. \"servicetype\"    (numeric, required) The service type.\n"
                 "\nService types:\n"
-                "1 = Ticket Sales \n"
+                "1 = Coupon Sales \n"
                 "2 = UBI \n"
                 "3 = Book Chapter \n"
                 "4 = Traceability \n"
@@ -710,20 +710,20 @@ Value deleteservice(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
-Value createticket(const Array& params, bool fHelp)
+Value addcoupon(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 6)
         throw runtime_error(
-                "createticket \"servicename\" \"ticketlocation\" \"ticketname\" \"ticketdatetime\" \"ticketprice\" \"ticketaddress\" \n"
-                "\nCreate a new ticket on the blockchain. \n"
+                "addcoupon \"servicename\" \"couponlocation\" \"couponname\" \"coupondatetime\" \"couponprice\" \"couponaddress\" \n"
+                "\nCreate a new coupon on the blockchain. \n"
                 + HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1. \"servicename\"  (string, required) The service name associated with the new ticket.\n"
-                "2. \"ticketlocation\"   (string, required) The smileycoin ticket sales service address associated with the service. \n"
-                "3. \"ticketname\"    (string, required) The ticket name.\n"
-                "4. \"ticketdatetime\"    (datetime, required) The ticket date and time.\n"
-                "5. \"ticketprice\"    (numeric, required) The ticket price.\n"
-                "6. \"ticketaddress\"    (string, required) The smileycoin ticket address associated with the ticket.\n"
+                "1. \"servicename\"  (string, required) The service name associated with the new coupon.\n"
+                "2. \"couponlocation\"   (string, required) The smileycoin coupon sales service address associated with the service. \n"
+                "3. \"couponname\"    (string, required) The coupon name.\n"
+                "4. \"coupondatetime\"    (datetime, required) The coupon date and time.\n"
+                "5. \"couponprice\"    (numeric, required) The coupon price.\n"
+                "6. \"couponaddress\"    (string, required) The smileycoin coupon address associated with the coupon.\n"
 
                 "\nDateTime format:\n"
                 "dd/MM/yyyyhh:mm \n \n"
@@ -731,35 +731,35 @@ Value createticket(const Array& params, bool fHelp)
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
                 "\nExamples:\n"
-                + HelpExampleCli("createticket", "Paradiso Alfabakka Shining 22/08/202022:00 30 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
-                + HelpExampleCli("createticket", "AirSmiley BSI Akureyri 10/12/202009:00 1500000 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
-                + HelpExampleRpc("createticket", "Paradiso Kringla Alien 30/10/202023:00 40 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleCli("addcoupon", "Paradiso Alfabakka Shining 22/08/202022:00 30 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleCli("addcoupon", "AirSmiley BSI Akureyri 10/12/202009:00 1500000 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleRpc("addcoupon", "Paradiso Kringla Alien 30/10/202023:00 40 1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
         );
 
     std::string serviceName = params[0].get_str();
-    std::string ticketLocation = params[1].get_str();
-    std::string ticketName = params[2].get_str();
-    std::string ticketDateTime= params[3].get_str();
-    std::string ticketPrice = params[4].get_str();
-    std::string ticketAddress = params[5].get_str();
+    std::string couponLocation = params[1].get_str();
+    std::string couponName = params[2].get_str();
+    std::string couponDateTime= params[3].get_str();
+    std::string couponPrice = params[4].get_str();
+    std::string couponAddress = params[5].get_str();
 
     // VANTAR CHECK FYRIR EF ADDRESSA ER NU ÞEGAR SERVICE OG LENGD OG EF TYPE ER 1-6
 
-    CBitcoinAddress address(ticketAddress);
+    CBitcoinAddress address(couponAddress);
     if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
-    } else if (ServiceItemList.IsTicket(ticketAddress)) {
-        throw runtime_error("The entered address is already on ticket list. Please use another address.");
-    } else if (!is_number(ticketPrice)) {
+    } else if (ServiceItemList.IsCoupon(couponAddress)) {
+        throw runtime_error("The entered address is already on coupon list. Please use another address.");
+    } else if (!is_number(couponPrice)) {
         throw runtime_error("Price must be a number.");
-    } else if (!is_date(ticketDateTime)) {
+    } else if (!is_date(couponDateTime)) {
         throw runtime_error("Date and time must be in the format dd/MM/yyyyhh:mm (e.g. 22/08/202207:00)");
-    } else if (!is_before(ticketDateTime)) {
-        throw runtime_error("The entered ticket date and time has already expired.");
-    } else if (ticketLocation.length() > 20) {
-        throw runtime_error("Ticket location cannot be more than 20 characters long.");
-    } else if (ticketName.length() > 20) {
-        throw runtime_error("Ticket name cannot be more than 20 characters long.");
+    } else if (!is_before(couponDateTime)) {
+        throw runtime_error("The entered coupon date and time has already expired.");
+    } else if (couponLocation.length() > 20) {
+        throw runtime_error("Coupon location cannot be more than 20 characters long.");
+    } else if (couponName.length() > 20) {
+        throw runtime_error("Coupon name cannot be more than 20 characters long.");
     }
 
     // Amount
@@ -771,21 +771,22 @@ Value createticket(const Array& params, bool fHelp)
     std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> myServices;
     ServiceList.GetMyServiceAddresses(myServices);
 
-    std::string ticketServiceAddress = "";
-    // Send new ticket transaction to corresponding service address
+    std::string couponServiceAddress = "";
+    // Send new coupon transaction to corresponding service address
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
     {
+        std::cout <<get<1>(it->second)<<std::endl;
         if(serviceName == get<1>(it->second)) {
-            ticketServiceAddress = it->first;
+            couponServiceAddress = it->first;
         }
     }
 
-    if (!ServiceList.IsService(ticketServiceAddress)) {
+    if (!ServiceList.IsService(couponServiceAddress)) {
         throw runtime_error("The entered service name cannot be found on service list.");
     }
 
     // Parse Smileycoin address
-    CBitcoinAddress tServiceAddress(ticketServiceAddress);
+    CBitcoinAddress tServiceAddress(couponServiceAddress);
     CScript scriptPubKey;
     scriptPubKey.SetDestination(tServiceAddress.Get());
 
@@ -795,11 +796,11 @@ Value createticket(const Array& params, bool fHelp)
     vector<string> str;
     int64_t amount = 0;
 
-    std::string txData = HexStr("NT " + ticketLocation + " " + ticketName + " " + ticketDateTime + " " + ticketPrice + " " + ticketAddress, false);
+    std::string txData = HexStr("NT " + couponLocation + " " + couponName + " " + couponDateTime + " " + couponPrice + " " + couponAddress, false);
     str.push_back(txData);
     vector<unsigned char> data = ParseHexV(str[0], "Data");
 
-    // Create op_return script in the form -> NT ticketLoc ticketName ticketDateTime ticketPrice ticketAddress
+    // Create op_return script in the form -> NT couponLoc couponName couponDateTime couponPrice couponAddress
     vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
 
     CWalletTx wtx;
@@ -819,61 +820,61 @@ Value createticket(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
-Value buyticket(const Array& params, bool fHelp)
+Value buycoupon(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-                "buyticket \"ticketaddress\" \n"
-                "\nBuy a ticket on the blockchain. \n"
+                "buycoupon \"couponaddress\" \n"
+                "\nBuy a coupon on the blockchain. \n"
                 + HelpRequiringPassphrase() +
                 "\nArguments:\n"
-                "1. \"ticketaddress\"    (string, required) The smileycoin ticket address associated with the ticket.\n"
+                "1. \"couponaddress\"    (string, required) The smileycoin coupon address associated with the coupon.\n"
 
                 "\nResult:\n"
                 "\"transactionid\"  (string) The transaction id.\n"
                 "\nExamples:\n"
-                + HelpExampleCli("buyticket", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
-                + HelpExampleRpc("buyticket", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleCli("buycoupon", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleRpc("buycoupon", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
         );
 
-    std::string ticketAddress = params[0].get_str();
+    std::string couponAddress = params[0].get_str();
 
-    CBitcoinAddress address(ticketAddress);
+    CBitcoinAddress address(couponAddress);
     if (!address.IsValid()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Smileycoin address");
-    } else if (!ServiceItemList.IsTicket(ticketAddress)) {
-        throw runtime_error("The entered address is not on ticket list. Please use correct ticket address.");
+    } else if (!ServiceItemList.IsCoupon(couponAddress)) {
+        throw runtime_error("The entered address is not on coupon list. Please use correct coupon address.");
     }
 
-    // Amount on ticket
+    // Amount on coupon
     int64_t DEFAULT_AMOUNT = 0;
     vector<pair<CScript, int64_t> > vecSend;
 
-    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> tickets;
-    ServiceItemList.GetTicketList(tickets);
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> coupons;
+    ServiceItemList.GetCouponList(coupons);
 
-    std::string ticketValue = "";
-    // Get ticket value
-    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = tickets.begin(); it!=tickets.end(); it++ )
+    std::string couponValue = "";
+    // Get coupon value
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = coupons.begin(); it!=coupons.end(); it++ )
     {
-        if (ticketAddress == it->first) {
-            ticketValue = get<5>(it->second);
+        if (couponAddress == it->first) {
+            couponValue = get<5>(it->second);
         }
     }
 
     // Parse Smileycoin address
     CScript scriptPubKey;
     scriptPubKey.SetDestination(address.Get());
-    vecSend.push_back(make_pair(scriptPubKey, std::stoi(ticketValue)*COIN));
+    vecSend.push_back(make_pair(scriptPubKey, std::stoi(couponValue)*COIN));
 
     vector<string> str;
     int64_t amount = 0;
 
-    std::string txData = HexStr("BT " + ticketAddress, false);
+    std::string txData = HexStr("BT " + couponAddress, false);
     str.push_back(txData);
     vector<unsigned char> data = ParseHexV(str[0], "Data");
 
-    // Create op_return script in the form -> NT ticketLoc ticketName ticketDateTime ticketPrice ticketAddress
+    // Create op_return script in the form -> NT couponLoc couponName couponDateTime couponPrice couponAddress
     vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
 
     CWalletTx wtx;
@@ -901,7 +902,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
         );
 
     Object root;
-    Array tservices; /* TicketSales */
+    Array tservices; /* CouponSales */
     Array bservices; /* BookChapter */
     Array nservices; /* NPO */
     Array dservices; /* DEX */
@@ -916,8 +917,8 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
     {
         name_address.clear();
-        // Ef service type er ticketsales
-        if (get<2>(s->second) == "Ticket Sales") { // "1"
+        // Ef service type er couponsales
+        if (get<2>(s->second) == "Coupon Sales") { // "1"
             name_address.push_back(Pair("name", get<1>(s->second)));
             name_address.push_back(Pair("address", s->first));
             tservices.push_back(name_address);
@@ -944,7 +945,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
         }
     }
 
-    root.push_back(Pair("Ticket Sales", tservices));
+    root.push_back(Pair("Coupon Sales", tservices));
     root.push_back(Pair("Book Chapter", bservices));
     root.push_back(Pair("Nonprofit Organization", nservices));
     root.push_back(Pair("DEX", dservices));
@@ -954,12 +955,12 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     return root;
 }
 
-Value getticketlist(const Array& params, bool fHelp)
+Value getcouponlist(const Array& params, bool fHelp)
 {
 
     if (fHelp || params.size() != 1)
-        throw runtime_error("getticketlist \"address\"\n"
-                            "Returns all tickets that belong to the specified ticket service address\n"
+        throw runtime_error("getcouponlist \"address\"\n"
+                            "Returns all coupons that belong to the specified coupon service address\n"
         );
 
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
@@ -972,25 +973,25 @@ Value getticketlist(const Array& params, bool fHelp)
     Object obj2;
     Array arr;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > info;
-    ServiceItemList.GetTicketList(info);
+    ServiceItemList.GetCouponList(info);
 
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = info.begin(); it!=info.end(); it++ )
     {
         std::string serviceAddress = get<1>(it->second);
-        std::string dateOfTicket = get<4>(it->second);
+        std::string dateOfCoupon = get<4>(it->second);
 
-        if (serviceAddress == address.ToString() && is_before(dateOfTicket)) {
+        if (serviceAddress == address.ToString() && is_before(dateOfCoupon)) {
             Object obj;
             obj.push_back(Pair("Name: ", get<3>(it->second)));
             obj.push_back(Pair("Location: ", get<2>(it->second)));
             obj.push_back(Pair("Date and Time: ", get<4>(it->second)));
             obj.push_back(Pair("Price: ", get<5>(it->second)));
-            obj.push_back(Pair("Ticket Address: ", it->first));
+            obj.push_back(Pair("Coupon Address: ", it->first));
             arr.push_back(obj);
         }
     }
 
-    obj2.push_back(Pair("Tickets: " , arr));
+    obj2.push_back(Pair("Coupons: " , arr));
     return obj2;
 }
 

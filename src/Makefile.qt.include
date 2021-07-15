@@ -26,7 +26,7 @@ QT_FORMS_UI = \
   qt/forms/sendcoinsentry.ui \
   qt/forms/servicepage.ui \
   qt/forms/signverifymessagedialog.ui \
-  qt/forms/ticketpage.ui \
+  qt/forms/couponpage.ui \
   qt/forms/transactiondescdialog.ui
 
 QT_MOC_CPP = \
@@ -64,8 +64,8 @@ QT_MOC_CPP = \
   qt/moc_sendcoinsentry.cpp \
   qt/moc_servicepage.cpp \
   qt/moc_servicetablemodel.cpp \
-  qt/moc_tickettablemodel.cpp \
-  qt/moc_ticketpage.cpp \
+  qt/moc_coupontablemodel.cpp \
+  qt/moc_couponpage.cpp \
   qt/moc_signverifymessagedialog.cpp \
   qt/moc_splashscreen.cpp \
   qt/moc_trafficgraphwidget.cpp \
@@ -132,9 +132,9 @@ BITCOIN_QT_H = \
   qt/sendcoinsdialog.h \
   qt/sendcoinsentry.h \
   qt/servicepage.h \
-  qt/ticketpage.h \
+  qt/couponpage.h \
   qt/servicetablemodel.h \
-  qt/tickettablemodel.h \
+  qt/coupontablemodel.h \
   qt/signverifymessagedialog.h \
   qt/splashscreen.h \
   qt/trafficgraphwidget.h \
@@ -235,9 +235,9 @@ BITCOIN_QT_CPP += \
   qt/sendcoinsdialog.cpp \
   qt/sendcoinsentry.cpp \
   qt/servicepage.cpp \
-  qt/ticketpage.cpp \
+  qt/couponpage.cpp \
   qt/servicetablemodel.cpp \
-  qt/tickettablemodel.cpp \
+  qt/coupontablemodel.cpp \
   qt/signverifymessagedialog.cpp \
   qt/transactiondesc.cpp \
   qt/transactiondescdialog.cpp \

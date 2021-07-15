@@ -37,10 +37,10 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
     {
         case NewService:
         {
-            ui->ticketForm->hide();
+            ui->couponForm->hide();
             ui->serviceForm->show();
             setWindowTitle(tr("Create new service"));
-            ui->serviceType->addItem("Ticket Sales");
+            ui->serviceType->addItem("Coupon Sales");
             ui->serviceType->addItem("UBI");
             ui->serviceType->addItem("Book Chapter");
             ui->serviceType->addItem("Traceability");
@@ -53,25 +53,25 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
 
             break;
         }
-        case NewTicket:
+        case NewCoupon:
         {
-            ui->ticketDateTime->setDate(QDate::currentDate());
+            ui->couponDateTime->setDate(QDate::currentDate());
             ui->serviceForm->hide();
-            ui->ticketForm->show();
-            setWindowTitle(tr("Create new ticket"));
+            ui->couponForm->show();
+            setWindowTitle(tr("Create new coupon"));
 
             ServiceList.GetMyServiceAddresses(myServices);
             for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
             {
-                // If service type is Ticket Sales add to dropdown selection
-                if(get<2>(it->second) == "Ticket Sales") {
-                    ui->ticketService->addItem(QString::fromStdString(get<1>(it->second)));
+                // If service type is Coupon Sales add to dropdown selection
+                if(get<2>(it->second) == "Coupon Sales") {
+                    ui->couponService->addItem(QString::fromStdString(get<1>(it->second)));
                 }
             }
-            ui->ticketName->setMaxLength(20);
+            ui->couponName->setMaxLength(20);
             ui->tCounterName->setText("20 characters left");
 
-            ui->ticketLocation->setMaxLength(20);
+            ui->couponLocation->setMaxLength(20);
             ui->tCounterLoc->setText("20 characters left");
 
             break;
@@ -79,15 +79,15 @@ EditServiceDialog::EditServiceDialog(Mode mode, QWidget *parent) :
     }
 
     connect(ui->serviceName, SIGNAL(textChanged(const QString &)), this, SLOT(sNameCount(const QString &)));
-    connect(ui->ticketName, SIGNAL(textChanged(const QString &)), this, SLOT(tNameCount(const QString &)));
-    connect(ui->ticketLocation, SIGNAL(textChanged(const QString &)), this, SLOT(tLocationCount(const QString &)));
+    connect(ui->couponName, SIGNAL(textChanged(const QString &)), this, SLOT(tNameCount(const QString &)));
+    connect(ui->couponLocation, SIGNAL(textChanged(const QString &)), this, SLOT(tLocationCount(const QString &)));
 
     connect(ui->serviceName, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
     connect(ui->serviceAddress, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
-    connect(ui->ticketName, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
-    connect(ui->ticketLocation, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
-    connect(ui->ticketPrice, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
-    connect(ui->ticketAddress, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->couponName, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->couponLocation, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->couponPrice, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
+    connect(ui->couponAddress, SIGNAL(textChanged(const QString &)), this, SLOT(valueChanged(const QString &)));
 }
 
 EditServiceDialog::~EditServiceDialog()
@@ -144,7 +144,7 @@ void EditServiceDialog::accept()
              QString rawServiceType = ui->serviceType->currentText();
              QString serviceType = "";
 
-             if (rawServiceType == "Ticket Sales") {
+             if (rawServiceType == "Coupon Sales") {
                  serviceType = "31";
              } else if (rawServiceType == "UBI") {
                  serviceType = "32";
@@ -257,101 +257,101 @@ void EditServiceDialog::accept()
 
              break;
          }
-         case NewTicket:
+         case NewCoupon:
          {
-             if (ui->ticketName->text().isEmpty() || ui->ticketLocation->text().isEmpty() || ui->ticketPrice->text().isEmpty() || ui->ticketAddress->text().isEmpty())
+             if (ui->couponName->text().isEmpty() || ui->couponLocation->text().isEmpty() || ui->couponPrice->text().isEmpty() || ui->couponAddress->text().isEmpty())
              {
-                 if (ui->ticketName->text().isEmpty()) {
-                     ui->ticketName->setStyleSheet(STYLE_INVALID);
+                 if (ui->couponName->text().isEmpty()) {
+                     ui->couponName->setStyleSheet(STYLE_INVALID);
                  }
-                 if (ui->ticketLocation->text().isEmpty()) {
-                     ui->ticketLocation->setStyleSheet(STYLE_INVALID);
+                 if (ui->couponLocation->text().isEmpty()) {
+                     ui->couponLocation->setStyleSheet(STYLE_INVALID);
                  }
-                 if (ui->ticketPrice->text().isEmpty()) {
-                     ui->ticketPrice->setStyleSheet(STYLE_INVALID);
+                 if (ui->couponPrice->text().isEmpty()) {
+                     ui->couponPrice->setStyleSheet(STYLE_INVALID);
                  }
-                 if (ui->ticketAddress->text().isEmpty()) {
-                     ui->ticketAddress->setStyleSheet(STYLE_INVALID);
+                 if (ui->couponAddress->text().isEmpty()) {
+                     ui->couponAddress->setStyleSheet(STYLE_INVALID);
                  }
                  return;
              }
 
-             CBitcoinAddress tAddress = CBitcoinAddress(ui->ticketAddress->text().toStdString());
+             CBitcoinAddress tAddress = CBitcoinAddress(ui->couponAddress->text().toStdString());
              if (!tAddress.IsValid()) {
                  QMessageBox::warning(this, windowTitle(),
-                         tr("The entered address \"%1\" is not a valid Smileycoin address.").arg(ui->ticketAddress->text()),
+                         tr("The entered address \"%1\" is not a valid Smileycoin address.").arg(ui->couponAddress->text()),
                          QMessageBox::Ok, QMessageBox::Ok);
                  return;
              }
-             if (!is_number(ui->ticketPrice->text().toStdString())) {
-                 QMessageBox::warning(this, windowTitle(), "Ticket price must be a number.", QMessageBox::Ok,
+             if (!is_number(ui->couponPrice->text().toStdString())) {
+                 QMessageBox::warning(this, windowTitle(), "Coupon price must be a number.", QMessageBox::Ok,
                          QMessageBox::Ok);
                  return;
              }
-             // Don't allow new ticket if date and time has already expired
-             if (!is_before(ui->ticketDateTime->dateTime().toString("dd/MM/yyyyhh:mm").toStdString())) {
+             // Don't allow new coupon if date and time has already expired
+             if (!is_before(ui->couponDateTime->dateTime().toString("dd/MM/yyyyhh:mm").toStdString())) {
                  QMessageBox::warning(this, windowTitle(),
-                         tr("The entered ticket date and time \"%1\" has already expired.").arg(ui->ticketDateTime->dateTime().toString("dd/MM/yyyyhh:mm")),
+                         tr("The entered coupon date and time \"%1\" has already expired.").arg(ui->couponDateTime->dateTime().toString("dd/MM/yyyyhh:mm")),
                          QMessageBox::Ok, QMessageBox::Ok);
                  return;
              }
-             if (ServiceItemList.IsTicket(ui->ticketAddress->text().toStdString())) {
+             if (ServiceItemList.IsCoupon(ui->couponAddress->text().toStdString())) {
                  QMessageBox::warning(this, windowTitle(),
-                         tr("The entered address \"%1\" is already on ticket list. Please use another address.").arg(ui->ticketAddress->text()),
+                         tr("The entered address \"%1\" is already on coupon list. Please use another address.").arg(ui->couponAddress->text()),
                          QMessageBox::Ok, QMessageBox::Ok);
                  return;
              }
 
-             QString rawTicketService = ui->ticketService->currentText();
-             QString rawTicketLoc = ui->ticketLocation->text().toLatin1().toHex();
-             QString rawTicketName = ui->ticketName->text().toLatin1().toHex();
-             QString ticketDateTime = ui->ticketDateTime->dateTime().toString("dd/MM/yyyyhh:mm").toLatin1().toHex();
-             QString ticketPrice = ui->ticketPrice->text().toLatin1().toHex();
-             QString ticketAddress = ui->ticketAddress->text().toLatin1().toHex();
+             QString rawCouponService = ui->couponService->currentText();
+             QString rawCouponLoc = ui->couponLocation->text().toLatin1().toHex();
+             QString rawCouponName = ui->couponName->text().toLatin1().toHex();
+             QString couponDateTime = ui->couponDateTime->dateTime().toString("dd/MM/yyyyhh:mm").toLatin1().toHex();
+             QString couponPrice = ui->couponPrice->text().toLatin1().toHex();
+             QString couponAddress = ui->couponAddress->text().toLatin1().toHex();
 
-             std::vector<std::string> nameStr = splitString(rawTicketName.toStdString(), "20");
-             std::vector<std::string> locStr = splitString(rawTicketLoc.toStdString(), "20");
+             std::vector<std::string> nameStr = splitString(rawCouponName.toStdString(), "20");
+             std::vector<std::string> locStr = splitString(rawCouponLoc.toStdString(), "20");
 
-             // Merge into one string if ticket name or ticket location consists of more than one word
-             QString ticketName = "";
+             // Merge into one string if coupon name or coupon location consists of more than one word
+             QString couponName = "";
              if (nameStr.size() > 1) {
                  for (std::string::size_type i = 0; i < nameStr.size(); i++) {
-                     ticketName += QString::fromStdString(nameStr.at(i));
+                     couponName += QString::fromStdString(nameStr.at(i));
                  }
              } else {
-                 ticketName = rawTicketName;
+                 couponName = rawCouponName;
              }
 
-             QString ticketLoc = "";
+             QString couponLoc = "";
              if (locStr.size() > 1) {
                  for (std::string::size_type i = 0; i < locStr.size(); i++) {
-                     ticketLoc += QString::fromStdString(locStr.at(i));
+                     couponLoc += QString::fromStdString(locStr.at(i));
                  }
              } else {
-                 ticketLoc = rawTicketLoc;
+                 couponLoc = rawCouponLoc;
              }
 
 
-             QString ticketServiceAddress = "";
+             QString couponServiceAddress = "";
              SendCoinsRecipient issuer;
-             // Send new ticket transaction to corresponding service address
+             // Send new coupon transaction to corresponding service address
              for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
              {
-                 if(rawTicketService == QString::fromStdString(get<1>(it->second))) {
-                     ticketServiceAddress = QString::fromStdString(it->first);
+                 if(rawCouponService == QString::fromStdString(get<1>(it->second))) {
+                     couponServiceAddress = QString::fromStdString(it->first);
                  }
              }
-             issuer.address = ticketServiceAddress;
+             issuer.address = couponServiceAddress;
              // Start with n = 1 to get rid of spam
              issuer.amount = 1*COIN;
 
-             // Create op_return in the following form OP_RETURN = "NT ticketLoc ticketName ticketDateTime ticketPrice ticketAddress"
+             // Create op_return in the following form OP_RETURN = "NT couponLoc couponName couponDateTime couponPrice couponAddress"
              issuer.data = QString::fromStdString("4e5420") +
-                              ticketLoc + QString::fromStdString("20") +
-                              ticketName + QString::fromStdString("20") +
-                              ticketDateTime + QString::fromStdString("20") +
-                              ticketPrice + QString::fromStdString("20") +
-                              ticketAddress;
+                              couponLoc + QString::fromStdString("20") +
+                              couponName + QString::fromStdString("20") +
+                              couponDateTime + QString::fromStdString("20") +
+                              couponPrice + QString::fromStdString("20") +
+                              couponAddress;
 
              QList <SendCoinsRecipient> recipients;
              recipients.append(issuer);
@@ -384,7 +384,7 @@ void EditServiceDialog::accept()
                                                                  currentTransaction.getTransactionFee()));
 
              qint64 txFee = currentTransaction.getTransactionFee();
-             QString questionString = tr("Are you sure you want to create a new ticket?");
+             QString questionString = tr("Are you sure you want to create a new coupon?");
              questionString.append("<br /><br />%1");
 
              if (txFee > 0) {
@@ -410,7 +410,7 @@ void EditServiceDialog::accept()
                                            .arg(alternativeUnits.join(" " + tr("or") + " ")));
 
              QMessageBox::StandardButton retval = QMessageBox::question(this,
-                                                                        tr("Confirm new ticket"),
+                                                                        tr("Confirm new coupon"),
                                                                         questionString.arg(formatted.join("<br />")),
                                                                         QMessageBox::Yes | QMessageBox::Cancel,
                                                                         QMessageBox::Cancel);
@@ -439,17 +439,17 @@ void EditServiceDialog::sNameCount(const QString & text) {
 }
 
 void EditServiceDialog::tNameCount(const QString & text) {
-    QString text_label = QString("%1 characters left").arg(ui->ticketName->maxLength() - text.size());
+    QString text_label = QString("%1 characters left").arg(ui->couponName->maxLength() - text.size());
     ui->tCounterName->setText(text_label);
 }
 
 void EditServiceDialog::tLocationCount(const QString & text) {
-    QString text_label = QString("%1 characters left").arg(ui->ticketLocation->maxLength() - text.size());
+    QString text_label = QString("%1 characters left").arg(ui->couponLocation->maxLength() - text.size());
     ui->tCounterLoc->setText(text_label);
 }
 
 void EditServiceDialog::valueChanged(const QString & text) {
-    QString text_label = QString("%1 characters left").arg(ui->ticketLocation->maxLength() - text.size());
+    QString text_label = QString("%1 characters left").arg(ui->couponLocation->maxLength() - text.size());
     ui->tCounterLoc->setText(text_label);
 }
 

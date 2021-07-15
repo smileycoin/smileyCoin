@@ -1718,7 +1718,7 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 
     std::map<CScript, std::pair<int64_t, int> > addressInfo;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceInfo;
-	std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > serviceTicketList;
+	std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > serviceCouponList;
 	std::map<std::string, std::tuple<std::string, std::string> > serviceUbiList;
 	std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceDexList;
 	std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceBookList;
@@ -1804,41 +1804,41 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                             // check if the scriptPubKey contains op_return(6a)
 							if (hexString.substr(0, 2) == "6a") {
 								std::string hexData = hexString.substr(4, hexString.size());
-                                // New ticket
+                                // New coupon
 								// If the string starts with "NT"
 								if (hexData.substr(0, 4) == "4e54") {
-									std::string newTicket = hexData.substr(4, hexString.size());
-									std::vector<std::string> strs = splitString(newTicket, "20");
+									std::string newCoupon = hexData.substr(4, hexString.size());
+									std::vector<std::string> strs = splitString(newCoupon, "20");
 									// the string has to have 5 params to be valid as a service and saved into the db
 									if (strs.size() == 5) {
-										std::string ticketLocation = strs.at(0);
-										std::string ticketName = strs.at(1);
-										std::string ticketDateAndTime = strs.at(2);
-										std::string ticketValue = strs.at(3);
-										std::string ticketAddress = strs.at(4);
-                                        std::string asciiAddress = hexToAscii(ticketAddress);
+										std::string couponLocation = strs.at(0);
+										std::string couponName = strs.at(1);
+										std::string couponDateAndTime = strs.at(2);
+										std::string couponValue = strs.at(3);
+										std::string couponAddress = strs.at(4);
+                                        std::string asciiAddress = hexToAscii(couponAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-                                        // if the ticket address is valid, the name and location are equal or less than 40,
+                                        // if the coupon address is valid, the name and location are equal or less than 40,
                                         // date and time is on the right format and value is an integer then save it to the db
-                                        if (tAddress.IsValid() && is_number(hexToAscii(ticketValue)) &&
-                                        is_date(hexToAscii(ticketDateAndTime)) &&
-                                        is_before(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 &&
-                                        ticketName.length() <= 40 && ServiceList.IsService(toAddress)) {
+                                        if (tAddress.IsValid() && is_number(hexToAscii(couponValue)) &&
+                                        is_date(hexToAscii(couponDateAndTime)) &&
+                                        is_before(hexToAscii(couponDateAndTime)) && couponLocation.length() <= 40 &&
+                                        couponName.length() <= 40 && ServiceList.IsService(toAddress)) {
                                             std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
-											if(!view.GetTicketList(asciiAddress, value))
-												return state.Abort(_("Failed to read ticket index"));
+											if(!view.GetCouponList(asciiAddress, value))
+												return state.Abort(_("Failed to read coupon index"));
 											else {
-												value = std::make_tuple("NT", toAddress, hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateAndTime), hexToAscii(ticketValue));
-												assert(view.SetTicketList(asciiAddress, value));
-												serviceTicketList[asciiAddress]=value;
+												value = std::make_tuple("NT", toAddress, hexToAscii(couponLocation), hexToAscii(couponName), hexToAscii(couponDateAndTime), hexToAscii(couponValue));
+												assert(view.SetCouponList(asciiAddress, value));
+												serviceCouponList[asciiAddress]=value;
                                                 // refresh the wallet when it is saved into the db
 												if (pwalletMain)
                                                 {
-                                                    pwalletMain->NotifyTicketPageChanged(pwalletMain,
-                                                                                         hexToAscii(ticketName),
-                                                                                         hexToAscii(ticketLocation),
-                                                                                         hexToAscii(ticketDateAndTime),
-                                                                                         hexToAscii(ticketValue),
+                                                    pwalletMain->NotifyCouponPageChanged(pwalletMain,
+                                                                                         hexToAscii(couponName),
+                                                                                         hexToAscii(couponLocation),
+                                                                                         hexToAscii(couponDateAndTime),
+                                                                                         hexToAscii(couponValue),
                                                                                          asciiAddress,
                                                                                          toAddress,
                                                                                          CT_NEW);
@@ -1982,56 +1982,56 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 										}
 									}
                                 }
-                                // Delete ticket
+                                // Delete coupon
                                 // If op_return begins with "DT"
                                 else if (hexData.substr(0, 6) == "445420") {
-                                    std::string ticketAddress = hexData.substr(6, hexString.size());
-                                    std::string asciiAddress = hexToAscii(ticketAddress);
+                                    std::string couponAddress = hexData.substr(6, hexString.size());
+                                    std::string asciiAddress = hexToAscii(couponAddress);
                                     CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-                                    // If the ticket address is valid then save it to the db
-                                    if (tAddress.IsValid() && ServiceItemList.IsTicket(asciiAddress)) {
+                                    // If the coupon address is valid then save it to the db
+                                    if (tAddress.IsValid() && ServiceItemList.IsCoupon(asciiAddress)) {
                                         std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
                                         value = std::make_tuple("DT", toAddress, "", "", "", "");
-                                        assert(view.SetTicketList(asciiAddress, value));
-                                        serviceTicketList[asciiAddress]=value;
+                                        assert(view.SetCouponList(asciiAddress, value));
+                                        serviceCouponList[asciiAddress]=value;
 
                                         if (pwalletMain)
                                         {
-                                            pwalletMain->NotifyTicketPageChanged(pwalletMain, "", "", "", "",
+                                            pwalletMain->NotifyCouponPageChanged(pwalletMain, "", "", "", "",
                                                     asciiAddress,
                                                     toAddress,
                                                     CT_DELETED);
                                         }
                                     }
                                 }
-                                // If op_return begins with "BT" (buy ticket)
+                                // If op_return begins with "BT" (buy coupon)
                                 else if (hexData.substr(0, 4) == "4254") {
-                                    std::string buyTicket = hexData.substr(4, hexString.size());
-                                    std::vector<std::string> strs = splitString(buyTicket, "20");
+                                    std::string buyCoupon = hexData.substr(4, hexString.size());
+                                    std::vector<std::string> strs = splitString(buyCoupon, "20");
                                     // The string has to have 5 params to be valid as a service and saved into the db
                                     if (strs.size() == 5) {
-                                        std::string ticketLocation = strs.at(0);
-                                        std::string ticketName = strs.at(1);
-                                        std::string ticketDateAndTime = strs.at(2);
-                                        std::string ticketValue = strs.at(3);
-                                        std::string ticketAddress = strs.at(4);
+                                        std::string couponLocation = strs.at(0);
+                                        std::string couponName = strs.at(1);
+                                        std::string couponDateAndTime = strs.at(2);
+                                        std::string couponValue = strs.at(3);
+                                        std::string couponAddress = strs.at(4);
 
-                                        std::string asciiAddress = hexToAscii(ticketAddress);
+                                        std::string asciiAddress = hexToAscii(couponAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-                                        // If the ticket address is valid then save it to the db
-                                        if (tAddress.IsValid() && ServiceItemList.IsTicket(asciiAddress)) {
+                                        // If the coupon address is valid then save it to the db
+                                        if (tAddress.IsValid() && ServiceItemList.IsCoupon(asciiAddress)) {
                                             std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
-                                            value = std::make_tuple("BT", toAddress, hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateAndTime), hexToAscii(ticketValue));
-                                            assert(view.SetTicketList(asciiAddress, value));
-                                            serviceTicketList[asciiAddress]=value;
+                                            value = std::make_tuple("BT", toAddress, hexToAscii(couponLocation), hexToAscii(couponName), hexToAscii(couponDateAndTime), hexToAscii(couponValue));
+                                            assert(view.SetCouponList(asciiAddress, value));
+                                            serviceCouponList[asciiAddress]=value;
 
                                             if (pwalletMain)
                                             {
-                                                pwalletMain->NotifyTicketPageChanged(pwalletMain,
-                                                        hexToAscii(ticketName),
-                                                        hexToAscii(ticketLocation),
-                                                        hexToAscii(ticketDateAndTime),
-                                                        hexToAscii(ticketValue),
+                                                pwalletMain->NotifyCouponPageChanged(pwalletMain,
+                                                        hexToAscii(couponName),
+                                                        hexToAscii(couponLocation),
+                                                        hexToAscii(couponDateAndTime),
+                                                        hexToAscii(couponValue),
                                                         asciiAddress,
                                                         toAddress,
                                                         CT_DELETED);
@@ -2137,8 +2137,8 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
         return state.Abort(_("Failed to update service list"));
     }
 
-    if(!ServiceItemList.UpdateTicketList(serviceTicketList)) {
-        return state.Abort(_("Failed to update ticket list"));
+    if(!ServiceItemList.UpdateCouponList(serviceCouponList)) {
+        return state.Abort(_("Failed to update coupon list"));
     }
 
     if(!ServiceItemList.UpdateUbiList(serviceUbiList)) {
@@ -2245,7 +2245,7 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	vPos.reserve(block.vtx.size());
 	std::map<CScript, std::pair<int64_t, int> > addressInfo;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceInfo;
-    std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > serviceTicketList;
+    std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > serviceCouponList;
     std::map<std::string, std::tuple<std::string, std::string> > serviceUbiList;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceDexList;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceBookList;
@@ -2378,37 +2378,37 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                             // If the scriptPubKey contains OP_RETURN(6a)
 							if (hexString.substr(0, 2) == "6a") {
 								std::string hexData = hexString.substr(4, hexString.size());
-                                // If the string starts with "NT" (new ticket)
+                                // If the string starts with "NT" (new coupon)
 								if (hexData.substr(0, 4) == "4e54") {
-                                    std::string newTicket = hexData.substr(4, hexString.size());
-									std::vector<std::string> strs = splitString(newTicket, "20");
+                                    std::string newCoupon = hexData.substr(4, hexString.size());
+									std::vector<std::string> strs = splitString(newCoupon, "20");
 									// The string has to have 5 params to be valid as a service and saved into the db
 									if (strs.size() == 5) {
-										std::string ticketLocation = strs.at(0);
-										std::string ticketName = strs.at(1);
-										std::string ticketDateAndTime = strs.at(2);
-										std::string ticketValue = strs.at(3);
-										std::string ticketAddress = strs.at(4);
-                                        std::string asciiAddress = hexToAscii(ticketAddress);
+										std::string couponLocation = strs.at(0);
+										std::string couponName = strs.at(1);
+										std::string couponDateAndTime = strs.at(2);
+										std::string couponValue = strs.at(3);
+										std::string couponAddress = strs.at(4);
+                                        std::string asciiAddress = hexToAscii(couponAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-										// If the ticket address is valid then save it to the db
-                                        if (tAddress.IsValid() && is_number(hexToAscii(ticketValue)) &&
-                                        is_date(hexToAscii(ticketDateAndTime)) &&
-                                        is_before(hexToAscii(ticketDateAndTime)) &&
-                                        ticketLocation.length() <= 40 && ticketName.length() <= 40  &&
+										// If the coupon address is valid then save it to the db
+                                        if (tAddress.IsValid() && is_number(hexToAscii(couponValue)) &&
+                                        is_date(hexToAscii(couponDateAndTime)) &&
+                                        is_before(hexToAscii(couponDateAndTime)) &&
+                                        couponLocation.length() <= 40 && couponName.length() <= 40  &&
                                         ServiceList.IsService(toAddress)) {
                                             std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
-											value = std::make_tuple("NT", toAddress, hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateAndTime), hexToAscii(ticketValue));
-											assert(view.SetTicketList(asciiAddress, value));
-											serviceTicketList[asciiAddress]=value;
+											value = std::make_tuple("NT", toAddress, hexToAscii(couponLocation), hexToAscii(couponName), hexToAscii(couponDateAndTime), hexToAscii(couponValue));
+											assert(view.SetCouponList(asciiAddress, value));
+											serviceCouponList[asciiAddress]=value;
 
                                             if (pwalletMain)
                                             {
-                                                pwalletMain->NotifyTicketPageChanged(pwalletMain,
-                                                        hexToAscii(ticketName),
-                                                        hexToAscii(ticketLocation),
-                                                        hexToAscii(ticketDateAndTime),
-                                                        hexToAscii(ticketValue),
+                                                pwalletMain->NotifyCouponPageChanged(pwalletMain,
+                                                        hexToAscii(couponName),
+                                                        hexToAscii(couponLocation),
+                                                        hexToAscii(couponDateAndTime),
+                                                        hexToAscii(couponValue),
                                                         asciiAddress,
                                                         toAddress,
                                                         CT_NEW);
@@ -2532,19 +2532,19 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                 }
                                 // If op_return begins with "DT"
                                 else if (hexData.substr(0, 6) == "445420") {
-                                    std::string ticketAddress = hexData.substr(6, hexString.size());
-                                    std::string asciiAddress = hexToAscii(ticketAddress);
+                                    std::string couponAddress = hexData.substr(6, hexString.size());
+                                    std::string asciiAddress = hexToAscii(couponAddress);
                                     CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-                                    // If the ticket address is valid then save it to the db
-                                    if (tAddress.IsValid() && ServiceItemList.IsTicket(asciiAddress)) {
+                                    // If the coupon address is valid then save it to the db
+                                    if (tAddress.IsValid() && ServiceItemList.IsCoupon(asciiAddress)) {
                                         std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
                                         value = std::make_tuple("DT", toAddress, "", "", "", "");
-                                        assert(view.SetTicketList(asciiAddress, value));
-                                        serviceTicketList[asciiAddress]=value;
+                                        assert(view.SetCouponList(asciiAddress, value));
+                                        serviceCouponList[asciiAddress]=value;
 
                                         if (pwalletMain)
                                         {
-                                            pwalletMain->NotifyTicketPageChanged(pwalletMain, "", "", "", "",
+                                            pwalletMain->NotifyCouponPageChanged(pwalletMain, "", "", "", "",
                                                     asciiAddress,
                                                     toAddress,
                                                     CT_DELETED);
@@ -2553,32 +2553,32 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                 }
                                 // If op_return begins with "BT"
                                 else if (hexData.substr(0, 4) == "4254") {
-                                    std::string buyTicket = hexData.substr(4, hexString.size());
-                                    std::vector<std::string> strs = splitString(buyTicket, "20");
+                                    std::string buyCoupon = hexData.substr(4, hexString.size());
+                                    std::vector<std::string> strs = splitString(buyCoupon, "20");
                                     // The string has to have 5 params to be valid as a service and saved into the db
                                     if (strs.size() == 5) {
-                                        std::string ticketLocation = strs.at(0);
-                                        std::string ticketName = strs.at(1);
-                                        std::string ticketDateAndTime = strs.at(2);
-                                        std::string ticketValue = strs.at(3);
-                                        std::string ticketAddress = strs.at(4);
+                                        std::string couponLocation = strs.at(0);
+                                        std::string couponName = strs.at(1);
+                                        std::string couponDateAndTime = strs.at(2);
+                                        std::string couponValue = strs.at(3);
+                                        std::string couponAddress = strs.at(4);
 
-                                        std::string asciiAddress = hexToAscii(ticketAddress);
+                                        std::string asciiAddress = hexToAscii(couponAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-                                        // If the ticket address is valid then save it to the db
-                                        if (tAddress.IsValid() && ServiceItemList.IsTicket(asciiAddress)) {
+                                        // If the coupon address is valid then save it to the db
+                                        if (tAddress.IsValid() && ServiceItemList.IsCoupon(asciiAddress)) {
                                             std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
-                                            value = std::make_tuple("BT", toAddress, hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateAndTime), hexToAscii(ticketValue));
-                                            assert(view.SetTicketList(asciiAddress, value));
-                                            serviceTicketList[asciiAddress]=value;
+                                            value = std::make_tuple("BT", toAddress, hexToAscii(couponLocation), hexToAscii(couponName), hexToAscii(couponDateAndTime), hexToAscii(couponValue));
+                                            assert(view.SetCouponList(asciiAddress, value));
+                                            serviceCouponList[asciiAddress]=value;
 
                                             if (pwalletMain)
                                             {
-                                                pwalletMain->NotifyTicketPageChanged(pwalletMain,
-                                                        hexToAscii(ticketName),
-                                                        hexToAscii(ticketLocation),
-                                                        hexToAscii(ticketDateAndTime),
-                                                        hexToAscii(ticketValue),
+                                                pwalletMain->NotifyCouponPageChanged(pwalletMain,
+                                                        hexToAscii(couponName),
+                                                        hexToAscii(couponLocation),
+                                                        hexToAscii(couponDateAndTime),
+                                                        hexToAscii(couponValue),
                                                         asciiAddress,
                                                         toAddress,
                                                         CT_DELETED);
@@ -2712,8 +2712,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         return state.Abort(_("Failed to update service list"));
     }
 
-    if(!ServiceItemList.UpdateTicketList(serviceTicketList)) {
-        return state.Abort(_("Failed to update ticket list"));
+    if(!ServiceItemList.UpdateCouponList(serviceCouponList)) {
+        return state.Abort(_("Failed to update coupon list"));
     }
 
     if(!ServiceItemList.UpdateUbiList(serviceUbiList)) {
@@ -2758,7 +2758,7 @@ bool static WriteChainState(CValidationState &state) {
 			return state.Abort(_("Failed to write to coin database"));
 		pblocktree->WriteRichListFork(RichList.IsForked());
 		pblocktree->WriteServiceListFork(ServiceList.IsForked());
-		pblocktree->WriteServiceTicketListFork(ServiceItemList.IsForked());
+		pblocktree->WriteServiceCouponListFork(ServiceItemList.IsForked());
 		pblocktree->WriteServiceUbiListFork(ServiceItemList.IsForked());
 		pblocktree->WriteServiceDexListFork(ServiceItemList.IsForked());
 		pblocktree->WriteServiceBookListFork(ServiceItemList.IsForked());
@@ -2973,7 +2973,7 @@ bool ActivateBestChain(CValidationState &state) {
             ServiceList.SetForked(false);
         }
 
-        if(!ServiceItemList.UpdateTicketListHeights())
+        if(!ServiceItemList.UpdateCouponListHeights())
             return false; //TODO: láta vita?
         else {
             ServiceItemList.SetForked(false);
@@ -4024,16 +4024,16 @@ bool InitServiceList(CCoinsView &dbview)
 
 }
 
-bool InitServiceTicketList(CCoinsView &dbview)
+bool InitServiceCouponList(CCoinsView &dbview)
 {
     LOCK(cs_main);
     if (fReindex || chainActive.Genesis() == NULL) {
-        if(!dbview.SetTicketList(string("ticket"),std::make_tuple("1", "0", "0", "0", "0", "0"))) {
+        if(!dbview.SetCouponList(string("coupon"),std::make_tuple("1", "0", "0", "0", "0", "0"))) {
             return false; }
-        pblocktree->WriteFlag("ticketlist", true);
+        pblocktree->WriteFlag("couponlist", true);
     }
     bool dummy;
-    if(!pblocktree->ReadFlag("ticketlist", dummy))
+    if(!pblocktree->ReadFlag("couponlist", dummy))
         return false;
     return true;
 

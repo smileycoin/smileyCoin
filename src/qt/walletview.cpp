@@ -6,7 +6,7 @@
 
 #include "addressbookpage.h"
 #include "servicepage.h"
-#include "ticketpage.h"
+#include "couponpage.h"
 #include "askpassphrasedialog.h"
 #include "bitcoingui.h"
 #include "clientmodel.h"
@@ -22,7 +22,7 @@
 #include "init.h"
 #include "servicelistdb.h"
 #include "servicetablemodel.h"
-#include "tickettablemodel.h"
+#include "coupontablemodel.h"
 
 #include "ui_interface.h"
 
@@ -70,9 +70,9 @@ WalletView::WalletView(QWidget *parent):
     //servicePage->setServiceModel(walletModel->getServiceTableModel());
     servicePage->setWindowFlags(Qt::Widget);
 
-    ticketPage = new TicketPage(this);
-    //ticketPage->setTicketModel(walletModel->getTicketTableModel());
-    ticketPage->setWindowFlags(Qt::Widget);
+    couponPage = new CouponPage(this);
+    //couponPage->setCouponModel(walletModel->getCouponTableModel());
+    couponPage->setWindowFlags(Qt::Widget);
 
     addWidget(overviewPage);
     addWidget(transactionsPage);
@@ -80,7 +80,7 @@ WalletView::WalletView(QWidget *parent):
     addWidget(sendCoinsPage);
     addWidget(addressBookPage);
     addWidget(servicePage);
-    addWidget(ticketPage);
+    addWidget(couponPage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
@@ -194,13 +194,13 @@ void WalletView::gotoServicePage()
     setCurrentWidget(servicePage);
 }
 
-void WalletView::gotoTicketPage() {
-    ticketPage->setWalletModel(walletModel);
+void WalletView::gotoCouponPage() {
+    couponPage->setWalletModel(walletModel);
 
-    TicketTableModel *ticketModel = new TicketTableModel("All", pwalletMain, walletModel);
-    ticketPage->setTicketModel(ticketModel);
+    CouponTableModel *couponModel = new CouponTableModel("All", pwalletMain, walletModel);
+    couponPage->setCouponModel(couponModel);
 
-    setCurrentWidget(ticketPage);
+    setCurrentWidget(couponPage);
 }
 
 void WalletView::gotoReceiveCoinsPage()

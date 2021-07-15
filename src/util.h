@@ -84,7 +84,7 @@ inline void MilliSleep(int64_t n)
 {
 // Boost's sleep_for was uninterruptable when backed by nanosleep from 1.50
 // until fixed in 1.52. Use the deprecated sleep method for the broken case.
-// See: https://svn.boost.org/trac/boost/ticket/7238
+// See: https://svn.boost.org/trac/boost/coupon/7238
 #if defined(HAVE_WORKING_BOOST_SLEEP_FOR)
     boost::this_thread::sleep_for(boost::chrono::milliseconds(n));
 #elif defined(HAVE_WORKING_BOOST_SLEEP)
@@ -270,25 +270,25 @@ inline bool is_date(std::string s)
     return false;
 }
 
-inline bool is_before(std::string dateOfTicket)
+inline bool is_before(std::string dateOfCoupon)
 {
     time_t now = time(NULL);
-    time_t tTicket;
+    time_t tCoupon;
     int yy, month, dd, hh, mm;
-    struct tm whenTicket = {0};
-    const char *zTicket = dateOfTicket.c_str();
+    struct tm whenCoupon = {0};
+    const char *zCoupon = dateOfCoupon.c_str();
 
-    sscanf(zTicket, "%2d/%2d/%4d %2d:%2d", &dd, &month, &yy, &hh, &mm);
-    whenTicket.tm_mday = dd;
-    whenTicket.tm_mon = month - 1;
-    whenTicket.tm_year = yy - 1900;
-    whenTicket.tm_hour = hh;
-    whenTicket.tm_min = mm;
-    whenTicket.tm_isdst = -1;
+    sscanf(zCoupon, "%2d/%2d/%4d %2d:%2d", &dd, &month, &yy, &hh, &mm);
+    whenCoupon.tm_mday = dd;
+    whenCoupon.tm_mon = month - 1;
+    whenCoupon.tm_year = yy - 1900;
+    whenCoupon.tm_hour = hh;
+    whenCoupon.tm_min = mm;
+    whenCoupon.tm_isdst = -1;
 
-    tTicket = mktime(&whenTicket);
+    tCoupon = mktime(&whenCoupon);
 
-    return tTicket > now;
+    return tCoupon > now;
 }
 
 inline std::string i64tostr(int64_t n)

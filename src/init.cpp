@@ -870,8 +870,8 @@ bool AppInit2(boost::thread_group& threadGroup)
                 }
 
                 
-                if (!InitServiceTicketList(*pcoinsdbview)) {
-                    strLoadError = _("Error initializing service ticket list. You need to rebuild the database using -reindex");
+                if (!InitServiceCouponList(*pcoinsdbview)) {
+                    strLoadError = _("Error initializing service coupon list. You need to rebuild the database using -reindex");
                     break;
                 }
 
@@ -907,9 +907,9 @@ bool AppInit2(boost::thread_group& threadGroup)
                     break;
                 }
 
-                // Reading ticket addresses into memory
-                if(!pcoinsdbview -> GetTicketList(ServiceItemList)) {
-                    strLoadError = _("Error loading service ticket list");
+                // Reading coupon addresses into memory
+                if(!pcoinsdbview -> GetCouponList(ServiceItemList)) {
+                    strLoadError = _("Error loading service coupon list");
                     break;
                 }
                 
@@ -963,8 +963,8 @@ bool AppInit2(boost::thread_group& threadGroup)
                     ServiceList.SetForked(fFork);
                 }
 
-                if(!pblocktree -> ReadServiceTicketListFork(fFork)) {
-                    strLoadError = _("Error reading service ticket list fork status");
+                if(!pblocktree -> ReadServiceCouponListFork(fFork)) {
+                    strLoadError = _("Error reading service coupon list fork status");
                     break;
                 } else {
                     ServiceItemList.SetForked(fFork);
@@ -1026,8 +1026,8 @@ bool AppInit2(boost::thread_group& threadGroup)
                 }
                 
                 if(fFork) {
-                    if(!ServiceItemList.UpdateTicketListHeights()) {
-                        strLoadError = _("Error rollbacking ticket list heights");
+                    if(!ServiceItemList.UpdateCouponListHeights()) {
+                        strLoadError = _("Error rollbacking coupon list heights");
                         break;
                     }
                     else {

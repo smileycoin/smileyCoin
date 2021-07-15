@@ -152,7 +152,7 @@ bool InitBlockIndex();
 /** Initialize the chainstate database for rich list iteration and verify that we have the necessary address info*/
 bool InitRichList(CCoinsView &dbview);
 bool InitServiceList(CCoinsView &dbview);
-bool InitServiceTicketList(CCoinsView &dbview);
+bool InitServiceCouponList(CCoinsView &dbview);
 bool InitServiceUbiList(CCoinsView &dbview);
 bool InitServiceDexList(CCoinsView &dbview);
 bool InitServiceBookList(CCoinsView &dbview);
