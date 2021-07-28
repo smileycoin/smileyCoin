@@ -744,6 +744,16 @@ Value addcoupon(const Array& params, bool fHelp)
     std::string couponAddress = params[5].get_str();
 
     // VANTAR CHECK FYRIR EF ADDRESSA ER NU ÞEGAR SERVICE OG LENGD OG EF TYPE ER 1-6
+    struct tm timeinfo;
+    if (strptime(couponDateTime.c_str(), "%d/%m/%Y%H:%M", &timeinfo) == NULL)
+        throw runtime_error("Error converting date string into native format");
+    // no daylight savings 
+    timeinfo.tm_isdst = 0;
+    int32_t tCouponDateTime = mktime(&timeinfo);
+    if (tCouponDateTime == -1) {
+        throw runtime_error("mktime() failure");
+    }
+    std::string date_bytestring((char*)&tCouponDateTime, 4);
 
     CBitcoinAddress address(couponAddress);
     if (!address.IsValid()) {
@@ -754,13 +764,17 @@ Value addcoupon(const Array& params, bool fHelp)
         throw runtime_error("Price must be a number.");
     } else if (!is_date(couponDateTime)) {
         throw runtime_error("Date and time must be in the format dd/MM/yyyyhh:mm (e.g. 22/08/202207:00)");
-    } else if (!is_before(couponDateTime)) {
+    } else if (!is_before(date_bytestring)) {
         throw runtime_error("The entered coupon date and time has already expired.");
-    } else if (couponLocation.length() > 20) {
-        throw runtime_error("Coupon location cannot be more than 20 characters long.");
-    } else if (couponName.length() > 20) {
-        throw runtime_error("Coupon name cannot be more than 20 characters long.");
+    } else if (couponLocation.length() + couponName.length() > 34) {
+        throw runtime_error("The coupon's name and location cannot be more than 34 characters long together.");
     }
+
+    int32_t iCouponPrice;
+    if (sscanf(couponPrice.c_str(), "%d", &iCouponPrice) != 1)
+        throw runtime_error("Error reading coupon price.");
+        
+    std::string price_bytestring((char*)&iCouponPrice, 4);
 
     // Amount
     int64_t nValue = 1*COIN;
@@ -775,7 +789,6 @@ Value addcoupon(const Array& params, bool fHelp)
     // Send new coupon transaction to corresponding service address
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
     {
-        std::cout <<get<1>(it->second)<<std::endl;
         if(serviceName == get<1>(it->second)) {
             couponServiceAddress = it->first;
         }
@@ -796,7 +809,11 @@ Value addcoupon(const Array& params, bool fHelp)
     vector<string> str;
     int64_t amount = 0;
 
-    std::string txData = HexStr("NT " + couponLocation + " " + couponName + " " + couponDateTime + " " + couponPrice + " " + couponAddress, false);
+    std::string txData = HexStr("NT " + couponLocation 
+                                      + " " + couponName 
+                                      + " " + date_bytestring
+                                      + " " + price_bytestring
+                                      + " " + couponAddress, false);
     str.push_back(txData);
     vector<unsigned char> data = ParseHexV(str[0], "Data");
 
@@ -979,13 +996,19 @@ Value getcouponlist(const Array& params, bool fHelp)
     {
         std::string serviceAddress = get<1>(it->second);
         std::string dateOfCoupon = get<4>(it->second);
+        time_t t = *(int32_t*)(dateOfCoupon.data());
+        struct tm *timeinfo;
+        timeinfo = localtime(&t);
+        char buffer[80];
+        strftime(buffer, 80, "%d/%m/%Y%H:%M", timeinfo);
+        std::string date_string(buffer);
 
         if (serviceAddress == address.ToString() && is_before(dateOfCoupon)) {
             Object obj;
             obj.push_back(Pair("Name: ", get<3>(it->second)));
             obj.push_back(Pair("Location: ", get<2>(it->second)));
-            obj.push_back(Pair("Date and Time: ", get<4>(it->second)));
-            obj.push_back(Pair("Price: ", get<5>(it->second)));
+            obj.push_back(Pair("Date and Time: ", date_string));
+            obj.push_back(Pair("Price: ", *(int32_t*)(get<5>(it->second).data())));
             obj.push_back(Pair("Coupon Address: ", it->first));
             arr.push_back(obj);
         }

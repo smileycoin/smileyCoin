@@ -17,13 +17,13 @@
   <string>APPL</string>
 
   <key>CFBundleGetInfoString</key>
-  <string>2.2, Copyright © 2009-2020 The Auroracoin Core developers</string>
+  <string>2.3, Copyright © 2009-2020 The Auroracoin Core developers</string>
 
   <key>CFBundleShortVersionString</key>
-  <string>2.2</string>
+  <string>2.3</string>
 
   <key>CFBundleVersion</key>
-  <string>2.2</string>
+  <string>2.3</string>
 
   <key>CFBundleSignature</key>
   <string>????</string>
