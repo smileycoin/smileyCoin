@@ -25,11 +25,13 @@
 #include <regex>
 #include <algorithm>
 #include <cctype>
-
 #ifndef WIN32
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <time.h>
+#include <iomanip>
+#include <sstream>
 #endif
 
 #include <boost/filesystem/path.hpp>
@@ -207,6 +209,9 @@ std::string FormatFullVersion();
 std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
 void AddTimeData(const CNetAddr& ip, int64_t nTime);
 void runCommand(std::string strCommand);
+#ifdef WIN32
+char* strptime(const char* s, const char* f, struct tm* tm);
+#endif
 
 
 
@@ -237,17 +242,6 @@ inline std::string hexToAscii(std::string dataStr)
     for (std::string::size_type i = 0; i < dataStr.length(); i += 2)
     {
         std::string byte = dataStr.substr(i, 2);
-        // Write a dot(.) if the hex code stands for a control command
-        if (byte == "00" || byte == "01" || byte == "02" || byte == "03" || byte == "04" ||
-            byte == "05" || byte == "06" || byte == "07" || byte == "08" || byte == "09" ||
-            byte == "0a" || byte == "0b" || byte == "0c" || byte == "0d" || byte == "0e" ||
-            byte == "0f" || byte == "10" || byte == "11" || byte == "12" || byte == "13" ||
-            byte == "14" || byte == "15" || byte == "16" || byte == "17" || byte == "18" ||
-            byte == "19" || byte == "1a" || byte == "1b" || byte == "1c" || byte == "1d" ||
-            byte == "1e" || byte == "1f" || byte == "20" || byte == "7f")
-        {
-            byte = "2e";
-        }
         char chr = (char) (int) strtol(byte.c_str(), NULL, 16);
         asciiData.push_back(chr);
     }
@@ -270,25 +264,11 @@ inline bool is_date(std::string s)
     return false;
 }
 
-inline bool is_before(std::string dateOfCoupon)
+inline bool is_before(std::string time_data)
 {
     time_t now = time(NULL);
-    time_t tCoupon;
-    int yy, month, dd, hh, mm;
-    struct tm whenCoupon = {0};
-    const char *zCoupon = dateOfCoupon.c_str();
-
-    sscanf(zCoupon, "%2d/%2d/%4d %2d:%2d", &dd, &month, &yy, &hh, &mm);
-    whenCoupon.tm_mday = dd;
-    whenCoupon.tm_mon = month - 1;
-    whenCoupon.tm_year = yy - 1900;
-    whenCoupon.tm_hour = hh;
-    whenCoupon.tm_min = mm;
-    whenCoupon.tm_isdst = -1;
-
-    tCoupon = mktime(&whenCoupon);
-
-    return tCoupon > now;
+    int32_t t = *(int32_t*)(time_data.data());
+    return t > now;
 }
 
 inline std::string i64tostr(int64_t n)
@@ -561,6 +541,7 @@ inline void SetThreadPriority(int nPriority)
 {
     SetThreadPriority(GetCurrentThread(), nPriority);
 }
+
 #else
 
 // PRIO_MAX is not defined on Solaris

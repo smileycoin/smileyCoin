@@ -1820,10 +1820,11 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
                                         // if the coupon address is valid, the name and location are equal or less than 40,
                                         // date and time is on the right format and value is an integer then save it to the db
-                                        if (tAddress.IsValid() && is_number(hexToAscii(couponValue)) &&
-                                        is_date(hexToAscii(couponDateAndTime)) &&
-                                        is_before(hexToAscii(couponDateAndTime)) && couponLocation.length() <= 40 &&
-                                        couponName.length() <= 40 && ServiceList.IsService(toAddress)) {
+                                        if (tAddress.IsValid() 
+                                            && is_before(hexToAscii(couponDateAndTime)) 
+                                            && couponLocation.length() <= 40 
+                                            && couponName.length() <= 40 
+                                            && ServiceList.IsService(toAddress)) {
                                             std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
 											if(!view.GetCouponList(asciiAddress, value))
 												return state.Abort(_("Failed to read coupon index"));
@@ -2392,11 +2393,11 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         std::string asciiAddress = hexToAscii(couponAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
 										// If the coupon address is valid then save it to the db
-                                        if (tAddress.IsValid() && is_number(hexToAscii(couponValue)) &&
-                                        is_date(hexToAscii(couponDateAndTime)) &&
-                                        is_before(hexToAscii(couponDateAndTime)) &&
-                                        couponLocation.length() <= 40 && couponName.length() <= 40  &&
-                                        ServiceList.IsService(toAddress)) {
+                                        if (tAddress.IsValid()
+                                          && is_before(hexToAscii(couponDateAndTime)) 
+                                          && couponLocation.length() <= 40 
+                                          && couponName.length() <= 40  
+                                          && ServiceList.IsService(toAddress)) {
                                             std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
 											value = std::make_tuple("NT", toAddress, hexToAscii(couponLocation), hexToAscii(couponName), hexToAscii(couponDateAndTime), hexToAscii(couponValue));
 											assert(view.SetCouponList(asciiAddress, value));
