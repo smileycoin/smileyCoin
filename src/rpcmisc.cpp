@@ -806,16 +806,14 @@ Value addcoupon(const Array& params, bool fHelp)
     // Pay 1 SMLY to official service address
     vecSend.push_back(make_pair(scriptPubKey, nValue));
 
-    vector<string> str;
     int64_t amount = 0;
+    std::string txData = "NT " + couponLocation 
+                              + " " + couponName 
+                              + " " + date_bytestring
+                              + " " + price_bytestring
+                              + " " + couponAddress;
 
-    std::string txData = HexStr("NT " + couponLocation 
-                                      + " " + couponName 
-                                      + " " + date_bytestring
-                                      + " " + price_bytestring
-                                      + " " + couponAddress, false);
-    str.push_back(txData);
-    vector<unsigned char> data = ParseHexV(str[0], "Data");
+    vector<unsigned char> data(txData.begin(), txData.end());
 
     // Create op_return script in the form -> NT couponLoc couponName couponDateTime couponPrice couponAddress
     vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
