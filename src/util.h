@@ -25,11 +25,13 @@
 #include <regex>
 #include <algorithm>
 #include <cctype>
-
 #ifndef WIN32
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <time.h>
+#include <iomanip>
+#include <sstream>
 #endif
 
 #include <boost/filesystem/path.hpp>
@@ -207,6 +209,9 @@ std::string FormatFullVersion();
 std::string FormatSubVersion(const std::string& name, int nClientVersion, const std::vector<std::string>& comments);
 void AddTimeData(const CNetAddr& ip, int64_t nTime);
 void runCommand(std::string strCommand);
+#ifdef WIN32
+char* strptime(const char* s, const char* f, struct tm* tm);
+#endif
 
 
 
@@ -536,6 +541,7 @@ inline void SetThreadPriority(int nPriority)
 {
     SetThreadPriority(GetCurrentThread(), nPriority);
 }
+
 #else
 
 // PRIO_MAX is not defined on Solaris
