@@ -251,11 +251,11 @@ static const CRPCCommand vRPCCommands[] =
     { "deleteorg",              &deleteorg,              false,     false,      false },
     { "getserviceaddresses",    &getserviceaddresses,    false,     false,      false },
     { "getcouponlist",          &getcouponlist,          false,     false,      false },
+    { "getallcouponlists",      &getallcouponlists,      false,     false,      false },
     { "getubilist",             &getubilist,             false,     false,      false },
     { "getdexlist",             &getdexlist,             false,     false,      false },
     { "getorglist",             &getorglist,             false,     false,      false },
     { "getallorglists",         &getallorglists,         false,     false,      false },
-
     { "getbooklist",            &getbooklist,            false,     false,      false },
     { "getblockchaininfo",      &getblockchaininfo,      true,      false,      false },
     { "getbestblockhash",       &getbestblockhash,       true,      false,      false },
