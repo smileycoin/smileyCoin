@@ -766,7 +766,7 @@ Value addcoupon(const Array& params, bool fHelp)
         throw runtime_error("Date and time must be in the format dd/MM/yyyyhh:mm (e.g. 22/08/202207:00)");
     } else if (!is_before(date_bytestring)) {
         throw runtime_error("The entered coupon date and time has already expired.");
-    } else if (couponLocation.length() + couponName.length() > 34) {
+    } else if (couponLocation.length() + couponName.length() > 31) {
         throw runtime_error("The coupon's name and location cannot be more than 34 characters long together.");
     }
 
