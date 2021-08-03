@@ -806,16 +806,14 @@ Value addcoupon(const Array& params, bool fHelp)
     // Pay 1 SMLY to official service address
     vecSend.push_back(make_pair(scriptPubKey, nValue));
 
-    vector<string> str;
     int64_t amount = 0;
+    std::string txData = "NT " + couponLocation 
+                              + " " + couponName 
+                              + " " + date_bytestring
+                              + " " + price_bytestring
+                              + " " + couponAddress;
 
-    std::string txData = HexStr("NT " + couponLocation 
-                                      + " " + couponName 
-                                      + " " + date_bytestring
-                                      + " " + price_bytestring
-                                      + " " + couponAddress, false);
-    str.push_back(txData);
-    vector<unsigned char> data = ParseHexV(str[0], "Data");
+    vector<unsigned char> data(txData.begin(), txData.end());
 
     // Create op_return script in the form -> NT couponLoc couponName couponDateTime couponPrice couponAddress
     vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
@@ -987,6 +985,21 @@ Value getcouponlist(const Array& params, bool fHelp)
     if (!ServiceList.IsService(params[0].get_str()))
         throw runtime_error("Invalid Smileycoin service address");
 
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string> > > services;
+    ServiceList.GetServiceAddresses(services);
+
+    string couponAddressName;
+
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++)
+    {
+        if (get<2>(it->second) == "Coupon Sales") {
+            if(it->first == address.ToString()){
+                couponAddressName = get<1>(it->second);
+                break;
+            }
+        }
+    }
+
     Object obj2;
     Array arr;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > info;
@@ -1005,17 +1018,42 @@ Value getcouponlist(const Array& params, bool fHelp)
 
         if (serviceAddress == address.ToString() && is_before(dateOfCoupon)) {
             Object obj;
-            obj.push_back(Pair("Name: ", get<3>(it->second)));
-            obj.push_back(Pair("Location: ", get<2>(it->second)));
-            obj.push_back(Pair("Date and Time: ", date_string));
-            obj.push_back(Pair("Price: ", *(int32_t*)(get<5>(it->second).data())));
-            obj.push_back(Pair("Coupon Address: ", it->first));
+            obj.push_back(Pair("Name", get<3>(it->second)));
+            obj.push_back(Pair("Location", get<2>(it->second)));
+            obj.push_back(Pair("Date", date_string));
+            obj.push_back(Pair("Price", *(int32_t*)(get<5>(it->second).data())));
+            obj.push_back(Pair("Address", it->first));
             arr.push_back(obj);
         }
     }
 
-    obj2.push_back(Pair("Coupons: " , arr));
+    obj2.push_back(Pair("coupon_group", couponAddressName));
+    obj2.push_back(Pair("coupons" , arr));
     return obj2;
+}
+
+Value getallcouponlists(const Array& params, bool fHelp){
+    if (fHelp || params.size() != 0)
+        throw runtime_error("getallcouponlists \n"
+                            "Returns all listed coupons under each specified coupon service address\n"
+        );
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
+    ServiceList.GetServiceAddresses(services);
+    
+    Object obj;
+    Array coupons;
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++)
+    {
+        if (get<2>(it->second) == "Coupon Sales") { 
+            Array param;
+            param.push_back(it->first);
+            Value couponlst = getcouponlist(param, false);
+            coupons.push_back(couponlst);
+        }
+    }
+    obj.push_back(Pair("Coupons", coupons));
+
+    return obj;
 }
 
 
@@ -1154,13 +1192,14 @@ Value getorglist(const Array& params, bool fHelp)
     {
         obj.clear();
         if (get<1>(it->second) == address.ToString()) {
-            obj.push_back(Pair("Organization name: ", get<2>(it->second)));
-            obj.push_back(Pair("Organization address: ", it->first));
+            obj.push_back(Pair("name", get<2>(it->second)));
+            obj.push_back(Pair("address", it->first));
             arr.push_back(obj);
         }
     }
 
-    root.push_back(Pair(npAddressName, arr));
+    root.push_back(Pair("organization_group", npAddressName));
+    root.push_back(Pair("organizations", arr));
     
     return root;
 }
