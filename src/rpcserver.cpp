@@ -247,6 +247,7 @@ static const CRPCCommand vRPCCommands[] =
     { "createservice",          &createservice,          false,     false,      false },
     { "addcoupon",              &addcoupon,              false,     false,      false },
     { "buycoupon",              &buycoupon,              false,     false,      false },
+    { "deletecoupon",           &deletecoupon,           false,     false,      false },
     { "deleteservice",          &deleteservice,          false,     false,      false },
     { "deleteorg",              &deleteorg,              false,     false,      false },
     { "getserviceaddresses",    &getserviceaddresses,    false,     false,      false },

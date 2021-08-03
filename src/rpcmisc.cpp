@@ -909,6 +909,79 @@ Value buycoupon(const Array& params, bool fHelp)
     return wtx.GetHash().GetHex();
 }
 
+Value deletecoupon(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 2)
+        throw runtime_error(
+                "deletecoupon \"serviceaddress \" \"couponaddress\" \n"
+                "\nDelete the coupon associated with the service address, coupon address pair\n"
+                + HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1. \"serviceaddress\"   (string, required) The service address associated with the service. \n"
+                "2. \"couponaddress\"       (string, required) The coupon address associated with the coupon. \n"
+
+                "\nResult:\n"
+                "\"transactionid\"  (string) The transaction id.\n"
+                "\nExamples:\n"
+                + HelpExampleCli("deletecoupon", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleCli("deletecoupon", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleRpc("deletecoupon", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+        );
+
+    CBitcoinAddress serviceAddress(params[0].get_str());
+    CBitcoinAddress couponAddress(params[1].get_str());
+
+    if (!serviceAddress.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid service address");
+    } else if (!couponAddress.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid coupon address");
+    } else if (!IsMine(*pwalletMain, serviceAddress.Get()) && !IsMine(*pwalletMain, couponAddress.Get())) {
+        throw runtime_error("Permission denied. Neither the coupon nor the service address is owned by you.");
+    } else if (!ServiceList.IsService(serviceAddress.ToString())) {
+        throw runtime_error("Service address is not on the list");
+    }
+
+    // Amount
+    int64_t nValue = 1*COIN;
+    int64_t DEFAULT_AMOUNT = 0;
+
+    vector<pair<CScript, int64_t> > vecSend;
+
+    // Parse Smileycoin address
+    CBitcoinAddress toAddress(serviceAddress);
+    CScript scriptPubKey;
+    scriptPubKey.SetDestination(toAddress.Get());
+
+    // Pay 1 SMLY to coupon address
+    vecSend.push_back(make_pair(scriptPubKey, nValue));
+
+    vector<string> str;
+    int64_t amount = 0;
+
+    std::string txData = HexStr("DT " + couponAddress.ToString(), false);
+    str.push_back(txData);
+    vector<unsigned char> data = ParseHexV(str[0], "Data");
+
+    // Create op_return script in the form -> DS couponAddress
+    vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
+
+    CWalletTx wtx;
+
+    EnsureWalletIsUnlocked();
+
+    // Send
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
+
+    return wtx.GetHash().GetHex();
+}
+
 Value getserviceaddresses(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0)
@@ -1001,7 +1074,7 @@ Value getcouponlist(const Array& params, bool fHelp)
         strftime(buffer, 80, "%d/%m/%Y%H:%M", timeinfo);
         std::string date_string(buffer);
 
-        if (serviceAddress == address.ToString() && is_before(dateOfCoupon)) {
+      //  if (serviceAddress == address.ToString() && is_before(dateOfCoupon)) {
             Object obj;
             obj.push_back(Pair("Name: ", get<3>(it->second)));
             obj.push_back(Pair("Location: ", get<2>(it->second)));
@@ -1009,7 +1082,7 @@ Value getcouponlist(const Array& params, bool fHelp)
             obj.push_back(Pair("Price: ", *(int32_t*)(get<5>(it->second).data())));
             obj.push_back(Pair("Coupon Address: ", it->first));
             arr.push_back(obj);
-        }
+       // }
     }
 
     obj2.push_back(Pair("Coupons: " , arr));
