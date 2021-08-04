@@ -142,10 +142,12 @@ extern json_spirit::Value getrichaddresses(const json_spirit::Array& params, boo
 extern json_spirit::Value createservice(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value addcoupon(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value buycoupon(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value deletecoupon(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value deleteservice(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value deleteorg(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getserviceaddresses(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcouponlist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getallcouponlists(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getubilist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdexlist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getorglist(const json_spirit::Array& params, bool fHelp);
