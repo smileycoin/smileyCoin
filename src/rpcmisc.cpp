@@ -1074,7 +1074,7 @@ Value getcouponlist(const Array& params, bool fHelp)
         strftime(buffer, 80, "%d/%m/%Y%H:%M", timeinfo);
         std::string date_string(buffer);
 
-      //  if (serviceAddress == address.ToString() && is_before(dateOfCoupon)) {
+        if (serviceAddress == address.ToString() && is_before(dateOfCoupon)) {
             Object obj;
             obj.push_back(Pair("Name: ", get<3>(it->second)));
             obj.push_back(Pair("Location: ", get<2>(it->second)));
@@ -1082,7 +1082,7 @@ Value getcouponlist(const Array& params, bool fHelp)
             obj.push_back(Pair("Price: ", *(int32_t*)(get<5>(it->second).data())));
             obj.push_back(Pair("Coupon Address: ", it->first));
             arr.push_back(obj);
-       // }
+        }
     }
 
     obj2.push_back(Pair("Coupons: " , arr));
