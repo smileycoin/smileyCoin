@@ -2173,7 +2173,7 @@ Value replywithmessage(const Array &params, bool fHelp)
 
     // OP_RETURN data can not be over 80 bytes
     if (vchEnc.size() > 80)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "The message must be 32 bytes or less");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The message must be 23 bytes or less");
 
     // Build transaction outputs
     CScript scriptPubKey;
