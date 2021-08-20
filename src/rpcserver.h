@@ -145,6 +145,7 @@ extern json_spirit::Value buycoupon(const json_spirit::Array& params, bool fHelp
 extern json_spirit::Value deletecoupon(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value deleteservice(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value deleteorg(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value deleteubi(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getserviceaddresses(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcouponlist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getallcouponlists(const json_spirit::Array& params, bool fHelp);

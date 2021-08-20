@@ -1826,9 +1826,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                             && couponName.length() <= 40 
                                             && ServiceList.IsService(toAddress)) {
                                             std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
-											if(!view.GetCouponList(asciiAddress, value))
-												return state.Abort(_("Failed to read coupon index"));
-											else {
+											if(!view.GetCouponList(asciiAddress, value)) {
+												LogPrintf("Failed to read coupon index");
+                                                continue;
+                                            } else {
 												value = std::make_tuple("NT", toAddress, hexToAscii(couponLocation), hexToAscii(couponName), hexToAscii(couponDateAndTime), hexToAscii(couponValue));
 												assert(view.SetCouponList(asciiAddress, value));
 												serviceCouponList[asciiAddress]=value;
@@ -1860,9 +1861,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                         CBitcoinAddress uAddress = CBitcoinAddress(asciiAddress);
 										if (uAddress.IsValid() && ServiceList.IsService(toAddress)) {
 											std::tuple<std::string, std::string> value;
-											if(!view.GetUbiList(asciiAddress, value))
-												return state.Abort(_("Failed to read ubi index"));
-											else {
+											if(!view.GetUbiList(asciiAddress, value)) {
+												LogPrintf("Failed to read ubi index");
+                                                continue;
+                                            } else {
 												value = std::make_tuple("NU", toAddress);
 												assert(view.SetUbiList(asciiAddress, value));
 												serviceUbiList[asciiAddress]=value;
@@ -1883,9 +1885,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                         CBitcoinAddress dAddress = CBitcoinAddress(asciiAddress);
 										if (dAddress.IsValid() && dexDescription.length() <= 60 && ServiceList.IsService(toAddress)) {
 											std::tuple<std::string, std::string, std::string> value;
-											if(!view.GetDexList(asciiAddress, value))
-												return state.Abort(_("Failed to read dex index"));
-											else {
+											if(!view.GetDexList(asciiAddress, value)) {
+												LogPrintf("Failed to read dex index");
+                                                continue;
+                                            } else {
 												value = std::make_tuple("ND", toAddress, hexToAscii(dexDescription));
 												assert(view.SetDexList(asciiAddress, value));
 												serviceDexList[asciiAddress]=value;
@@ -1906,9 +1909,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                         CBitcoinAddress nAddress = CBitcoinAddress(asciiAddress);
 										if (nAddress.IsValid() && npName.length() <= 60 && ServiceList.IsService(toAddress)) {
 											std::tuple<std::string, std::string, std::string> value;
-											if(!view.GetNPList(asciiAddress, value))
-												return state.Abort(_("Failed to read np index"));
-											else {
+											if(!view.GetNPList(asciiAddress, value)) {
+												LogPrintf("Failed to read np index");
+                                                continue;
+                                            } else {
 												value = std::make_tuple("NN", toAddress, hexToAscii(npName));
 												serviceNPList[asciiAddress]=value;
 											}
@@ -1929,9 +1933,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                         CBitcoinAddress bAddress = CBitcoinAddress(asciiAddress);
                                         if (bAddress.IsValid() && ServiceList.IsService(toAddress)) {
                                             std::tuple<std::string, std::string, std::string> value;
-                                            if(!view.GetBookList(asciiAddress, value))
-                                                return state.Abort(_("Failed to read book index"));
-                                            else {
+                                            if(!view.GetBookList(asciiAddress, value)) {
+												LogPrintf("Failed to read book index");
+                                                continue;
+                                            } else {
                                                 value = std::make_tuple("NB", toAddress, hexToAscii(chapterNum));
                                                 assert(view.SetBookList(asciiAddress, value));
                                                 serviceBookList[asciiAddress]=value;
@@ -1968,9 +1973,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                         CBitcoinAddress nAddress = CBitcoinAddress(asciiAddress);
 										if (nAddress.IsValid() && ServiceList.IsService(toAddress)) {
 											std::tuple<std::string, std::string, std::string> value;
-											if (!view.GetNPList(asciiAddress, value))
-												return state.Abort(_("Failed to read np index"));
-											else {
+											if(!view.GetNPList(asciiAddress, value)) {
+												LogPrintf("Failed to read np index");
+                                                continue;
+                                            } else {
 												value = std::make_tuple("DN", asciiAddress, "");
 												//assert(view.SetNPList(asciiAddress, value));
 												serviceNPList[asciiAddress]=value;
@@ -2004,6 +2010,33 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                                     CT_DELETED);
                                         }
                                     }
+                                }
+                                // delete ubi
+                                else if (hexData.substr(0, 6) == "445520") {
+									std::string newDex = hexData.substr(6, hexString.size());
+									std::vector<std::string> strs = splitString(newDex, "20");
+									// The string has to have 1 params to be valid as a np and saved into the db
+									if (strs.size() == 1) {
+										std::string ubiAddress = strs.at(0);
+                                        std::string asciiAddress = hexToAscii(ubiAddress);
+                                        CBitcoinAddress uAddress = CBitcoinAddress(asciiAddress);
+										if (uAddress.IsValid() && ServiceList.IsService(toAddress)) {
+											std::tuple<std::string, std::string> value;
+											if(!view.GetUbiList(asciiAddress, value)) {
+												LogPrintf("Failed to read ubi index");
+                                                continue;
+                                            } else {
+												value = std::make_tuple("DU", asciiAddress);
+												//assert(view.SetNPList(asciiAddress, value));
+												serviceUbiList[asciiAddress]=value;
+
+                                                if (pwalletMain) {
+                                                    pwalletMain->NotifyServicePageChanged(pwalletMain, "", asciiAddress,
+                                                            "", CT_DELETED);
+                                                }
+											}
+										}
+									}
                                 }
                                 // If op_return begins with "BT" (buy coupon)
                                 else if (hexData.substr(0, 4) == "4254") {
@@ -2481,9 +2514,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         CBitcoinAddress nAddress = CBitcoinAddress(asciiAddress);
 										if (nAddress.IsValid() && ServiceList.IsService(toAddress)) {
 											std::tuple<std::string, std::string, std::string> value;
-											if (!view.GetNPList(asciiAddress, value))
-												return state.Abort(_("Failed to read np index"));
-											else {
+											if (!view.GetNPList(asciiAddress, value)) {
+												LogPrintf("Failed to read np index");
+                                                continue;
+                                            } else {
 												value = std::make_tuple("DN", asciiAddress, "");
 												//assert(view.SetNPList(asciiAddress, value));
 												serviceNPList[asciiAddress]=value;
@@ -2549,6 +2583,24 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                                     asciiAddress,
                                                     toAddress,
                                                     CT_DELETED);
+                                        }
+                                    }
+                                }
+                                else if (hexData.substr(0, 6) == "445520") {
+                                    std::string couponAddress = hexData.substr(6, hexString.size());
+                                    std::string asciiAddress = hexToAscii(couponAddress);
+                                    CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
+                                    // If the coupon address is valid then save it to the db
+                                    if (tAddress.IsValid() && ServiceItemList.IsCoupon(asciiAddress)) {
+                                        std::tuple<std::string, std::string> value;
+                                        value = std::make_tuple("DU", toAddress);
+                                        assert(view.SetUbiList(asciiAddress, value));
+                                        serviceUbiList[asciiAddress]=value;
+
+                                        if (pwalletMain)
+                                        {
+                                            pwalletMain->NotifyServicePageChanged(pwalletMain, "", asciiAddress,
+                                                    "", CT_DELETED);
                                         }
                                     }
                                 }
