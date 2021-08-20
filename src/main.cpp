@@ -2016,27 +2016,24 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 									std::string newDex = hexData.substr(6, hexString.size());
 									std::vector<std::string> strs = splitString(newDex, "20");
 									// The string has to have 1 params to be valid as a np and saved into the db
-									if (strs.size() == 1) {
-										std::string ubiAddress = strs.at(0);
-                                        std::string asciiAddress = hexToAscii(ubiAddress);
-                                        CBitcoinAddress uAddress = CBitcoinAddress(asciiAddress);
-										if (uAddress.IsValid() && ServiceList.IsService(toAddress)) {
-											std::tuple<std::string, std::string> value;
-											if(!view.GetUbiList(asciiAddress, value)) {
-												LogPrintf("Failed to read ubi index");
-                                                continue;
-                                            } else {
-												value = std::make_tuple("DU", asciiAddress);
-												//assert(view.SetNPList(asciiAddress, value));
-												serviceUbiList[asciiAddress]=value;
+                                    std::string ubiAddress = strs.at(0);
+                                    std::string asciiAddress = hexToAscii(ubiAddress);
+                                    CBitcoinAddress uAddress = CBitcoinAddress(asciiAddress);
+                                    if (uAddress.IsValid() && ServiceList.IsService(toAddress)) {
+                                        std::tuple<std::string, std::string> value;
+                                        if (!view.GetUbiList(asciiAddress, value)) {
+                                            LogPrintf("Failed to read ubi index");
+                                            continue;
+                                        } else {
+                                            value = std::make_tuple("DU", asciiAddress);
+                                            serviceUbiList[asciiAddress] = value;
 
-                                                if (pwalletMain) {
-                                                    pwalletMain->NotifyServicePageChanged(pwalletMain, "", asciiAddress,
-                                                            "", CT_DELETED);
-                                                }
-											}
-										}
-									}
+                                            if (pwalletMain) {
+                                                pwalletMain->NotifyServicePageChanged(pwalletMain, "", asciiAddress,
+                                                        "", CT_DELETED);
+                                            }
+                                        }
+                                    }
                                 }
                                 // If op_return begins with "BT" (buy coupon)
                                 else if (hexData.substr(0, 4) == "4254") {
@@ -2586,16 +2583,16 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         }
                                     }
                                 }
+                                // delete ubi
                                 else if (hexData.substr(0, 6) == "445520") {
-                                    std::string couponAddress = hexData.substr(6, hexString.size());
-                                    std::string asciiAddress = hexToAscii(couponAddress);
-                                    CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
+                                    std::string uAddress = hexData.substr(6, hexString.size());
+                                    std::string asciiAddress = hexToAscii(uAddress);
+                                    CBitcoinAddress ubiAddress = CBitcoinAddress(asciiAddress);
                                     // If the coupon address is valid then save it to the db
-                                    if (tAddress.IsValid() && ServiceItemList.IsCoupon(asciiAddress)) {
+                                    if (ubiAddress.IsValid() && ServiceItemList.IsUbi(asciiAddress)) {
                                         std::tuple<std::string, std::string> value;
                                         value = std::make_tuple("DU", toAddress);
-                                        assert(view.SetUbiList(asciiAddress, value));
-                                        serviceUbiList[asciiAddress]=value;
+                                        serviceUbiList[asciiAddress] = value;
 
                                         if (pwalletMain)
                                         {
