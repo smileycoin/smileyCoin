@@ -419,7 +419,6 @@ Value addubi(const Array& params, bool fHelp)
     ServiceList.GetMyServiceAddresses(myServices);
 
     std::string ubiServiceAddress = "";
-    // Send new coupon transaction to corresponding service address
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = myServices.begin(); it!=myServices.end(); it++ )
     {
         if(serviceName == get<1>(it->second)) {
@@ -428,7 +427,7 @@ Value addubi(const Array& params, bool fHelp)
     }
 
     if (!ServiceList.IsService(ubiServiceAddress)) {
-        throw runtime_error("The entered UBI service name cannot be found on service list.");
+        throw runtime_error("The entered UBI service name cannot be found on service list or you do not own the service address.");
     }
 
     // Parse Smileycoin address
@@ -447,6 +446,79 @@ Value addubi(const Array& params, bool fHelp)
     vector<unsigned char> data = ParseHexV(str[0], "Data");
 
     // Create op_return script in the form -> NU ubiAddress
+    vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
+
+    CWalletTx wtx;
+
+    EnsureWalletIsUnlocked();
+
+    // Send
+    CReserveKey keyChange(pwalletMain);
+    int64_t nFeeRequired = 0;
+    string strFailReason;
+    bool fCreated = pwalletMain->CreateTransaction(vecSend, wtx, keyChange, nFeeRequired, strFailReason);
+    if (!fCreated)
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strFailReason);
+    if (!pwalletMain->CommitTransaction(wtx, keyChange))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Transaction commit failed");
+
+    return wtx.GetHash().GetHex();
+}
+
+Value deleteubi(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 2)
+        throw runtime_error(
+                "deleteubi \"serviceaddress \" \"ubiaddress\" \n"
+                "\nDelete the UBI associated with the service address, UBI address pair\n"
+                + HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1. \"serviceaddress\"   (string, required) The service address associated with the service. \n"
+                "2. \"ubiaddress\"       (string, required) The UBI address associated with the UBI. \n"
+
+                "\nResult:\n"
+                "\"transactionid\"  (string) The transaction id.\n"
+                "\nExamples:\n"
+                + HelpExampleCli("deleteubi", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleCli("deleteubi", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+                + HelpExampleRpc("deleteubi", "1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd")
+        );
+
+    CBitcoinAddress serviceAddress(params[0].get_str());
+    CBitcoinAddress ubiAddress(params[1].get_str());
+
+    if (!serviceAddress.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid service address");
+    } else if (!ubiAddress.IsValid()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid UBI address");
+    } else if (!IsMine(*pwalletMain, serviceAddress.Get()) && !IsMine(*pwalletMain, ubiAddress.Get())) {
+        throw runtime_error("Permission denied. Neither the UBI nor the service address is owned by you.");
+    } else if (!ServiceList.IsService(serviceAddress.ToString())) {
+        throw runtime_error("Service address is not on the list");
+    }
+
+    // Amount
+    int64_t nValue = 1*COIN;
+    int64_t DEFAULT_AMOUNT = 0;
+
+    vector<pair<CScript, int64_t> > vecSend;
+
+    // Parse Smileycoin address
+    CBitcoinAddress toAddress(serviceAddress);
+    CScript scriptPubKey;
+    scriptPubKey.SetDestination(toAddress.Get());
+
+    // Pay 1 SMLY to ubi address
+    vecSend.push_back(make_pair(scriptPubKey, nValue));
+
+    vector<string> str;
+    int64_t amount = 0;
+
+    std::string txData = HexStr("DU " + ubiAddress.ToString(), false);
+    str.push_back(txData);
+    vector<unsigned char> data = ParseHexV(str[0], "Data");
+
+    // Create op_return script in the form -> DU ubiAddress
     vecSend.push_back(make_pair(CScript() << OP_RETURN << data, max(DEFAULT_AMOUNT, amount) * COIN));
 
     CWalletTx wtx;
@@ -996,6 +1068,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     Array dservices; /* DEX */
     Array sservices; /* Survey */
     Array nposervices; /* NP groups */
+    Array ubiservices; /* UBI */
     Object name_address;
 
     std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
@@ -1030,6 +1103,10 @@ Value getserviceaddresses(const Array& params, bool fHelp)
             name_address.push_back(Pair("name", get<1>(s->second)));
             name_address.push_back(Pair("address", s->first));
             nposervices.push_back(name_address);
+        } else if (get<2>(s->second) == "UBI") { // 2
+            name_address.push_back(Pair("name", get<1>(s->second)));
+            name_address.push_back(Pair("address", s->first));
+            ubiservices.push_back(name_address);
         }
     }
 
@@ -1039,6 +1116,7 @@ Value getserviceaddresses(const Array& params, bool fHelp)
     root.push_back(Pair("DEX", dservices));
     root.push_back(Pair("Survey", sservices));
     root.push_back(Pair("Organizations", nposervices));
+    root.push_back(Pair("UBI", ubiservices));
 
     return root;
 }
