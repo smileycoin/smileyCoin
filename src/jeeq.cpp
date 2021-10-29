@@ -349,7 +349,7 @@ static uint8_t *encrypt_message(size_t *enc_len, const uint8_t *pubkey,
     EC_POINT *pk = EC_POINT_new(group);
 
     // get so many blocks of 32B blocks that msg will fit
-    int chunk_count = (PRIVHEADER_LEN + msg_len)/CHUNK_SIZE + 1;
+    int chunk_count = (PRIVHEADER_LEN + msg_len - 1)/CHUNK_SIZE + 1;
 
     uint8_t *m = (uint8_t*)OPENSSL_zalloc(chunk_count * CHUNK_SIZE);
 
@@ -478,7 +478,7 @@ static uint8_t *decrypt_message(size_t *dec_len, const uint8_t *privkey, const u
 
     int chunk_count = (enc_len - PUBHEADER_LEN) / (2*COMPR_PUBKEY_LEN);
 
-    uint8_t *r = (uint8_t*)OPENSSL_malloc(PRIVHEADER_LEN + chunk_count * CHUNK_SIZE);
+    uint8_t *r = (uint8_t*)OPENSSL_malloc(chunk_count * CHUNK_SIZE);
 
     uint8_t *Tser = (uint8_t*)OPENSSL_malloc(COMPR_PUBKEY_LEN);
     uint8_t *User = (uint8_t*)OPENSSL_malloc(COMPR_PUBKEY_LEN);
@@ -604,6 +604,7 @@ string DecryptMessage(const CKey privkey, const vector<uint8_t> enc)
                       enc.data(), enc.size());
     if (bdec == NULL || dec_len == 0)
         return string();
+
 
     string dec(bdec, bdec+dec_len);
     free(bdec);

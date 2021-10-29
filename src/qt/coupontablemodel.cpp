@@ -2,7 +2,7 @@
 // Created by Lenovo on 7/3/2020.
 //
 
-#include "tickettablemodel.h"
+#include "coupontablemodel.h"
 
 #include "guiutil.h"
 #include "walletmodel.h"
@@ -15,7 +15,7 @@
 
 #include <QFont>
 
-struct TicketTableEntry
+struct CouponTableEntry
 {
     QString name;
     QString location;
@@ -24,43 +24,43 @@ struct TicketTableEntry
     QString address;
     QString service;
 
-    TicketTableEntry() {}
-    TicketTableEntry(const QString &name, const QString &location, const QString &datetime, const QString &price, const QString &address, const QString &service):
+    CouponTableEntry() {}
+    CouponTableEntry(const QString &name, const QString &location, const QString &datetime, const QString &price, const QString &address, const QString &service):
             name(name), location(location), datetime(datetime), price(price), address(address), service(service) {}
 };
 
-struct TicketTableEntryLessThan
+struct CouponTableEntryLessThan
 {
-    bool operator()(const TicketTableEntry &a, const TicketTableEntry &b) const
+    bool operator()(const CouponTableEntry &a, const CouponTableEntry &b) const
     {
         return a.address < b.address;
     }
-    bool operator()(const TicketTableEntry &a, const QString &b) const
+    bool operator()(const CouponTableEntry &a, const QString &b) const
     {
         return a.address < b;
     }
-    bool operator()(const QString &a, const TicketTableEntry &b) const
+    bool operator()(const QString &a, const CouponTableEntry &b) const
     {
         return a < b.address;
     }
 };
 
 // Private implementation
-class TicketTablePriv
+class CouponTablePriv
 {
 public:
     CWallet *wallet;
-    QList<TicketTableEntry> cachedTicketTable;
-    TicketTableModel *parent;
+    QList<CouponTableEntry> cachedCouponTable;
+    CouponTableModel *parent;
     std::string serviceFilter;
 
 
-    TicketTablePriv(std::string serviceFilter, CWallet *wallet, TicketTableModel *parent):
+    CouponTablePriv(std::string serviceFilter, CWallet *wallet, CouponTableModel *parent):
             serviceFilter(serviceFilter), wallet(wallet), parent(parent) {}
 
-    void refreshTicketTable()
+    void refreshCouponTable()
     {
-        cachedTicketTable.clear();
+        cachedCouponTable.clear();
         {
             LOCK(wallet->cs_wallet);
 
@@ -68,24 +68,24 @@ public:
             std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
             ServiceList.GetServiceAddresses(services);
 
-            std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> tickets;
-            ServiceItemList.GetTicketList(tickets);
+            std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> coupons;
+            ServiceItemList.GetCouponList(coupons);
             for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator
-                        t = tickets.begin(); t!=tickets.end(); t++ )
+                        t = coupons.begin(); t!=coupons.end(); t++ )
             {
                 for(std::multiset< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator s = services.begin(); s!=services.end(); s++ )
                 {
                     // Display corresponding service name instead of address
                     if (QString::fromStdString(get<1>(t->second)) == QString::fromStdString(s->first) && is_before(get<4>(t->second))) {
                         if (serviceFilter == "All") {
-                            cachedTicketTable.append(TicketTableEntry(QString::fromStdString(get<3>(t->second)),
+                            cachedCouponTable.append(CouponTableEntry(QString::fromStdString(get<3>(t->second)),
                                     QString::fromStdString(get<2>(t->second)),
                                     QString::fromStdString(get<4>(t->second)),
                                     QString::fromStdString(get<5>(t->second)),
                                     QString::fromStdString(t->first),
                                     QString::fromStdString(get<1>(s->second))));
                         } else if (serviceFilter == get<1>(s->second)) { // If dropdown selection matches service name
-                            cachedTicketTable.append(TicketTableEntry(QString::fromStdString(get<3>(t->second)),
+                            cachedCouponTable.append(CouponTableEntry(QString::fromStdString(get<3>(t->second)),
                                     QString::fromStdString(get<2>(t->second)),
                                     QString::fromStdString(get<4>(t->second)),
                                     QString::fromStdString(get<5>(t->second)),
@@ -99,18 +99,18 @@ public:
         // qLowerBound() and qUpperBound() require our cachedAddressTable list to be sorted in asc order
         // Even though the map is already sorted this re-sorting step is needed because the originating map
         // is sorted by binary address, not by base58() address.
-        //qSort(cachedTicketTable.begin(), cachedTicketTable.end(), TicketTableEntryLessThan());
+        //qSort(cachedCouponTable.begin(), cachedCouponTable.end(), CouponTableEntryLessThan());
     }
 
-    void updateTicketEntry(const QString &name, const QString &location, const QString &datetime, const QString &price, const QString &address, const QString &service, int status)
+    void updateCouponEntry(const QString &name, const QString &location, const QString &datetime, const QString &price, const QString &address, const QString &service, int status)
     {
         // Find address / label in model
-        QList<TicketTableEntry>::iterator lower = std::lower_bound(
-                cachedTicketTable.begin(), cachedTicketTable.end(), address, TicketTableEntryLessThan());
-        QList<TicketTableEntry>::iterator upper = std::upper_bound(
-                cachedTicketTable.begin(), cachedTicketTable.end(), address, TicketTableEntryLessThan());
-        int lowerIndex = (lower - cachedTicketTable.begin());
-        int upperIndex = (upper - cachedTicketTable.begin());
+        QList<CouponTableEntry>::iterator lower = std::lower_bound(
+                cachedCouponTable.begin(), cachedCouponTable.end(), address, CouponTableEntryLessThan());
+        QList<CouponTableEntry>::iterator upper = std::upper_bound(
+                cachedCouponTable.begin(), cachedCouponTable.end(), address, CouponTableEntryLessThan());
+        int lowerIndex = (lower - cachedCouponTable.begin());
+        int upperIndex = (upper - cachedCouponTable.begin());
         bool inModel = (lower != upper);
         //ServiceTableEntry::Type newEntryType = translateTransactionType(purpose, isMine);
 
@@ -120,11 +120,11 @@ public:
             {
                 if(inModel)
                 {
-                    error("TicketTablePriv::updateEntry : Warning: Got CT_NEW, but entry is already in model");
+                    error("CouponTablePriv::updateEntry : Warning: Got CT_NEW, but entry is already in model");
                     break;
                 }
                 parent->beginInsertRows(QModelIndex(), lowerIndex, lowerIndex);
-                cachedTicketTable.insert(lowerIndex, TicketTableEntry(name, location, datetime, price, address, service));
+                cachedCouponTable.insert(lowerIndex, CouponTableEntry(name, location, datetime, price, address, service));
                 parent->endInsertRows();
                 break;
             }
@@ -132,7 +132,7 @@ public:
             {
                 if(!inModel)
                 {
-                    error("TicketTablePriv::updateEntry : Warning: Got CT_UPDATED, but entry is not in model");
+                    error("CouponTablePriv::updateEntry : Warning: Got CT_UPDATED, but entry is not in model");
                     break;
                 }
                 lower->name = name;
@@ -148,11 +148,11 @@ public:
             {
                 if(!inModel)
                 {
-                    error("TicketTablePriv::updateEntry : Warning: Got CT_DELETED, but entry is not in model");
+                    error("CouponTablePriv::updateEntry : Warning: Got CT_DELETED, but entry is not in model");
                     break;
                 }
                 parent->beginRemoveRows(QModelIndex(), lowerIndex, upperIndex-1);
-                cachedTicketTable.erase(lower, upper);
+                cachedCouponTable.erase(lower, upper);
                 parent->endRemoveRows();
                 break;
             }
@@ -161,14 +161,14 @@ public:
 
     int size()
     {
-        return cachedTicketTable.size();
+        return cachedCouponTable.size();
     }
 
-    TicketTableEntry *index(int idx)
+    CouponTableEntry *index(int idx)
     {
-        if(idx >= 0 && idx < cachedTicketTable.size())
+        if(idx >= 0 && idx < cachedCouponTable.size())
         {
-            return &cachedTicketTable[idx];
+            return &cachedCouponTable[idx];
         }
         else
         {
@@ -178,38 +178,38 @@ public:
 
 };
 
-TicketTableModel::TicketTableModel(std::string serviceFilter, CWallet *wallet, WalletModel *parent) :
+CouponTableModel::CouponTableModel(std::string serviceFilter, CWallet *wallet, WalletModel *parent) :
         QAbstractTableModel(parent),walletModel(parent),wallet(wallet), serviceFilter(serviceFilter), priv(0)
 {
     columns << tr("Name") << tr("Location") << tr("Date and time") << tr("Price") << tr("Address") << tr("Service");
-    priv = new TicketTablePriv(serviceFilter, wallet, this);
-    priv->refreshTicketTable();
+    priv = new CouponTablePriv(serviceFilter, wallet, this);
+    priv->refreshCouponTable();
 }
 
-TicketTableModel::~TicketTableModel()
+CouponTableModel::~CouponTableModel()
 {
     delete priv;
 }
 
 
-int TicketTableModel::rowCount(const QModelIndex &parent) const
+int CouponTableModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return priv->size();
 }
 
-int TicketTableModel::columnCount(const QModelIndex &parent) const
+int CouponTableModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
     return columns.length();
 }
 
-QVariant TicketTableModel::data(const QModelIndex &index, int role) const
+QVariant CouponTableModel::data(const QModelIndex &index, int role) const
 {
     if(!index.isValid())
         return QVariant();
 
-    TicketTableEntry *rec = static_cast<TicketTableEntry*>(index.internalPointer());
+    CouponTableEntry *rec = static_cast<CouponTableEntry*>(index.internalPointer());
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
@@ -241,7 +241,7 @@ QVariant TicketTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-QVariant TicketTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant CouponTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if(orientation == Qt::Horizontal)
     {
@@ -253,11 +253,11 @@ QVariant TicketTableModel::headerData(int section, Qt::Orientation orientation, 
     return QVariant();
 }
 
-Qt::ItemFlags TicketTableModel::flags(const QModelIndex &index) const
+Qt::ItemFlags CouponTableModel::flags(const QModelIndex &index) const
 {
     if(!index.isValid())
         return 0;
-    TicketTableEntry *rec = static_cast<TicketTableEntry*>(index.internalPointer());
+    CouponTableEntry *rec = static_cast<CouponTableEntry*>(index.internalPointer());
 
     Qt::ItemFlags retval = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
     // Can edit address and label for sending addresses,
@@ -265,10 +265,10 @@ Qt::ItemFlags TicketTableModel::flags(const QModelIndex &index) const
     return retval;
 }
 
-QModelIndex TicketTableModel::index(int row, int column, const QModelIndex &parent) const
+QModelIndex CouponTableModel::index(int row, int column, const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    TicketTableEntry *data = priv->index(row);
+    CouponTableEntry *data = priv->index(row);
     if(data)
     {
         return createIndex(row, column, priv->index(row));
@@ -279,13 +279,13 @@ QModelIndex TicketTableModel::index(int row, int column, const QModelIndex &pare
     }
 }
 
-void TicketTableModel::updateTicketEntry(const QString &name, const QString &location, const QString &datetime, const QString &price, const QString &address, const QString &service, int status)
+void CouponTableModel::updateCouponEntry(const QString &name, const QString &location, const QString &datetime, const QString &price, const QString &address, const QString &service, int status)
 {
-    // Update ticket page model from Bitcoin core
-    priv->updateTicketEntry(name, location, datetime, price, address, service, status);
+    // Update coupon page model from Bitcoin core
+    priv->updateCouponEntry(name, location, datetime, price, address, service, status);
 }
 
-QString TicketTableModel::addRow(const QString &name, const QString &location,  const QString &datetime, const QString &price, const QString &address, const QString &service)
+QString CouponTableModel::addRow(const QString &name, const QString &location,  const QString &datetime, const QString &price, const QString &address, const QString &service)
 {
     std::string strName = name.toStdString();
     std::string strLocation = location.toStdString();
@@ -296,7 +296,7 @@ QString TicketTableModel::addRow(const QString &name, const QString &location,  
     return QString::fromStdString(strAddress);
 }
 
-void TicketTableModel::emitDataChanged(int idx)
+void CouponTableModel::emitDataChanged(int idx)
 {
     emit dataChanged(index(idx, 0, QModelIndex()), index(idx, columns.length()-1, QModelIndex()));
 }

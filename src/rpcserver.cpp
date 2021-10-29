@@ -239,19 +239,25 @@ static const CRPCCommand vRPCCommands[] =
 
     /* Block chain and UTXO */
     { "adddex",                 &adddex,                 false,     false,      false },
+    { "addorg",                 &addorg,                 false,     false,      false },
     { "addubi",                 &addubi,                 false,     false,      false },
     { "addchapter",             &addchapter,             false,     false,      false },
     { "getaddressinfo",         &getaddressinfo,         false,     false,      false },
     { "getrichaddresses",       &getrichaddresses,       false,     false,      false },
     { "createservice",          &createservice,          false,     false,      false },
-    { "createticket",           &createticket,           false,     false,      false },
-    { "buyticket",              &buyticket,              false,     false,      false },
+    { "addcoupon",              &addcoupon,              false,     false,      false },
+    { "buycoupon",              &buycoupon,              false,     false,      false },
+    { "deletecoupon",           &deletecoupon,           false,     false,      false },
     { "deleteservice",          &deleteservice,          false,     false,      false },
+    { "deleteorg",              &deleteorg,              false,     false,      false },
+    { "deleteubi",              &deleteubi,              false,     false,      false },
     { "getserviceaddresses",    &getserviceaddresses,    false,     false,      false },
-    { "getticketlist",          &getticketlist,          false,     false,      false },
+    { "getcouponlist",          &getcouponlist,          false,     false,      false },
+    { "getallcouponlists",      &getallcouponlists,      false,     false,      false },
     { "getubilist",             &getubilist,             false,     false,      false },
     { "getdexlist",             &getdexlist,             false,     false,      false },
-    { "getnpolist",             &getnpolist,             false,     false,      false },
+    { "getorglist",             &getorglist,             false,     false,      false },
+    { "getallorglists",         &getallorglists,         false,     false,      false },
     { "getbooklist",            &getbooklist,            false,     false,      false },
     { "getblockchaininfo",      &getblockchaininfo,      true,      false,      false },
     { "getbestblockhash",       &getbestblockhash,       true,      false,      false },
@@ -287,6 +293,7 @@ static const CRPCCommand vRPCCommands[] =
     /* Wallet */
     { "addmultisigaddress",     &addmultisigaddress,     false,     false,      true },
     { "backupwallet",           &backupwallet,           true,      false,      true },
+    { "consolidate",            &consolidate,            false,     false,      true },
     { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
     { "dumpwallet",             &dumpwallet,             true,      false,      true },
     { "encryptwallet",          &encryptwallet,          false,     false,      true },
@@ -325,11 +332,12 @@ static const CRPCCommand vRPCCommands[] =
     { "walletlock",             &walletlock,             true,      false,      true },
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
     { "walletpassphrase",       &walletpassphrase,       true,      false,      true },
+    { "replywithmessage",       &replywithmessage,       false,     false,      true },
+    { "getmessages",            &getmessages,            true,      false,      true },
 
     /* Wallet-enabled mining */
     { "getgenerate",            &getgenerate,            true,      false,      false },
     { "gethashespersec",        &gethashespersec,        true,      false,      false },
-    { "getwork",                &getwork,                true,      false,      true  },
     { "setgenerate",            &setgenerate,            true,      true,       false },
 #endif // ENABLE_WALLET
 };
@@ -755,7 +763,7 @@ void JSONRequest::parse(const Value& valRequest)
     if (valMethod.type() != str_type)
         throw JSONRPCError(RPC_INVALID_REQUEST, "Method must be a string");
     strMethod = valMethod.get_str();
-    if (strMethod != "getwork" && strMethod != "getblocktemplate")
+    if (strMethod != "getblocktemplate")
         LogPrint("rpc", "ThreadRPCServer method=%s\n", strMethod);
 
     // Parse params
@@ -929,6 +937,16 @@ json_spirit::Value CRPCTable::execute(const std::string &strMethod, const json_s
     {
         throw JSONRPCError(RPC_MISC_ERROR, e.what());
     }
+}
+
+std::vector <std::string> CRPCTable::listCommands() const {
+    std::vector <std::string> commandList;
+    typedef std::map<std::string, const CRPCCommand *> commandMap;
+
+    std::transform(mapCommands.begin(), mapCommands.end(),
+            std::back_inserter(commandList),
+            boost::bind(&commandMap::value_type::first, _1));
+    return commandList;
 }
 
 std::string HelpExampleCli(string methodname, string args){

@@ -224,11 +224,11 @@ public:
     //Modify the balance of and height where a given scriptPubKey was last used.
     virtual bool SetServiceInfo(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
 
-    //Retrieve the balance of and height where a given scriptPubKey was last used - serviceticketlist
-    virtual bool GetTicketList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    //Retrieve the balance of and height where a given scriptPubKey was last used - servicecouponlist
+    virtual bool GetCouponList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
 
-    //Modify the balance of and height where a given scriptPubKey was last used - serviceticketlist
-    virtual bool SetTicketList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    //Modify the balance of and height where a given scriptPubKey was last used - servicecouponlist
+    virtual bool SetCouponList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
 
     //Retrieve the balance of and height where a given scriptPubKey was last used - serviceubilist
     virtual bool GetUbiList(const std::string &key, std::tuple<std::string, std::string> &value);
@@ -248,6 +248,11 @@ public:
     //Modify the balance of and height where a given scriptPubKey was last used - servicebooklist
     virtual bool SetBookList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
 
+    virtual bool GetNPList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
+
+    //Modify the balance of and height where a given scriptPubKey was last used - servicebooklist
+    virtual bool SetNPList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
+
     //Just check whether we have data for a given txid.
     virtual bool HaveCoins(const uint256 &txid);
 
@@ -260,10 +265,11 @@ public:
     //Do a bulk modification (multiple SetCoins + one SetBestBlock)
     virtual bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
                             const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
-                            const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceTicketList,
+                            const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceCouponList,
                             const std::map<std::string, std::tuple<std::string, std::string> > &mapServiceUbiList,
                             const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceDexList,
                             const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceBookList,
+                            const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceNPList,
                             const uint256 &hashBlock);
 
     //Calculate statistics about the unspent transaction output set
@@ -288,24 +294,27 @@ public:
     bool SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value);
     bool GetServiceInfo(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
     bool SetServiceInfo(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
-    bool GetTicketList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
-    bool SetTicketList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool GetCouponList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool SetCouponList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
     bool GetUbiList(const std::string &key, std::tuple<std::string, std::string> &value);
     bool SetUbiList(const std::string &key, const std::tuple<std::string, std::string> &value);
     bool GetDexList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
     bool SetDexList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
     bool GetBookList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
     bool SetBookList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
+    bool GetNPList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
+    bool SetNPList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
     bool HaveCoins(const uint256 &txid);
     uint256 GetBestBlock();
     bool SetBestBlock(const uint256 &hashBlock);
     void SetBackend(CCoinsView &viewIn);
     bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
                     const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
-                    const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceTicketList,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceCouponList,
                     const std::map<std::string, std::tuple<std::string, std::string> > &mapServiceUbiList,
                     const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceDexList,
                     const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceBookList,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceNPList,
                     const uint256 &hashBlock);
     bool GetStats(CCoinsStats &stats);
 };
@@ -319,10 +328,11 @@ protected:
     std::map<uint256,CCoins> cacheCoins;
     std::map<CScript, std::pair<int64_t,int> > cacheAddressInfo;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > cacheServiceInfo;
-    std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > cacheServiceTicketList;
+    std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > cacheServiceCouponList;
     std::map<std::string, std::tuple<std::string, std::string> > cacheServiceUbiList;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > cacheServiceDexList;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > cacheServiceBookList;
+    std::map<std::string, std::tuple<std::string, std::string, std::string> > cacheServiceNPList;
 
 public:
     CCoinsViewCache(CCoinsView &baseIn, bool fDummy = false);
@@ -334,23 +344,26 @@ public:
     bool SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value);
     bool GetServiceInfo(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
     bool SetServiceInfo(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
-    bool GetTicketList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
-    bool SetTicketList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool GetCouponList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
+    bool SetCouponList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value);
     bool GetUbiList(const std::string &key, std::tuple<std::string, std::string> &value);
     bool SetUbiList(const std::string &key, const std::tuple<std::string, std::string> &value);
     bool GetDexList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
     bool SetDexList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
     bool GetBookList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
     bool SetBookList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
+    bool GetNPList(const std::string &key, std::tuple<std::string, std::string, std::string> &value);
+    bool SetNPList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value);
     bool HaveCoins(const uint256 &txid);
     uint256 GetBestBlock();
     bool SetBestBlock(const uint256 &hashBlock);
     bool BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
                     const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
-                    const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceTicketList,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceCouponList,
                     const std::map<std::string, std::tuple<std::string, std::string> > &mapServiceUbiList,
                     const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceDexList,
                     const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceBookList,
+                    const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceNPList,
                     const uint256 &hashBlock);
 
     //Return a modifiable reference to a CCoins. Check HaveCoins first.

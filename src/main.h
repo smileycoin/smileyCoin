@@ -152,10 +152,11 @@ bool InitBlockIndex();
 /** Initialize the chainstate database for rich list iteration and verify that we have the necessary address info*/
 bool InitRichList(CCoinsView &dbview);
 bool InitServiceList(CCoinsView &dbview);
-bool InitServiceTicketList(CCoinsView &dbview);
+bool InitServiceCouponList(CCoinsView &dbview);
 bool InitServiceUbiList(CCoinsView &dbview);
 bool InitServiceDexList(CCoinsView &dbview);
 bool InitServiceBookList(CCoinsView &dbview);
+bool InitServiceNPList(CCoinsView &dbview);
 /** Load the block tree and coins database from disk */
 bool LoadBlockIndex();
 /** Unload database information */
@@ -429,66 +430,6 @@ public:
         std::swap(nHashType, check.nHashType);
     }
 };
-
-/** A transaction with a merkle branch linking it to the block chain. */
-class CMerkleTx : public CTransaction
-{
-private:
-    int GetDepthInMainChainINTERNAL(CBlockIndex* &pindexRet) const;
-
-public:
-    uint256 hashBlock;
-    std::vector<uint256> vMerkleBranch;
-    int nIndex;
-
-    // memory only
-    mutable bool fMerkleVerified;
-
-
-    CMerkleTx()
-    {
-        Init();
-    }
-
-    CMerkleTx(const CTransaction& txIn) : CTransaction(txIn)
-    {
-        Init();
-    }
-
-    void Init()
-    {
-        hashBlock = 0;
-        nIndex = -1;
-        fMerkleVerified = false;
-    }
-
-
-    IMPLEMENT_SERIALIZE
-    (
-        nSerSize += SerReadWrite(s, *(CTransaction*)this, nType, nVersion, ser_action);
-        nVersion = this->nVersion;
-        READWRITE(hashBlock);
-        READWRITE(vMerkleBranch);
-        READWRITE(nIndex);
-    )
-
-
-    int SetMerkleBranch(const CBlock* pblock=NULL);
-
-    // Return depth of transaction in blockchain:
-    // -1  : not in blockchain, and not in memory pool (conflicted transaction)
-    //  0  : in memory pool, waiting to be included in a block
-    // >=1 : this many blocks deep in the main chain
-    int GetDepthInMainChain(CBlockIndex* &pindexRet) const;
-    int GetDepthInMainChain() const { CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet); }
-    bool IsInMainChain() const { CBlockIndex *pindexRet; return GetDepthInMainChainINTERNAL(pindexRet) > 0; }
-    int GetBlocksToMaturity(int nHeight) const;
-    bool AcceptToMemoryPool(bool fLimitFree=true);
-};
-
-
-
-
 
 /** Data structure that represents a partial merkle tree.
  *

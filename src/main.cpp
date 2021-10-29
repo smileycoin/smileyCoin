@@ -688,54 +688,6 @@ unsigned int GetP2SHSigOpCount(const CTransaction& tx, CCoinsViewCache& inputs)
 	return nSigOps;
 }
 
-int CMerkleTx::SetMerkleBranch(const CBlock* pblock)
-{
-	AssertLockHeld(cs_main);
-	CBlock blockTmp;
-
-	if (pblock == NULL) {
-		CCoins coins;
-		if (pcoinsTip->GetCoins(GetHash(), coins)) {
-			CBlockIndex *pindex = chainActive[coins.nHeight];
-			if (pindex) {
-				if (!ReadBlockFromDisk(blockTmp, pindex))
-					return 0;
-				pblock = &blockTmp;
-			}
-		}
-	}
-
-	if (pblock) {
-		// Update the tx's hashBlock
-		hashBlock = pblock->GetHash();
-
-		// Locate the transaction
-		for (nIndex = 0; nIndex < (int)pblock->vtx.size(); nIndex++)
-			if (pblock->vtx[nIndex] == *(CTransaction*)this)
-				break;
-		if (nIndex == (int)pblock->vtx.size())
-		{
-			vMerkleBranch.clear();
-			nIndex = -1;
-			LogPrintf("ERROR: SetMerkleBranch() : couldn't find tx in block\n");
-			return 0;
-		}
-
-		// Fill in merkle branch
-		vMerkleBranch = pblock->GetMerkleBranch(nIndex);
-	}
-
-	// Is the tx in a block that's in the main chain
-	map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
-	if (mi == mapBlockIndex.end())
-		return 0;
-	CBlockIndex* pindex = (*mi).second;
-	if (!pindex || !chainActive.Contains(pindex))
-		return 0;
-
-	return chainActive.Height() - pindex->nHeight + 1;
-}
-
 bool CheckTransaction(const CTransaction& tx, CValidationState &state)
 {
 	// Basic checks that don't depend on any context
@@ -967,56 +919,6 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
 	g_signals.SyncTransaction(hash, tx, NULL);
 
 	return true;
-}
-
-
-int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex* &pindexRet) const
-{
-	if (hashBlock == 0 || nIndex == -1)
-		return 0;
-	AssertLockHeld(cs_main);
-
-	// Find the block it claims to be in
-	map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
-	if (mi == mapBlockIndex.end())
-		return 0;
-	CBlockIndex* pindex = (*mi).second;
-	if (!pindex || !chainActive.Contains(pindex))
-		return 0;
-
-	// Make sure the merkle branch connects to this block
-	if (!fMerkleVerified)
-	{
-		if (CBlock::CheckMerkleBranch(GetHash(), vMerkleBranch, nIndex) != pindex->hashMerkleRoot)
-			return 0;
-		fMerkleVerified = true;
-	}
-
-	pindexRet = pindex;
-	return chainActive.Height() - pindex->nHeight + 1;
-}
-
-int CMerkleTx::GetDepthInMainChain(CBlockIndex* &pindexRet) const
-{
-	AssertLockHeld(cs_main);
-	int nResult = GetDepthInMainChainINTERNAL(pindexRet);
-	if (nResult == 0 && !mempool.exists(GetHash()))
-		return -1; // Not in chain, not in mempool
-
-	return nResult;
-}
-
-int CMerkleTx::GetBlocksToMaturity(int nHeight) const
-{
-	if (!IsCoinBase())
-		return 0;
-	return max(0, (COINBASE_MATURITY+1) - GetDepthInMainChain());
-}
-
-bool CMerkleTx::AcceptToMemoryPool(bool fLimitFree)
-{
-	CValidationState state;
-	return ::AcceptToMemoryPool(mempool, state, *this, fLimitFree, NULL);
 }
 
 static unsigned int GetMaxBlockSize(unsigned int height)
@@ -1819,10 +1721,11 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 
     std::map<CScript, std::pair<int64_t, int> > addressInfo;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceInfo;
-	std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > serviceTicketList;
+	std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > serviceCouponList;
 	std::map<std::string, std::tuple<std::string, std::string> > serviceUbiList;
 	std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceDexList;
 	std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceBookList;
+	std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceNPList;
 
     // undo transactions in reverse order
 	for (int i = block.vtx.size() - 1; i >= 0; i--) {
@@ -1871,7 +1774,8 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                     if (sAddress.IsValid() && !ServiceList.IsService(asciiAddress) && serviceName.length() <= 50 &&
                                     (hexToAscii(serviceType) == "1" || hexToAscii(serviceType) == "2" ||
                                     hexToAscii(serviceType) == "3"|| hexToAscii(serviceType) == "4"||
-                                    hexToAscii(serviceType) == "5"|| hexToAscii(serviceType) == "6" || hexToAscii(serviceType) == "7")) {
+                                    hexToAscii(serviceType) == "5"|| hexToAscii(serviceType) == "6" || hexToAscii(serviceType) == "7"
+                                    || hexToAscii(serviceType) == "8")) {
                                         std::tuple<std::string, std::string, std::string> value;
                                         if (!view.GetServiceInfo(asciiAddress, value)) {
                                             return state.Abort(_("Failed to read service index"));
@@ -1903,41 +1807,43 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                             // check if the scriptPubKey contains op_return(6a)
 							if (hexString.substr(0, 2) == "6a") {
 								std::string hexData = hexString.substr(4, hexString.size());
-                                // New ticket
+                                // New coupon
 								// If the string starts with "NT"
 								if (hexData.substr(0, 4) == "4e54") {
-									std::string newTicket = hexData.substr(4, hexString.size());
-									std::vector<std::string> strs = splitString(newTicket, "20");
+									std::string newCoupon = hexData.substr(4, hexString.size());
+									std::vector<std::string> strs = splitString(newCoupon, "20");
 									// the string has to have 5 params to be valid as a service and saved into the db
 									if (strs.size() == 5) {
-										std::string ticketLocation = strs.at(0);
-										std::string ticketName = strs.at(1);
-										std::string ticketDateAndTime = strs.at(2);
-										std::string ticketValue = strs.at(3);
-										std::string ticketAddress = strs.at(4);
-                                        std::string asciiAddress = hexToAscii(ticketAddress);
+										std::string couponLocation = strs.at(0);
+										std::string couponName = strs.at(1);
+										std::string couponDateAndTime = strs.at(2);
+										std::string couponValue = strs.at(3);
+										std::string couponAddress = strs.at(4);
+                                        std::string asciiAddress = hexToAscii(couponAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-                                        // if the ticket address is valid, the name and location are equal or less than 40,
+                                        // if the coupon address is valid, the name and location are equal or less than 40,
                                         // date and time is on the right format and value is an integer then save it to the db
-                                        if (tAddress.IsValid() && is_number(hexToAscii(ticketValue)) &&
-                                        is_date(hexToAscii(ticketDateAndTime)) &&
-                                        is_before(hexToAscii(ticketDateAndTime)) && ticketLocation.length() <= 40 &&
-                                        ticketName.length() <= 40 && ServiceList.IsService(toAddress)) {
+                                        if (tAddress.IsValid() 
+                                            && is_before(hexToAscii(couponDateAndTime)) 
+                                            && couponLocation.length() <= 40 
+                                            && couponName.length() <= 40 
+                                            && ServiceList.IsService(toAddress)) {
                                             std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
-											if(!view.GetTicketList(asciiAddress, value))
-												return state.Abort(_("Failed to read ticket index"));
-											else {
-												value = std::make_tuple("NT", toAddress, hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateAndTime), hexToAscii(ticketValue));
-												assert(view.SetTicketList(asciiAddress, value));
-												serviceTicketList[asciiAddress]=value;
+											if(!view.GetCouponList(asciiAddress, value)) {
+												LogPrintf("Failed to read coupon index");
+                                                continue;
+                                            } else {
+												value = std::make_tuple("NT", toAddress, hexToAscii(couponLocation), hexToAscii(couponName), hexToAscii(couponDateAndTime), hexToAscii(couponValue));
+												assert(view.SetCouponList(asciiAddress, value));
+												serviceCouponList[asciiAddress]=value;
                                                 // refresh the wallet when it is saved into the db
 												if (pwalletMain)
                                                 {
-                                                    pwalletMain->NotifyTicketPageChanged(pwalletMain,
-                                                                                         hexToAscii(ticketName),
-                                                                                         hexToAscii(ticketLocation),
-                                                                                         hexToAscii(ticketDateAndTime),
-                                                                                         hexToAscii(ticketValue),
+                                                    pwalletMain->NotifyCouponPageChanged(pwalletMain,
+                                                                                         hexToAscii(couponName),
+                                                                                         hexToAscii(couponLocation),
+                                                                                         hexToAscii(couponDateAndTime),
+                                                                                         hexToAscii(couponValue),
                                                                                          asciiAddress,
                                                                                          toAddress,
                                                                                          CT_NEW);
@@ -1958,9 +1864,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                         CBitcoinAddress uAddress = CBitcoinAddress(asciiAddress);
 										if (uAddress.IsValid() && ServiceList.IsService(toAddress)) {
 											std::tuple<std::string, std::string> value;
-											if(!view.GetUbiList(asciiAddress, value))
-												return state.Abort(_("Failed to read ubi index"));
-											else {
+											if(!view.GetUbiList(asciiAddress, value)) {
+												LogPrintf("Failed to read ubi index");
+                                                continue;
+                                            } else {
 												value = std::make_tuple("NU", toAddress);
 												assert(view.SetUbiList(asciiAddress, value));
 												serviceUbiList[asciiAddress]=value;
@@ -1981,12 +1888,36 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                         CBitcoinAddress dAddress = CBitcoinAddress(asciiAddress);
 										if (dAddress.IsValid() && dexDescription.length() <= 60 && ServiceList.IsService(toAddress)) {
 											std::tuple<std::string, std::string, std::string> value;
-											if(!view.GetDexList(asciiAddress, value))
-												return state.Abort(_("Failed to read dex index"));
-											else {
+											if(!view.GetDexList(asciiAddress, value)) {
+												LogPrintf("Failed to read dex index");
+                                                continue;
+                                            } else {
 												value = std::make_tuple("ND", toAddress, hexToAscii(dexDescription));
 												assert(view.SetDexList(asciiAddress, value));
 												serviceDexList[asciiAddress]=value;
+											}
+										}
+									}
+								}
+								// New Np
+								// If the string starts with "NN"
+								else if (hexData.substr(0, 4) == "4e4e") {
+									std::string newDex = hexData.substr(4, hexString.size());
+									std::vector<std::string> strs = splitString(newDex, "20");
+									// The string has to have 2 params to be valid as a np and saved into the db
+									if (strs.size() == 2) {
+										std::string npAddress = strs.at(0);
+										std::string npName = strs.at(1);
+                                        std::string asciiAddress = hexToAscii(npAddress);
+                                        CBitcoinAddress nAddress = CBitcoinAddress(asciiAddress);
+										if (nAddress.IsValid() && npName.length() <= 60 && ServiceList.IsService(toAddress)) {
+											std::tuple<std::string, std::string, std::string> value;
+											if(!view.GetNPList(asciiAddress, value)) {
+												LogPrintf("Failed to read np index");
+                                                continue;
+                                            } else {
+												value = std::make_tuple("NN", toAddress, hexToAscii(npName));
+												serviceNPList[asciiAddress]=value;
 											}
 										}
 									}
@@ -2005,9 +1936,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                         CBitcoinAddress bAddress = CBitcoinAddress(asciiAddress);
                                         if (bAddress.IsValid() && ServiceList.IsService(toAddress)) {
                                             std::tuple<std::string, std::string, std::string> value;
-                                            if(!view.GetBookList(asciiAddress, value))
-                                                return state.Abort(_("Failed to read book index"));
-                                            else {
+                                            if(!view.GetBookList(asciiAddress, value)) {
+												LogPrintf("Failed to read book index");
+                                                continue;
+                                            } else {
                                                 value = std::make_tuple("NB", toAddress, hexToAscii(chapterNum));
                                                 assert(view.SetBookList(asciiAddress, value));
                                                 serviceBookList[asciiAddress]=value;
@@ -2033,56 +1965,107 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
                                         }
                                     }
                                 }
-                                // Delete ticket
+                                // delete np, opreturn begins with "DN "
+                                else if (hexData.substr(0, 6) == "444e20") {
+									std::string newDex = hexData.substr(6, hexString.size());
+									std::vector<std::string> strs = splitString(newDex, "20");
+									// The string has to have 2 params to be valid as a np and saved into the db
+									if (strs.size() == 1) {
+										std::string npAddress = strs.at(0);
+                                        std::string asciiAddress = hexToAscii(npAddress);
+                                        CBitcoinAddress nAddress = CBitcoinAddress(asciiAddress);
+										if (nAddress.IsValid() && ServiceList.IsService(toAddress)) {
+											std::tuple<std::string, std::string, std::string> value;
+											if(!view.GetNPList(asciiAddress, value)) {
+												LogPrintf("Failed to read np index");
+                                                continue;
+                                            } else {
+												value = std::make_tuple("DN", asciiAddress, "");
+												//assert(view.SetNPList(asciiAddress, value));
+												serviceNPList[asciiAddress]=value;
+
+                                                if (pwalletMain) {
+                                                    pwalletMain->NotifyServicePageChanged(pwalletMain, "", asciiAddress,
+                                                            "", CT_DELETED);
+                                                }
+											}
+										}
+									}
+                                }
+                                // Delete coupon
                                 // If op_return begins with "DT"
                                 else if (hexData.substr(0, 6) == "445420") {
-                                    std::string ticketAddress = hexData.substr(6, hexString.size());
-                                    std::string asciiAddress = hexToAscii(ticketAddress);
+                                    std::string couponAddress = hexData.substr(6, hexString.size());
+                                    std::string asciiAddress = hexToAscii(couponAddress);
                                     CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-                                    // If the ticket address is valid then save it to the db
-                                    if (tAddress.IsValid() && ServiceItemList.IsTicket(asciiAddress)) {
+                                    // If the coupon address is valid then save it to the db
+                                    if (tAddress.IsValid() && ServiceItemList.IsCoupon(asciiAddress)) {
                                         std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
                                         value = std::make_tuple("DT", toAddress, "", "", "", "");
-                                        assert(view.SetTicketList(asciiAddress, value));
-                                        serviceTicketList[asciiAddress]=value;
+                                        assert(view.SetCouponList(asciiAddress, value));
+                                        serviceCouponList[asciiAddress]=value;
 
                                         if (pwalletMain)
                                         {
-                                            pwalletMain->NotifyTicketPageChanged(pwalletMain, "", "", "", "",
+                                            pwalletMain->NotifyCouponPageChanged(pwalletMain, "", "", "", "",
                                                     asciiAddress,
                                                     toAddress,
                                                     CT_DELETED);
                                         }
                                     }
                                 }
-                                // If op_return begins with "BT" (buy ticket)
+                                // delete ubi
+                                else if (hexData.substr(0, 6) == "445520") {
+									std::string newDex = hexData.substr(6, hexString.size());
+									std::vector<std::string> strs = splitString(newDex, "20");
+									// The string has to have 1 params to be valid as a np and saved into the db
+                                    std::string ubiAddress = strs.at(0);
+                                    std::string asciiAddress = hexToAscii(ubiAddress);
+                                    CBitcoinAddress uAddress = CBitcoinAddress(asciiAddress);
+                                    if (uAddress.IsValid() && ServiceList.IsService(toAddress)) {
+                                        std::tuple<std::string, std::string> value;
+                                        if (!view.GetUbiList(asciiAddress, value)) {
+                                            LogPrintf("Failed to read ubi index");
+                                            continue;
+                                        } else {
+                                            value = std::make_tuple("DU", asciiAddress);
+                                            serviceUbiList[asciiAddress] = value;
+
+                                            if (pwalletMain) {
+                                                pwalletMain->NotifyServicePageChanged(pwalletMain, "", asciiAddress,
+                                                        "", CT_DELETED);
+                                            }
+                                        }
+                                    }
+                                }
+                                // If op_return begins with "BT" (buy coupon)
                                 else if (hexData.substr(0, 4) == "4254") {
-                                    std::string buyTicket = hexData.substr(4, hexString.size());
-                                    std::vector<std::string> strs = splitString(buyTicket, "20");
+                                    std::string buyCoupon = hexData.substr(4, hexString.size());
+                                    std::vector<std::string> strs = splitString(buyCoupon, "20");
                                     // The string has to have 5 params to be valid as a service and saved into the db
                                     if (strs.size() == 5) {
-                                        std::string ticketLocation = strs.at(0);
-                                        std::string ticketName = strs.at(1);
-                                        std::string ticketDateAndTime = strs.at(2);
-                                        std::string ticketValue = strs.at(3);
-                                        std::string ticketAddress = strs.at(4);
+                                        std::string couponLocation = strs.at(0);
+                                        std::string couponName = strs.at(1);
+                                        std::string couponDateAndTime = strs.at(2);
+                                        std::string couponValue = strs.at(3);
+                                        std::string couponAddress = strs.at(4);
 
-                                        std::string asciiAddress = hexToAscii(ticketAddress);
+                                        std::string asciiAddress = hexToAscii(couponAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-                                        // If the ticket address is valid then save it to the db
-                                        if (tAddress.IsValid() && ServiceItemList.IsTicket(asciiAddress)) {
+                                        // If the coupon address is valid then save it to the db
+                                        if (tAddress.IsValid() && ServiceItemList.IsCoupon(asciiAddress)) {
                                             std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
-                                            value = std::make_tuple("BT", toAddress, hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateAndTime), hexToAscii(ticketValue));
-                                            assert(view.SetTicketList(asciiAddress, value));
-                                            serviceTicketList[asciiAddress]=value;
+                                            value = std::make_tuple("BT", toAddress, hexToAscii(couponLocation), hexToAscii(couponName), hexToAscii(couponDateAndTime), hexToAscii(couponValue));
+                                            assert(view.SetCouponList(asciiAddress, value));
+                                            serviceCouponList[asciiAddress]=value;
 
                                             if (pwalletMain)
                                             {
-                                                pwalletMain->NotifyTicketPageChanged(pwalletMain,
-                                                        hexToAscii(ticketName),
-                                                        hexToAscii(ticketLocation),
-                                                        hexToAscii(ticketDateAndTime),
-                                                        hexToAscii(ticketValue),
+                                                pwalletMain->NotifyCouponPageChanged(pwalletMain,
+                                                        hexToAscii(couponName),
+                                                        hexToAscii(couponLocation),
+                                                        hexToAscii(couponDateAndTime),
+                                                        hexToAscii(couponValue),
                                                         asciiAddress,
                                                         toAddress,
                                                         CT_DELETED);
@@ -2188,8 +2171,8 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
         return state.Abort(_("Failed to update service list"));
     }
 
-    if(!ServiceItemList.UpdateTicketList(serviceTicketList)) {
-        return state.Abort(_("Failed to update ticket list"));
+    if(!ServiceItemList.UpdateCouponList(serviceCouponList)) {
+        return state.Abort(_("Failed to update coupon list"));
     }
 
     if(!ServiceItemList.UpdateUbiList(serviceUbiList)) {
@@ -2202,6 +2185,10 @@ bool DisconnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex
 
     if(!ServiceItemList.UpdateBookList(serviceBookList)) {
         return state.Abort(_("Failed to update book chapter list"));
+    }
+
+    if(!ServiceItemList.UpdateNPList(serviceNPList)) {
+        return state.Abort(_("Failed to update np list"));
     }
 
 	return fClean;
@@ -2292,10 +2279,11 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 	vPos.reserve(block.vtx.size());
 	std::map<CScript, std::pair<int64_t, int> > addressInfo;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceInfo;
-    std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > serviceTicketList;
+    std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > serviceCouponList;
     std::map<std::string, std::tuple<std::string, std::string> > serviceUbiList;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceDexList;
     std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceBookList;
+    std::map<std::string, std::tuple<std::string, std::string, std::string> > serviceNPList;
 
     for (unsigned int i = 0; i < block.vtx.size(); i++)
 	{
@@ -2395,7 +2383,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                     if (sAddress.IsValid() && !ServiceList.IsService(asciiAddress) && serviceName.length() <= 50
                                     && (hexToAscii(serviceType) == "1" || hexToAscii(serviceType) == "2" ||
                                     hexToAscii(serviceType) == "3"|| hexToAscii(serviceType) == "4"||
-                                    hexToAscii(serviceType) == "5"|| hexToAscii(serviceType) == "6" || hexToAscii(serviceType) == "7")) {
+                                    hexToAscii(serviceType) == "5"|| hexToAscii(serviceType) == "6" || hexToAscii(serviceType) == "7"
+                                    || hexToAscii(serviceType) == "8")) {
                                         std::tuple<std::string, std::string, std::string> value;
                                         value = std::make_tuple("NS", hexToAscii(serviceName), hexToAscii(serviceType));
                                         assert(view.SetServiceInfo(asciiAddress, value));
@@ -2423,37 +2412,37 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                             // If the scriptPubKey contains OP_RETURN(6a)
 							if (hexString.substr(0, 2) == "6a") {
 								std::string hexData = hexString.substr(4, hexString.size());
-                                // If the string starts with "NT" (new ticket)
+                                // If the string starts with "NT" (new coupon)
 								if (hexData.substr(0, 4) == "4e54") {
-                                    std::string newTicket = hexData.substr(4, hexString.size());
-									std::vector<std::string> strs = splitString(newTicket, "20");
+                                    std::string newCoupon = hexData.substr(4, hexString.size());
+									std::vector<std::string> strs = splitString(newCoupon, "20");
 									// The string has to have 5 params to be valid as a service and saved into the db
 									if (strs.size() == 5) {
-										std::string ticketLocation = strs.at(0);
-										std::string ticketName = strs.at(1);
-										std::string ticketDateAndTime = strs.at(2);
-										std::string ticketValue = strs.at(3);
-										std::string ticketAddress = strs.at(4);
-                                        std::string asciiAddress = hexToAscii(ticketAddress);
+										std::string couponLocation = strs.at(0);
+										std::string couponName = strs.at(1);
+										std::string couponDateAndTime = strs.at(2);
+										std::string couponValue = strs.at(3);
+										std::string couponAddress = strs.at(4);
+                                        std::string asciiAddress = hexToAscii(couponAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-										// If the ticket address is valid then save it to the db
-                                        if (tAddress.IsValid() && is_number(hexToAscii(ticketValue)) &&
-                                        is_date(hexToAscii(ticketDateAndTime)) &&
-                                        is_before(hexToAscii(ticketDateAndTime)) &&
-                                        ticketLocation.length() <= 40 && ticketName.length() <= 40  &&
-                                        ServiceList.IsService(toAddress)) {
+										// If the coupon address is valid then save it to the db
+                                        if (tAddress.IsValid()
+                                          && is_before(hexToAscii(couponDateAndTime)) 
+                                          && couponLocation.length() <= 40 
+                                          && couponName.length() <= 40  
+                                          && ServiceList.IsService(toAddress)) {
                                             std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
-											value = std::make_tuple("NT", toAddress, hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateAndTime), hexToAscii(ticketValue));
-											assert(view.SetTicketList(asciiAddress, value));
-											serviceTicketList[asciiAddress]=value;
+											value = std::make_tuple("NT", toAddress, hexToAscii(couponLocation), hexToAscii(couponName), hexToAscii(couponDateAndTime), hexToAscii(couponValue));
+											assert(view.SetCouponList(asciiAddress, value));
+											serviceCouponList[asciiAddress]=value;
 
                                             if (pwalletMain)
                                             {
-                                                pwalletMain->NotifyTicketPageChanged(pwalletMain,
-                                                        hexToAscii(ticketName),
-                                                        hexToAscii(ticketLocation),
-                                                        hexToAscii(ticketDateAndTime),
-                                                        hexToAscii(ticketValue),
+                                                pwalletMain->NotifyCouponPageChanged(pwalletMain,
+                                                        hexToAscii(couponName),
+                                                        hexToAscii(couponLocation),
+                                                        hexToAscii(couponDateAndTime),
+                                                        hexToAscii(couponValue),
                                                         asciiAddress,
                                                         toAddress,
                                                         CT_NEW);
@@ -2496,6 +2485,50 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                         }
                                     }
                                 }
+                                // If the string starts with "NN" (new np)
+                                else if (hexData.substr(0, 4) == "4e4e") {
+                                    std::string newNP = hexData.substr(4, hexString.size());
+                                    std::vector<std::string> strs = splitString(newNP, "20");
+                                    // The string has to have 2 params to be valid as a dex and saved into the db
+                                    if (strs.size() == 2) {
+                                        std::string npAddress = strs.at(0);
+                                        std::string npName = strs.at(1);
+                                        std::string asciiAddress = hexToAscii(npAddress);
+                                        CBitcoinAddress nAddress = CBitcoinAddress(asciiAddress);
+                                        if (nAddress.IsValid() && npName.length() <= 60 && ServiceList.IsService(toAddress)) {
+                                            std::tuple<std::string, std::string, std::string> value;
+                                            value = std::make_tuple("NN", toAddress, hexToAscii(npName));
+                                            assert(view.SetNPList(asciiAddress, value));
+                                            serviceNPList[asciiAddress]=value;
+                                        }
+                                    }
+                                }
+                                // if starts with "DN "
+                                else if (hexData.substr(0, 6) == "444e20") {
+									std::string newDex = hexData.substr(6, hexString.size());
+									std::vector<std::string> strs = splitString(newDex, "20");
+									// The string has to have 2 params to be valid as a np and saved into the db
+									if (strs.size() == 1) {
+										std::string npAddress = strs.at(0);
+                                        std::string asciiAddress = hexToAscii(npAddress);
+                                        CBitcoinAddress nAddress = CBitcoinAddress(asciiAddress);
+										if (nAddress.IsValid() && ServiceList.IsService(toAddress)) {
+											std::tuple<std::string, std::string, std::string> value;
+											if (!view.GetNPList(asciiAddress, value)) {
+												LogPrintf("Failed to read np index");
+                                                continue;
+                                            } else {
+												value = std::make_tuple("DN", asciiAddress, "");
+												//assert(view.SetNPList(asciiAddress, value));
+												serviceNPList[asciiAddress]=value;
+                                                if (pwalletMain) {
+                                                    pwalletMain->NotifyServicePageChanged(pwalletMain, "", asciiAddress,
+                                                            "", CT_DELETED);
+                                                }
+											}
+										}
+									}
+                                }
                                 // If the string starts with "NB" (new book chapter)
                                 else if (hexData.substr(0, 4) == "4e42") {
                                     std::string newBookChapter = hexData.substr(4, hexString.size());
@@ -2534,53 +2567,71 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
                                 }
                                 // If op_return begins with "DT"
                                 else if (hexData.substr(0, 6) == "445420") {
-                                    std::string ticketAddress = hexData.substr(6, hexString.size());
-                                    std::string asciiAddress = hexToAscii(ticketAddress);
+                                    std::string couponAddress = hexData.substr(6, hexString.size());
+                                    std::string asciiAddress = hexToAscii(couponAddress);
                                     CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-                                    // If the ticket address is valid then save it to the db
-                                    if (tAddress.IsValid() && ServiceItemList.IsTicket(asciiAddress)) {
+                                    // If the coupon address is valid then save it to the db
+                                    if (tAddress.IsValid() && ServiceItemList.IsCoupon(asciiAddress)) {
                                         std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
                                         value = std::make_tuple("DT", toAddress, "", "", "", "");
-                                        assert(view.SetTicketList(asciiAddress, value));
-                                        serviceTicketList[asciiAddress]=value;
+                                        assert(view.SetCouponList(asciiAddress, value));
+                                        serviceCouponList[asciiAddress]=value;
 
                                         if (pwalletMain)
                                         {
-                                            pwalletMain->NotifyTicketPageChanged(pwalletMain, "", "", "", "",
+                                            pwalletMain->NotifyCouponPageChanged(pwalletMain, "", "", "", "",
                                                     asciiAddress,
                                                     toAddress,
                                                     CT_DELETED);
                                         }
                                     }
                                 }
+                                // delete ubi
+                                else if (hexData.substr(0, 6) == "445520") {
+                                    std::string uAddress = hexData.substr(6, hexString.size());
+                                    std::string asciiAddress = hexToAscii(uAddress);
+                                    CBitcoinAddress ubiAddress = CBitcoinAddress(asciiAddress);
+                                    // If the coupon address is valid then save it to the db
+                                    if (ubiAddress.IsValid() && ServiceItemList.IsUbi(asciiAddress)) {
+                                        std::tuple<std::string, std::string> value;
+                                        value = std::make_tuple("DU", toAddress);
+                                        serviceUbiList[asciiAddress] = value;
+
+                                        if (pwalletMain)
+                                        {
+                                            pwalletMain->NotifyServicePageChanged(pwalletMain, "", asciiAddress,
+                                                    "", CT_DELETED);
+                                        }
+                                    }
+                                }
                                 // If op_return begins with "BT"
                                 else if (hexData.substr(0, 4) == "4254") {
-                                    std::string buyTicket = hexData.substr(4, hexString.size());
-                                    std::vector<std::string> strs = splitString(buyTicket, "20");
+                                    std::string buyCoupon = hexData.substr(4, hexString.size());
+                                    std::vector<std::string> strs = splitString(buyCoupon, "20");
                                     // The string has to have 5 params to be valid as a service and saved into the db
                                     if (strs.size() == 5) {
-                                        std::string ticketLocation = strs.at(0);
-                                        std::string ticketName = strs.at(1);
-                                        std::string ticketDateAndTime = strs.at(2);
-                                        std::string ticketValue = strs.at(3);
-                                        std::string ticketAddress = strs.at(4);
+                                        std::string couponLocation = strs.at(0);
+                                        std::string couponName = strs.at(1);
+                                        std::string couponDateAndTime = strs.at(2);
+                                        std::string couponValue = strs.at(3);
+                                        std::string couponAddress = strs.at(4);
 
-                                        std::string asciiAddress = hexToAscii(ticketAddress);
+                                        std::string asciiAddress = hexToAscii(couponAddress);
                                         CBitcoinAddress tAddress = CBitcoinAddress(asciiAddress);
-                                        // If the ticket address is valid then save it to the db
-                                        if (tAddress.IsValid() && ServiceItemList.IsTicket(asciiAddress)) {
+                                        // If the coupon address is valid then save it to the db
+                                        if (tAddress.IsValid() && ServiceItemList.IsCoupon(asciiAddress)) {
                                             std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> value;
-                                            value = std::make_tuple("BT", toAddress, hexToAscii(ticketLocation), hexToAscii(ticketName), hexToAscii(ticketDateAndTime), hexToAscii(ticketValue));
-                                            assert(view.SetTicketList(asciiAddress, value));
-                                            serviceTicketList[asciiAddress]=value;
+                                            value = std::make_tuple("BT", toAddress, hexToAscii(couponLocation), hexToAscii(couponName), hexToAscii(couponDateAndTime), hexToAscii(couponValue));
+                                            assert(view.SetCouponList(asciiAddress, value));
+                                            serviceCouponList[asciiAddress]=value;
 
                                             if (pwalletMain)
                                             {
-                                                pwalletMain->NotifyTicketPageChanged(pwalletMain,
-                                                        hexToAscii(ticketName),
-                                                        hexToAscii(ticketLocation),
-                                                        hexToAscii(ticketDateAndTime),
-                                                        hexToAscii(ticketValue),
+                                                pwalletMain->NotifyCouponPageChanged(pwalletMain,
+                                                        hexToAscii(couponName),
+                                                        hexToAscii(couponLocation),
+                                                        hexToAscii(couponDateAndTime),
+                                                        hexToAscii(couponValue),
                                                         asciiAddress,
                                                         toAddress,
                                                         CT_DELETED);
@@ -2714,8 +2765,8 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
         return state.Abort(_("Failed to update service list"));
     }
 
-    if(!ServiceItemList.UpdateTicketList(serviceTicketList)) {
-        return state.Abort(_("Failed to update ticket list"));
+    if(!ServiceItemList.UpdateCouponList(serviceCouponList)) {
+        return state.Abort(_("Failed to update coupon list"));
     }
 
     if(!ServiceItemList.UpdateUbiList(serviceUbiList)) {
@@ -2728,6 +2779,10 @@ bool ConnectBlock(CBlock& block, CValidationState& state, CBlockIndex* pindex, C
 
     if(!ServiceItemList.UpdateBookList(serviceBookList)) {
         return state.Abort(_("Failed to update book chapter list"));
+    }
+
+    if(!ServiceItemList.UpdateNPList(serviceNPList)) {
+        return state.Abort(_("Failed to update np list"));
     }
 
 	// add this block to the view's block chain
@@ -2756,7 +2811,7 @@ bool static WriteChainState(CValidationState &state) {
 			return state.Abort(_("Failed to write to coin database"));
 		pblocktree->WriteRichListFork(RichList.IsForked());
 		pblocktree->WriteServiceListFork(ServiceList.IsForked());
-		pblocktree->WriteServiceTicketListFork(ServiceItemList.IsForked());
+		pblocktree->WriteServiceCouponListFork(ServiceItemList.IsForked());
 		pblocktree->WriteServiceUbiListFork(ServiceItemList.IsForked());
 		pblocktree->WriteServiceDexListFork(ServiceItemList.IsForked());
 		pblocktree->WriteServiceBookListFork(ServiceItemList.IsForked());
@@ -2971,7 +3026,7 @@ bool ActivateBestChain(CValidationState &state) {
             ServiceList.SetForked(false);
         }
 
-        if(!ServiceItemList.UpdateTicketListHeights())
+        if(!ServiceItemList.UpdateCouponListHeights())
             return false; //TODO: láta vita?
         else {
             ServiceItemList.SetForked(false);
@@ -4022,16 +4077,16 @@ bool InitServiceList(CCoinsView &dbview)
 
 }
 
-bool InitServiceTicketList(CCoinsView &dbview)
+bool InitServiceCouponList(CCoinsView &dbview)
 {
     LOCK(cs_main);
     if (fReindex || chainActive.Genesis() == NULL) {
-        if(!dbview.SetTicketList(string("ticket"),std::make_tuple("1", "0", "0", "0", "0", "0"))) {
+        if(!dbview.SetCouponList(string("coupon"),std::make_tuple("1", "0", "0", "0", "0", "0"))) {
             return false; }
-        pblocktree->WriteFlag("ticketlist", true);
+        pblocktree->WriteFlag("couponlist", true);
     }
     bool dummy;
-    if(!pblocktree->ReadFlag("ticketlist", dummy))
+    if(!pblocktree->ReadFlag("couponlist", dummy))
         return false;
     return true;
 
@@ -4077,6 +4132,21 @@ bool InitServiceBookList(CCoinsView &dbview)
     }
     bool dummy;
     if(!pblocktree->ReadFlag("booklist", dummy))
+        return false;
+    return true;
+
+}
+
+bool InitServiceNPList(CCoinsView &dbview)
+{
+    LOCK(cs_main);
+    if (fReindex || chainActive.Genesis() == NULL) {
+        if(!dbview.SetBookList(string("np"), std::make_tuple("1", "0", "0"))) {
+            return false; }
+        pblocktree->WriteFlag("nplist", true);
+    }
+    bool dummy;
+    if(!pblocktree->ReadFlag("nplist", dummy))
         return false;
     return true;
 

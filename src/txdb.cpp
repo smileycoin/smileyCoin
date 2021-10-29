@@ -20,10 +20,11 @@ static const char DB_COINS = 'c';
 static const char DB_BLOCK_FILES = 'f';
 static const char DB_TXINDEX = 't';
 static const char DB_SERVICEINFO = 'z';
-static const char DB_SERVICETICKETLIST = 'k';
+static const char DB_SERVICECOUPONLIST = 'k';
 static const char DB_SERVICEUBILIST = 'u';
 static const char DB_SERVICEDEXLIST = 'd';
 static const char DB_SERVICEBOOKLIST = 'm';
+static const char DB_SERVICENPLIST = 'n';
 static const char DB_ADDRESSINFO = 'a';
 static const char DB_BLOCK_INDEX = 'b';
 
@@ -33,10 +34,11 @@ static const char DB_REINDEX_FLAG = 'R';
 static const char DB_RICHLIST_FORK_FLAG = 'V';
 static const char DB_LAST_BLOCK = 'l';
 static const char DB_SERVICELIST_FORK_FLAG = 'S';
-static const char DB_SERVICETICKETLIST_FORK_FLAG = 'O';
+static const char DB_SERVICECOUPONLIST_FORK_FLAG = 'O';
 static const char DB_SERVICEUBILIST_FORK_FLAG = 'U';
 static const char DB_SERVICEDEXLIST_FORK_FLAG = 'D';
 static const char DB_SERVICEBOOKLIST_FORK_FLAG = 'M';
+static const char DB_SERVICENPLIST_FORK_FLAG = 'N';
 
 
 void static BatchWriteCoins(CLevelDBBatch &batch, const uint256 &hash, const CCoins &coins) {
@@ -55,19 +57,19 @@ void static BatchWriteAddressInfo(CLevelDBBatch &batch, const CScript &key, cons
 
 void static BatchWriteServiceInfo(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > taddresses;
-    ServiceItemList.GetTicketList(taddresses);
+    ServiceItemList.GetCouponList(taddresses);
 
     // If op_return begins with "DS" (delete service)
     if (get<0>(value) == "DS") {
         // Erase the service associated with address
         batch.Erase(make_pair(DB_SERVICEINFO, key));
 
-        // Erase tickets associated with service address
-        ServiceList.GetTickets(key, taddresses);
+        // Erase coupons associated with service address
+        ServiceList.GetCoupons(key, taddresses);
         for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = taddresses.begin(); it!=taddresses.end(); it++ )
         {
             if (it->first == key) {
-                batch.Erase(make_pair(DB_SERVICETICKETLIST, it->first));
+                batch.Erase(make_pair(DB_SERVICECOUPONLIST, it->first));
             }
         }
     } else if (get<0>(value) == "NS") { // If op_return begins with NS (new service)
@@ -75,13 +77,13 @@ void static BatchWriteServiceInfo(CLevelDBBatch &batch, const std::string &key, 
     }
 }
 
-void static BatchWriteServiceTicketList(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
-    // If op_return begins with "DT" (delete ticket)
+void static BatchWriteServiceCouponList(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
+    // If op_return begins with "DT" (delete coupon)
     if (get<0>(value) == "DT") {
-        // Erase the ticket associated with address
-        batch.Erase(make_pair(DB_SERVICETICKETLIST, key));
-    } else if (get<0>(value) == "NT") { // If op_return begins with NT (new ticket)
-        batch.Write(make_pair(DB_SERVICETICKETLIST, key), value);
+        // Erase the coupon associated with address
+        batch.Erase(make_pair(DB_SERVICECOUPONLIST, key));
+    } else if (get<0>(value) == "NT") { // If op_return begins with NT (new coupon)
+        batch.Write(make_pair(DB_SERVICECOUPONLIST, key), value);
     }
 }
 
@@ -108,10 +110,20 @@ void static BatchWriteServiceDexList(CLevelDBBatch &batch, const std::string &ke
 void static BatchWriteServiceBookList(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
     // If op_return begins with "DB" (delete book chapter)
     if (get<0>(value) == "DB") {
-        // Erase the ticket associated with address
+        // Erase the coupon associated with address
         batch.Erase(make_pair(DB_SERVICEBOOKLIST, key));
     } else if (get<0>(value) == "NB") { // If op_return begins with NB (new book chapter)
         batch.Write(make_pair(DB_SERVICEBOOKLIST, key), value);
+    }
+}
+
+void static BatchWriteServiceNPList(CLevelDBBatch &batch, const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
+    // If op_return begins with "DN" (delete np )
+    if (get<0>(value) == "DN") {
+        // Erase the coupon associated with address
+        batch.Erase(make_pair(DB_SERVICENPLIST, key));
+    } else if (get<0>(value) == "NN") { // If op_return begins with NN
+        batch.Write(make_pair(DB_SERVICENPLIST, key), value);
     }
 }
 
@@ -142,13 +154,13 @@ bool CCoinsViewDB::SetServiceInfo(const std::string &key, const std::tuple<std::
     return db.WriteBatch(batch);
 }
 
-bool CCoinsViewDB::GetTicketList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
-    return db.Read(make_pair(DB_SERVICETICKETLIST, key), value);
+bool CCoinsViewDB::GetCouponList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
+    return db.Read(make_pair(DB_SERVICECOUPONLIST, key), value);
 }
 
-bool CCoinsViewDB::SetTicketList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
+bool CCoinsViewDB::SetCouponList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
     CLevelDBBatch batch;
-    BatchWriteServiceTicketList(batch, key, value);
+    BatchWriteServiceCouponList(batch, key, value);
     return db.WriteBatch(batch);
 }
 
@@ -182,6 +194,16 @@ bool CCoinsViewDB::SetBookList(const std::string &key, const std::tuple<std::str
     return db.WriteBatch(batch);
 }
 
+bool CCoinsViewDB::GetNPList(const std::string &key, std::tuple<std::string, std::string, std::string> &value) {
+    return db.Read(make_pair(DB_SERVICENPLIST, key), value);
+}
+
+bool CCoinsViewDB::SetNPList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
+    CLevelDBBatch batch;
+    BatchWriteServiceNPList(batch, key, value);
+    return db.WriteBatch(batch);
+}
+
 bool CCoinsViewDB::GetCoins(const uint256 &txid, CCoins &coins) {
     return db.Read(make_pair(DB_COINS, txid), coins);
 }
@@ -212,10 +234,11 @@ bool CCoinsViewDB::SetBestBlock(const uint256 &hashBlock) {
 bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
                               const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
                               const std::map<std::string, std::tuple<std::string, std::string, std::string>> &mapServiceInfo,
-                              const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>> &mapServiceTicketList,
+                              const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>> &mapServiceCouponList,
                               const std::map<std::string, std::tuple<std::string, std::string>> &mapServiceUbiList,
                               const std::map<std::string, std::tuple<std::string, std::string, std::string>> &mapServiceDexList,
                               const std::map<std::string, std::tuple<std::string, std::string, std::string>> &mapServiceBookList,
+                              const std::map<std::string, std::tuple<std::string, std::string, std::string>> &mapServiceNPList,
                               const uint256 &hashBlock) {
     LogPrint("coindb", "Committing %u changed transactions and %u address balances to coin database...\n",(unsigned int)mapCoins.size(), (unsigned int)mapAddressInfo.size());
 
@@ -226,14 +249,16 @@ bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
         BatchWriteAddressInfo(batch, it->first, it->second);
     for (std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = mapServiceInfo.begin(); it != mapServiceInfo.end(); it++)
         BatchWriteServiceInfo(batch, it->first, it->second);
-    for (std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>::const_iterator it = mapServiceTicketList.begin(); it != mapServiceTicketList.end(); it++)
-        BatchWriteServiceTicketList(batch, it->first, it->second);
+    for (std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>::const_iterator it = mapServiceCouponList.begin(); it != mapServiceCouponList.end(); it++)
+        BatchWriteServiceCouponList(batch, it->first, it->second);
     for (std::map<std::string, std::tuple<std::string, std::string>>::const_iterator it = mapServiceUbiList.begin(); it != mapServiceUbiList.end(); it++)
         BatchWriteServiceUbiList(batch, it->first, it->second);
     for (std::map<std::string, std::tuple<std::string, std::string, std::string>>::const_iterator it = mapServiceDexList.begin(); it != mapServiceDexList.end(); it++)
         BatchWriteServiceDexList(batch, it->first, it->second);
     for (std::map<std::string, std::tuple<std::string, std::string, std::string>>::const_iterator it = mapServiceBookList.begin(); it != mapServiceBookList.end(); it++)
         BatchWriteServiceBookList(batch, it->first, it->second);
+    for (std::map<std::string, std::tuple<std::string, std::string, std::string>>::const_iterator it = mapServiceNPList.begin(); it != mapServiceNPList.end(); it++)
+        BatchWriteServiceNPList(batch, it->first, it->second);
 
     if (hashBlock != uint256(0))
         BatchWriteHashBestChain(batch, hashBlock);
@@ -319,10 +344,10 @@ bool CCoinsViewDB::GetServiceAddresses(CServiceList &servicelist) {
 }
 
 
-bool CCoinsViewDB::GetTicketList(CServiceItemList &ticketlist) {
+bool CCoinsViewDB::GetCouponList(CServiceItemList &couponlist) {
     leveldb::Iterator *pcursor = db.NewIterator();
     CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
-    ssKeySet << make_pair(DB_SERVICETICKETLIST, string("ticket"));
+    ssKeySet << make_pair(DB_SERVICECOUPONLIST, string("coupon"));
     pcursor->Seek(ssKeySet.str());
 
     while (pcursor->Valid())
@@ -334,13 +359,13 @@ bool CCoinsViewDB::GetTicketList(CServiceItemList &ticketlist) {
             CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
             std::pair<char, string> key;
             ssKey >> key;
-            if (key.first == DB_SERVICETICKETLIST)
+            if (key.first == DB_SERVICECOUPONLIST)
             {
                 leveldb::Slice slValue = pcursor->value();
                 CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
-                std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> ticketitem;
-                ssValue >> ticketitem;
-                ticketlist.taddresses.insert(make_pair(key.second, ticketitem));
+                std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> couponitem;
+                ssValue >> couponitem;
+                couponlist.taddresses.insert(make_pair(key.second, couponitem));
                 pcursor->Next();
             } else {
                 break;
@@ -461,6 +486,40 @@ bool CCoinsViewDB::GetBookList(CServiceItemList &booklist) {
     return true;
 }
 
+bool CCoinsViewDB::GetNPList(CServiceItemList &nplist) {
+    leveldb::Iterator *pcursor = db.NewIterator();
+    CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
+    ssKeySet << make_pair(DB_SERVICENPLIST, string("np"));
+    pcursor->Seek(ssKeySet.str());
+
+    while (pcursor->Valid())
+    {
+        boost::this_thread::interruption_point();
+        try
+        {
+            leveldb::Slice slKey = pcursor->key();
+            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
+            std::pair<char, string> key;
+            ssKey >> key;
+            if (key.first == DB_SERVICENPLIST)
+            {
+                leveldb::Slice slValue = pcursor->value();
+                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
+                std::tuple<std::string, std::string, std::string> npitem;
+                ssValue >> npitem;
+                nplist.naddresses.insert(make_pair(key.second, npitem));
+                pcursor->Next();
+            } else {
+                break;
+            }
+        } catch (std::exception &e) {
+            return error("%s : Deserialize or I/O error - %s", __func__, e.what());
+        }
+    }
+    delete pcursor;
+
+    return true;
+}
 CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory, bool fWipe) : CLevelDBWrapper(GetDataDir() / "blocks" / "index", nCacheSize, fMemory, fWipe) {
 }
 
@@ -589,15 +648,15 @@ bool CBlockTreeDB::ReadServiceListFork(bool &fForked) {
     return true;
 }
 
-bool CBlockTreeDB::WriteServiceTicketListFork(bool fForked) {
+bool CBlockTreeDB::WriteServiceCouponListFork(bool fForked) {
     if (fForked)
-        return Write(DB_SERVICETICKETLIST_FORK_FLAG, '1');
+        return Write(DB_SERVICECOUPONLIST_FORK_FLAG, '1');
     else
-        return Erase(DB_SERVICETICKETLIST_FORK_FLAG);
+        return Erase(DB_SERVICECOUPONLIST_FORK_FLAG);
 }
 
-bool CBlockTreeDB::ReadServiceTicketListFork(bool &fForked) {
-    fForked = Exists(DB_SERVICETICKETLIST_FORK_FLAG);
+bool CBlockTreeDB::ReadServiceCouponListFork(bool &fForked) {
+    fForked = Exists(DB_SERVICECOUPONLIST_FORK_FLAG);
     return true;
 }
 
@@ -634,6 +693,18 @@ bool CBlockTreeDB::WriteServiceBookListFork(bool fForked) {
 
 bool CBlockTreeDB::ReadServiceBookListFork(bool &fForked) {
     fForked = Exists(DB_SERVICEBOOKLIST_FORK_FLAG);
+    return true;
+}
+
+bool CBlockTreeDB::WriteServiceNPListFork(bool fForked) {
+    if (fForked)
+        return Write(DB_SERVICENPLIST_FORK_FLAG, '1');
+    else
+        return Erase(DB_SERVICENPLIST_FORK_FLAG);
+}
+
+bool CBlockTreeDB::ReadServiceNPListFork(bool &fForked) {
+    fForked = Exists(DB_SERVICENPLIST_FORK_FLAG);
     return true;
 }
 

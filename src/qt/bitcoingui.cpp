@@ -281,12 +281,12 @@ void BitcoinGUI::createActions(bool fIsTestnet)
     serviceAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
     tabGroup->addAction(serviceAction);
 
-    ticketAction = new QAction(QIcon(":/icons/history"), tr("&Tickets"), this);
-    ticketAction->setStatusTip(tr("Browse available tickets"));
-    ticketAction->setToolTip(ticketAction->statusTip());
-    ticketAction->setCheckable(true);
-    ticketAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
-    tabGroup->addAction(ticketAction);
+    couponAction = new QAction(QIcon(":/icons/history"), tr("&Coupons"), this);
+    couponAction->setStatusTip(tr("Browse available coupons"));
+    couponAction->setToolTip(couponAction->statusTip());
+    couponAction->setCheckable(true);
+    couponAction->setShortcut(QKeySequence(Qt::ALT + Qt::Key_5));
+    tabGroup->addAction(couponAction);
 
     // These showNormalIfMinimized are needed because Send Coins and Receive Coins
     // can be triggered from the tray menu, and need to show the GUI to be useful.
@@ -304,8 +304,8 @@ void BitcoinGUI::createActions(bool fIsTestnet)
     //connect(usedSendingAddressesAction, SIGNAL(triggered()), walletFrame, SLOT(usedSendingAddresses()))
     connect(serviceAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(serviceAction, SIGNAL(triggered()), this, SLOT(gotoServicePage()));
-    connect(ticketAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
-    connect(ticketAction, SIGNAL(triggered()), this, SLOT(gotoTicketPage()));
+    connect(couponAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(couponAction, SIGNAL(triggered()), this, SLOT(gotoCouponPage()));
 
     quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
     quitAction->setStatusTip(tr("Quit application"));
@@ -447,7 +447,7 @@ void BitcoinGUI::createToolBars()
         toolbar->addAction(historyAction);
         toolbar->addAction(addressBookAction);
         toolbar->addAction(serviceAction);
-        toolbar->addAction(ticketAction);
+        toolbar->addAction(couponAction);
     }
 }
 
@@ -512,7 +512,7 @@ void BitcoinGUI::setWalletActionsEnabled(bool enabled)
     receiveCoinsAction->setEnabled(enabled);
     historyAction->setEnabled(enabled);
     serviceAction->setEnabled(enabled);
-    ticketAction->setEnabled(enabled);
+    couponAction->setEnabled(enabled);
     encryptWalletAction->setEnabled(enabled);
     backupWalletAction->setEnabled(enabled);
     changePassphraseAction->setEnabled(enabled);
@@ -660,10 +660,10 @@ void BitcoinGUI::gotoServicePage()
     if (walletFrame) walletFrame->gotoServicePage();
 }
 
-void BitcoinGUI::gotoTicketPage()
+void BitcoinGUI::gotoCouponPage()
 {
-    ticketAction->setChecked(true);
-    if (walletFrame) walletFrame->gotoTicketPage();
+    couponAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoCouponPage();
 }
 
 void BitcoinGUI::gotoSignMessageTab(QString addr)
@@ -1045,11 +1045,11 @@ static bool ThreadSafeMessageBox(BitcoinGUI *gui, const std::string& message, co
 void BitcoinGUI::subscribeToCoreSignals()
 {
     // Connect signals to client
-    uiInterface.ThreadSafeMessageBox.connect(boost::bind(ThreadSafeMessageBox, this, _1, _2, _3));
+    uiInterface.ThreadSafeMessageBox.connect(boost::bind(ThreadSafeMessageBox, this, boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
 }
 
 void BitcoinGUI::unsubscribeFromCoreSignals()
 {
     // Disconnect signals from client
-    uiInterface.ThreadSafeMessageBox.disconnect(boost::bind(ThreadSafeMessageBox, this, _1, _2, _3));
+    uiInterface.ThreadSafeMessageBox.disconnect(boost::bind(ThreadSafeMessageBox, this, boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
 }

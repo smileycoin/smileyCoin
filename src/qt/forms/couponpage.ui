@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
-    <class>TicketPage</class>
-    <widget class="QWidget" name="TicketPage">
+    <class>CouponPage</class>
+    <widget class="QWidget" name="CouponPage">
         <property name="geometry">
             <rect>
                 <x>0</x>
@@ -11,7 +11,7 @@
             </rect>
         </property>
         <property name="windowTitle">
-            <string>Ticket Page</string>
+            <string>Coupon Page</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
             <item>
@@ -27,9 +27,9 @@
                         </widget>
                     </item>
                     <item>
-                        <widget class="QComboBox" name="ticketService">
+                        <widget class="QComboBox" name="couponService">
                             <property name="toolTip">
-                                <string>Choose the ticket service</string>
+                                <string>Choose the coupon service</string>
                             </property>
                         </widget>
                     </item>
@@ -70,7 +70,7 @@
             <item>
                 <layout class="QHBoxLayout" name="bottomLayout">
                     <item>
-                        <widget class="QPushButton" name="newTicket">
+                        <widget class="QPushButton" name="newCoupon">
                             <property name="font">
                                 <font>
                                     <family>Helvetica</family>
@@ -79,15 +79,15 @@
                                 </font>
                             </property>
                             <property name="toolTip">
-                                <string>Create a new ticket</string>
+                                <string>Create a new coupon</string>
                             </property>
                             <property name="text">
-                                <string>&amp;New Ticket</string>
+                                <string>&amp;New Coupon</string>
                             </property>
                         </widget>
                     </item>
                     <item>
-                        <widget class="QPushButton" name="buyTicket">
+                        <widget class="QPushButton" name="buyCoupon">
                             <property name="font">
                                 <font>
                                     <family>Helvetica</family>
@@ -96,7 +96,7 @@
                                 </font>
                             </property>
                             <property name="toolTip">
-                                <string>Buy the currently selected ticket</string>
+                                <string>Buy the currently selected coupon</string>
                             </property>
                             <property name="text">
                                 <string>&amp;Buy</string>
@@ -104,7 +104,7 @@
                         </widget>
                     </item>
                     <item>
-                        <widget class="QPushButton" name="deleteTicket">
+                        <widget class="QPushButton" name="deleteCoupon">
                             <property name="font">
                                 <font>
                                     <family>Helvetica</family>
@@ -113,7 +113,7 @@
                                 </font>
                             </property>
                             <property name="toolTip">
-                                <string>Delete the currently selected ticket</string>
+                                <string>Delete the currently selected coupon</string>
                             </property>
                             <property name="text">
                                 <string>&amp;Delete</string>

@@ -55,23 +55,26 @@ bool CCoinsView::GetAddressInfo(const CScript &key, std::pair<int64_t,int> &valu
 bool CCoinsView::SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value) { return false; }
 bool CCoinsView::GetServiceInfo(const std::string &key, std::tuple<std::string, std::string, std::string> &value) { return false; }
 bool CCoinsView::SetServiceInfo(const std::string &key, const std::tuple<std::string, std::string, std::string> &value) { return false; }
-bool CCoinsView::GetTicketList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) { return false; }
-bool CCoinsView::SetTicketList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) { return false; }
+bool CCoinsView::GetCouponList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) { return false; }
+bool CCoinsView::SetCouponList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) { return false; }
 bool CCoinsView::GetUbiList(const std::string &key, std::tuple<std::string, std::string> &value) { return false; }
 bool CCoinsView::SetUbiList(const std::string &key, const std::tuple<std::string, std::string> &value) { return false; }
 bool CCoinsView::GetDexList(const std::string &key, std::tuple<std::string, std::string, std::string> &value) { return false; }
 bool CCoinsView::SetDexList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value) { return false; }
 bool CCoinsView::GetBookList(const std::string &key, std::tuple<std::string, std::string, std::string> &value) { return false; }
 bool CCoinsView::SetBookList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value) { return false; }
+bool CCoinsView::GetNPList(const std::string &key, std::tuple<std::string, std::string, std::string> &value) { return false; }
+bool CCoinsView::SetNPList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value) { return false; }
 bool CCoinsView::HaveCoins(const uint256 &txid) { return false; }
 uint256 CCoinsView::GetBestBlock() { return uint256(0); }
 bool CCoinsView::SetBestBlock(const uint256 &hashBlock) { return false; }
 bool CCoinsView::BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
                             const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
-                            const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceTicketList,
+                            const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceCouponList,
                             const std::map<std::string, std::tuple<std::string, std::string> > &mapServiceUbiList,
                             const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceDexList,
                             const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceBookList,
+                            const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceNPList,
                             const uint256 &hashBlock) { return false; }
 bool CCoinsView::GetStats(CCoinsStats &stats) { return false; }
 
@@ -83,25 +86,28 @@ bool CCoinsViewBacked::GetAddressInfo(const CScript &key, std::pair<int64_t,int>
 bool CCoinsViewBacked::SetAddressInfo(const CScript &key, const std::pair<int64_t,int> &value) { return base->SetAddressInfo(key, value); }
 bool CCoinsViewBacked::GetServiceInfo(const std::string &key, std::tuple<std::string, std::string, std::string> &value) { return base->GetServiceInfo(key, value); }
 bool CCoinsViewBacked::SetServiceInfo(const std::string &key, const std::tuple<std::string, std::string, std::string> &value) { return base->SetServiceInfo(key, value); }
-bool CCoinsViewBacked::GetTicketList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) { return base->GetTicketList(key, value); }
-bool CCoinsViewBacked::SetTicketList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) { return base->SetTicketList(key, value); }
+bool CCoinsViewBacked::GetCouponList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) { return base->GetCouponList(key, value); }
+bool CCoinsViewBacked::SetCouponList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) { return base->SetCouponList(key, value); }
 bool CCoinsViewBacked::GetUbiList(const std::string &key, std::tuple<std::string, std::string> &value) { return base->GetUbiList(key, value); }
 bool CCoinsViewBacked::SetUbiList(const std::string &key, const std::tuple<std::string, std::string> &value) { return base->SetUbiList(key, value); }
 bool CCoinsViewBacked::GetDexList(const std::string &key, std::tuple<std::string, std::string, std::string> &value) { return base->GetDexList(key, value); }
 bool CCoinsViewBacked::SetDexList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value) { return base->SetDexList(key, value); }
 bool CCoinsViewBacked::GetBookList(const std::string &key, std::tuple<std::string, std::string, std::string> &value) { return base->GetBookList(key, value); }
 bool CCoinsViewBacked::SetBookList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value) { return base->SetBookList(key, value); }
+bool CCoinsViewBacked::GetNPList(const std::string &key, std::tuple<std::string, std::string, std::string> &value) { return base->GetNPList(key, value); }
+bool CCoinsViewBacked::SetNPList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value) { return base->SetNPList(key, value); }
 bool CCoinsViewBacked::HaveCoins(const uint256 &txid) { return base->HaveCoins(txid); }
 uint256 CCoinsViewBacked::GetBestBlock() { return base->GetBestBlock(); }
 bool CCoinsViewBacked::SetBestBlock(const uint256 &hashBlock) { return base->SetBestBlock(hashBlock); }
 void CCoinsViewBacked::SetBackend(CCoinsView &viewIn) { base = &viewIn; }
 bool CCoinsViewBacked::BatchWrite(const std::map<uint256, CCoins> &mapCoins, const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
                                   const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
-                                  const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceTicketList,
+                                  const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceCouponList,
                                   const std::map<std::string, std::tuple<std::string, std::string> > &mapServiceUbiList,
                                   const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceDexList,
                                   const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceBookList,
-                                  const uint256 &hashBlock) { return base->BatchWrite(mapCoins, mapAddressInfo, mapServiceInfo, mapServiceTicketList, mapServiceUbiList, mapServiceDexList, mapServiceBookList, hashBlock); }
+                                  const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceNPList,
+                                  const uint256 &hashBlock) { return base->BatchWrite(mapCoins, mapAddressInfo, mapServiceInfo, mapServiceCouponList, mapServiceUbiList, mapServiceDexList, mapServiceBookList, mapServiceNPList, hashBlock); }
 bool CCoinsViewBacked::GetStats(CCoinsStats &stats) { return base->GetStats(stats); }
 
 CCoinsViewCache::CCoinsViewCache(CCoinsView &baseIn, bool fDummy) : CCoinsViewBacked(baseIn), hashBlock(0) { }
@@ -154,22 +160,22 @@ bool CCoinsViewCache::SetServiceInfo(const std::string &key, const std::tuple<st
     return true;
 }
 
-bool CCoinsViewCache::GetTicketList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
-    std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::iterator it = cacheServiceTicketList.find(key);
+bool CCoinsViewCache::GetCouponList(const std::string &key, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
+    std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::iterator it = cacheServiceCouponList.find(key);
 
-    if(it!=cacheServiceTicketList.end()) {
+    if(it!=cacheServiceCouponList.end()) {
         value = it->second;
         return true;
     }
-    if(base->GetTicketList(key,value)) {
-        cacheServiceTicketList[key] = value;
+    if(base->GetCouponList(key,value)) {
+        cacheServiceCouponList[key] = value;
         return true;
     }
     return false;
 }
 
-bool CCoinsViewCache::SetTicketList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
-    cacheServiceTicketList[key] = value;
+bool CCoinsViewCache::SetCouponList(const std::string &key, const std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> &value) {
+    cacheServiceCouponList[key] = value;
     return true;
 }
 
@@ -230,6 +236,25 @@ bool CCoinsViewCache::SetBookList(const std::string &key, const std::tuple<std::
     return true;
 }
 
+bool CCoinsViewCache::GetNPList(const std::string &key, std::tuple<std::string, std::string, std::string> &value) {
+    std::map<std::string, std::tuple<std::string, std::string, std::string> >::iterator it = cacheServiceNPList.find(key);
+
+    if(it!=cacheServiceNPList.end()) {
+        value = it->second;
+        return true;
+    }
+    if(base->GetNPList(key,value)) {
+        cacheServiceNPList[key] = value;
+        return true;
+    }
+    return false;
+}
+
+bool CCoinsViewCache::SetNPList(const std::string &key, const std::tuple<std::string, std::string, std::string> &value) {
+    cacheServiceNPList[key] = value;
+    return true;
+}
+
 std::map<uint256,CCoins>::iterator CCoinsViewCache::FetchCoins(const uint256 &txid) {
     std::map<uint256,CCoins>::iterator it = cacheCoins.lower_bound(txid);
     if (it != cacheCoins.end() && it->first == txid)
@@ -271,10 +296,11 @@ bool CCoinsViewCache::SetBestBlock(const uint256 &hashBlockIn) {
 bool CCoinsViewCache::BatchWrite(const std::map<uint256, CCoins> &mapCoins, 
                                  const std::map<CScript, std::pair<int64_t,int> > &mapAddressInfo,
                                  const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceInfo,
-                                 const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceTicketList,
+                                 const std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > &mapServiceCouponList,
                                  const std::map<std::string, std::tuple<std::string, std::string> > &mapServiceUbiList,
                                  const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceDexList,
                                  const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceBookList,
+                                 const std::map<std::string, std::tuple<std::string, std::string, std::string> > &mapServiceNPList,
                                  const uint256 &hashBlockIn) {
     for (std::map<uint256, CCoins>::const_iterator it = mapCoins.begin(); it != mapCoins.end(); it++)
         cacheCoins[it->first] = it->second;
@@ -282,29 +308,32 @@ bool CCoinsViewCache::BatchWrite(const std::map<uint256, CCoins> &mapCoins,
         cacheAddressInfo[it->first] = it->second;
     for (std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = mapServiceInfo.begin(); it != mapServiceInfo.end(); it++)
         cacheServiceInfo[it->first] = it->second;
-    for (std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = mapServiceTicketList.begin(); it != mapServiceTicketList.end(); it++)
-        cacheServiceTicketList[it->first] = it->second;
+    for (std::map<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> >::const_iterator it = mapServiceCouponList.begin(); it != mapServiceCouponList.end(); it++)
+        cacheServiceCouponList[it->first] = it->second;
     for (std::map<std::string, std::tuple<std::string, std::string> >::const_iterator it = mapServiceUbiList.begin(); it != mapServiceUbiList.end(); it++)
         cacheServiceUbiList[it->first] = it->second;
     for (std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = mapServiceDexList.begin(); it != mapServiceDexList.end(); it++)
         cacheServiceDexList[it->first] = it->second;
     for (std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = mapServiceBookList.begin(); it != mapServiceBookList.end(); it++)
         cacheServiceBookList[it->first] = it->second;
+    for (std::map<std::string, std::tuple<std::string, std::string, std::string> >::const_iterator it = mapServiceNPList.begin(); it != mapServiceNPList.end(); it++)
+        cacheServiceNPList[it->first] = it->second;
 
     hashBlock = hashBlockIn;
     return true;
 }
 
 bool CCoinsViewCache::Flush() {
-    bool fOk = base->BatchWrite(cacheCoins, cacheAddressInfo, cacheServiceInfo, cacheServiceTicketList, cacheServiceUbiList, cacheServiceDexList, cacheServiceBookList, hashBlock);
+    bool fOk = base->BatchWrite(cacheCoins, cacheAddressInfo, cacheServiceInfo, cacheServiceCouponList, cacheServiceUbiList, cacheServiceDexList, cacheServiceBookList, cacheServiceNPList, hashBlock);
     if (fOk) {
         cacheCoins.clear();
         cacheAddressInfo.clear();
         cacheServiceInfo.clear();
-        cacheServiceTicketList.clear();
+        cacheServiceCouponList.clear();
         cacheServiceUbiList.clear();
         cacheServiceDexList.clear();
         cacheServiceBookList.clear();
+        cacheServiceNPList.clear();
     }
     return fOk;
 }

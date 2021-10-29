@@ -85,6 +85,7 @@ public:
     CRPCTable();
     const CRPCCommand* operator[](std::string name) const;
     std::string help(std::string name) const;
+    std::vector<std::string> listCommands() const;
 
     /**
      * Execute a method.
@@ -134,26 +135,33 @@ extern json_spirit::Value dumpwallet(const json_spirit::Array& params, bool fHel
 extern json_spirit::Value importwallet(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value adddex(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value addorg(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value addubi(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value addchapter(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getrichaddresses(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value createservice(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value createticket(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value buyticket(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value addcoupon(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value buycoupon(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value deletecoupon(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value deleteservice(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value deleteorg(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value deleteubi(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getserviceaddresses(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getticketlist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getcouponlist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getallcouponlists(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getubilist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdexlist(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getnpolist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getorglist(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getallorglists(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getbooklist(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getaddressinfo(const json_spirit::Array& params, bool fHelp); //in rpcmisc.cpp
+extern json_spirit::Value replywithmessage(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getmessages(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getgenerate(const json_spirit::Array& params, bool fHelp); // in rpcmining.cpp
 extern json_spirit::Value setgenerate(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getnetworkhashps(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gethashespersec(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getmininginfo(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getwork(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getblocktemplate(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitblock(const json_spirit::Array& params, bool fHelp);
 
@@ -185,6 +193,7 @@ extern json_spirit::Value listaccounts(const json_spirit::Array& params, bool fH
 extern json_spirit::Value listsinceblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gettransaction(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value backupwallet(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value consolidate(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value keypoolrefill(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value walletpassphrase(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value walletpassphrasechange(const json_spirit::Array& params, bool fHelp);

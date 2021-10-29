@@ -2,8 +2,8 @@
 // Created by Lenovo on 6/30/2020.
 //
 
-#ifndef SMILEYCOIN_TICKETPAGE_H
-#define SMILEYCOIN_TICKETPAGE_H
+#ifndef SMILEYCOIN_COUPONPAGE_H
+#define SMILEYCOIN_COUPONPAGE_H
 
 #include <QDialog>
 
@@ -39,10 +39,10 @@ class WalletModel;
 class OptionsModel;
 class SendCoinsDialog;
 class QValidatedLineEdit;
-class TicketTableModel;
+class CouponTableModel;
 
 namespace Ui {
-    class TicketPage;
+    class CouponPage;
 }
 
 QT_BEGIN_NAMESPACE
@@ -55,30 +55,30 @@ QT_END_NAMESPACE
 
 /** Widget that shows a list of sending or receiving addresses.
   */
-class TicketPage : public QDialog
+class CouponPage : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit TicketPage(QWidget *parent);
-    ~TicketPage();
+    explicit CouponPage(QWidget *parent);
+    ~CouponPage();
 
     void setWalletModel(WalletModel *walletModel);
-    void setTicketModel(TicketTableModel *ticketModel);
+    void setCouponModel(CouponTableModel *couponModel);
 
 public slots:
     void done(int retval);
     void chooseService(QString text);
 
 private:
-    Ui::TicketPage *ui;
-    TicketTableModel *ticketModel;
+    Ui::CouponPage *ui;
+    CouponTableModel *couponModel;
     WalletModel *walletModel;
     QString returnValue;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> allServices;
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string>>> myServices;
-    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string>>> myTickets;
-    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> tickets;
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string>>> myCoupons;
+    std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> coupons;
     QSortFilterProxyModel *proxyModel;
     QVBoxLayout *verticalLayout;
     QLineEdit *addressWidget;
@@ -86,9 +86,9 @@ private:
     void processSendCoinsReturn(const WalletModel::SendCoinsReturn &sendCoinsReturn, const QString &msgArg = QString());
 
 private slots:
-    void onNewTicketAction();
-    void onDeleteTicketAction();
-    void onBuyTicketAction();
+    void onNewCouponAction();
+    void onDeleteCouponAction();
+    void onBuyCouponAction();
 
 signals:
     void doubleClicked(const QModelIndex&);
@@ -96,4 +96,4 @@ signals:
 };
 
 
-#endif //SMILEYCOIN_TICKETPAGE_H
+#endif //SMILEYCOIN_COUPONPAGE_H

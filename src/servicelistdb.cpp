@@ -95,7 +95,7 @@ bool CServiceList::GetServiceAddresses(std::multiset<std::pair<std::string, std:
     {
         std::string displayType;
         if (get<2>(it->second) == "1") {
-            displayType = "Ticket Sales";
+            displayType = "Coupon Sales";
         } else if (get<2>(it->second) == "2") {
             displayType = "UBI";
         } else if (get<2>(it->second) == "3") {
@@ -108,6 +108,8 @@ bool CServiceList::GetServiceAddresses(std::multiset<std::pair<std::string, std:
             displayType = "DEX";
         } else if (get<2>(it->second) == "7") {
             displayType = "Survey";
+        } else if (get<2>(it->second) == "8") {
+            displayType = "Non-profit Group";
         } else {
             displayType = get<2>(it->second);
         }
@@ -122,7 +124,7 @@ bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<std::string, st
         std::string displayType;
         if (IsMine(*pwalletMain, CBitcoinAddress(it->first).Get())) {
             if (get<2>(it->second) == "1") {
-                displayType = "Ticket Sales";
+                displayType = "Coupon Sales";
             } else if (get<2>(it->second) == "2") {
                 displayType = "UBI";
             } else if (get<2>(it->second) == "3") {
@@ -135,6 +137,8 @@ bool CServiceList::GetMyServiceAddresses(std::multiset<std::pair<std::string, st
                 displayType = "DEX";
             } else if (get<2>(it->second) == "7") {
                 displayType = "Survey";
+            } else if (get<2>(it->second) == "8") {
+                displayType = "Non-profit Group";
             } else {
                 displayType = get<2>(it->second);
             }
@@ -155,13 +159,13 @@ bool CServiceList::IsService(std::string address) {
     return false;
 }
 
-bool CServiceList::GetTickets(std::string serviceAddress, std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> &retset) const {
+bool CServiceList::GetCoupons(std::string serviceAddress, std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string>>> &retset) const {
     std::multiset<std::pair<std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string > > > taddresses;
-    ServiceItemList.GetTicketList(taddresses);
+    ServiceItemList.GetCouponList(taddresses);
 
     for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string, std::string, std::string, std::string> > >::const_iterator it = taddresses.begin(); it!=taddresses.end(); it++ )
     {
-        // If service address matches ticket service address
+        // If service address matches coupon service address
         if (serviceAddress == get<1>(it->second)) {
             retset.insert(std::make_pair(it->first, std::make_tuple(get<0>(it->second), get<1>(it->second), get<2>(it->second), get<3>(it->second), get<4>(it->second), get<5>(it->second))));
         }

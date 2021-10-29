@@ -125,7 +125,6 @@ void Shutdown()
     RenameThread("bitcoin-shutoff");
     mempool.AddTransactionsUpdated(1);
     StopRPCThreads();
-    ShutdownRPCMining();
 #ifdef ENABLE_WALLET
     if (pwalletMain)
         bitdb.Flush(false);
@@ -871,8 +870,8 @@ bool AppInit2(boost::thread_group& threadGroup)
                 }
 
                 
-                if (!InitServiceTicketList(*pcoinsdbview)) {
-                    strLoadError = _("Error initializing service ticket list. You need to rebuild the database using -reindex");
+                if (!InitServiceCouponList(*pcoinsdbview)) {
+                    strLoadError = _("Error initializing service coupon list. You need to rebuild the database using -reindex");
                     break;
                 }
 
@@ -891,6 +890,11 @@ bool AppInit2(boost::thread_group& threadGroup)
                     break;
                 }
 
+                if (!InitServiceNPList(*pcoinsdbview)) {
+                    strLoadError = _("Error initializing service np list. You need to rebuild the database using -reindex");
+                    break;
+                }
+
                  // Reading rich addresses into memory
                 if(!pcoinsdbview -> GetRichAddresses(RichList)) {
                     strLoadError = _("Error loading rich list");
@@ -903,9 +907,9 @@ bool AppInit2(boost::thread_group& threadGroup)
                     break;
                 }
 
-                // Reading ticket addresses into memory
-                if(!pcoinsdbview -> GetTicketList(ServiceItemList)) {
-                    strLoadError = _("Error loading service ticket list");
+                // Reading coupon addresses into memory
+                if(!pcoinsdbview -> GetCouponList(ServiceItemList)) {
+                    strLoadError = _("Error loading service coupon list");
                     break;
                 }
                 
@@ -924,6 +928,12 @@ bool AppInit2(boost::thread_group& threadGroup)
                 // Reading book chapter addresses into memory
                 if(!pcoinsdbview -> GetBookList(ServiceItemList)) {
                     strLoadError = _("Error loading service book list");
+                    break;
+                }
+
+                // reading npos addresses into memory
+                if(!pcoinsdbview -> GetNPList(ServiceItemList)) {
+                    strLoadError = _("Error loading service np list");
                     break;
                 }
 
@@ -953,8 +963,8 @@ bool AppInit2(boost::thread_group& threadGroup)
                     ServiceList.SetForked(fFork);
                 }
 
-                if(!pblocktree -> ReadServiceTicketListFork(fFork)) {
-                    strLoadError = _("Error reading service ticket list fork status");
+                if(!pblocktree -> ReadServiceCouponListFork(fFork)) {
+                    strLoadError = _("Error reading service coupon list fork status");
                     break;
                 } else {
                     ServiceItemList.SetForked(fFork);
@@ -976,6 +986,13 @@ bool AppInit2(boost::thread_group& threadGroup)
                 
                 if(!pblocktree -> ReadServiceBookListFork(fFork)) {
                     strLoadError = _("Error reading service book chapter list fork status");
+                    break;
+                } else {
+                    ServiceItemList.SetForked(fFork);
+                }
+
+                if(!pblocktree -> ReadServiceNPListFork(fFork)) {
+                    strLoadError = _("Error reading service np chapter list fork status");
                     break;
                 } else {
                     ServiceItemList.SetForked(fFork);
@@ -1009,8 +1026,8 @@ bool AppInit2(boost::thread_group& threadGroup)
                 }
                 
                 if(fFork) {
-                    if(!ServiceItemList.UpdateTicketListHeights()) {
-                        strLoadError = _("Error rollbacking ticket list heights");
+                    if(!ServiceItemList.UpdateCouponListHeights()) {
+                        strLoadError = _("Error rollbacking coupon list heights");
                         break;
                     }
                     else {
@@ -1041,6 +1058,16 @@ bool AppInit2(boost::thread_group& threadGroup)
                 if(fFork) {
                     if(!ServiceItemList.UpdateBookListHeights()) {
                         strLoadError = _("Error rollbacking book chapter list heights");
+                        break;
+                    }
+                    else {
+                        ServiceItemList.SetForked(false);
+                    }
+                }
+
+                if(fFork) {
+                    if(!ServiceItemList.UpdateNPListHeights()) {
+                        strLoadError = _("Error rollbacking NP chapter list heights");
                         break;
                     }
                     else {
@@ -1275,8 +1302,6 @@ bool AppInit2(boost::thread_group& threadGroup)
 #endif
 
     StartNode(threadGroup);
-    // InitRPCMining is needed here so getwork/getblocktemplate in the GUI debug console works properly.
-    InitRPCMining();
     if (fServer)
         StartRPCThreads();
 

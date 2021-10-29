@@ -32,9 +32,9 @@ const struct {
     const char *source;
 } ICON_MAPPING[] = {
     {"cmd-request", ":/icons/tx_input"},
-    {"cmd-reply", ":/icons/tx_output"},
-    {"cmd-error", ":/icons/tx_output"},
-    {"misc", ":/icons/tx_inout"},
+    {"cmd-reply",   ":/icons/tx_output"},
+    {"cmd-error",   ":/icons/tx_output"},
+    {"misc",        ":/icons/tx_inout"},
     {NULL, NULL}
 };
 
@@ -87,7 +87,7 @@ bool parseCommandLine(std::vector<std::string> &args, const std::string &strComm
         case STATE_EATING_SPACES: // Handle runs of whitespace
             switch(ch)
             {
-            case '"': state = STATE_DOUBLEQUOTED; break;
+            case '"':  state = STATE_DOUBLEQUOTED; break;
             case '\'': state = STATE_SINGLEQUOTED; break;
             case '\\': state = STATE_ESCAPE_OUTER; break;
             case ' ': case '\n': case '\t':
@@ -230,8 +230,8 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
         Qt::KeyboardModifiers mod = keyevt->modifiers();
         switch(key)
         {
-        case Qt::Key_Up: if(obj == ui->lineEdit) { browseHistory(-1); return true; } break;
-        case Qt::Key_Down: if(obj == ui->lineEdit) { browseHistory(1); return true; } break;
+        case Qt::Key_Up:   if(obj == ui->lineEdit) { browseHistory(-1); return true; } break;
+        case Qt::Key_Down: if(obj == ui->lineEdit) { browseHistory(1);  return true; } break;
         case Qt::Key_PageUp: /* pass paging keys to messages widget */
         case Qt::Key_PageDown:
             if(obj == ui->lineEdit)
@@ -240,13 +240,44 @@ bool RPCConsole::eventFilter(QObject* obj, QEvent *event)
                 return true;
             }
             break;
+
+        case Qt::Key_Return:
+        case Qt::Key_Enter:
+            if(obj == autoCompleter->popup())
+            {
+                QApplication::postEvent(ui->lineEdit, new QKeyEvent(*keyevt));
+                return true;
+            }
+            break;
+
+        case Qt::Key_Tab:
+        case Qt::Key_Backtab:
+                // Provides tab completion in the console
+                if (obj == autoCompleter->popup())
+                {
+                    QModelIndex curIndex = autoCompleter->popup()->currentIndex();
+                    QModelIndex newIndex;
+
+                    if (curIndex.row() == -1)
+                        newIndex = autoCompleter->popup()->model()->index(0, 0);
+                    else if(key == Qt::Key_Backtab)
+                        newIndex = autoCompleter->popup()->model()->index(curIndex.row() - 1, curIndex.column());
+                    else
+                        newIndex = autoCompleter->popup()->model()->index(curIndex.row() + 1, curIndex.column());
+
+                    autoCompleter->popup()->setCurrentIndex(newIndex);
+
+                    return true;
+                }
+                break;
+
         default:
             // Typing in messages widget brings focus to line edit, and redirects key there
             // Exclude most combinations and keys that emit no text, except paste shortcuts
             if(obj == ui->messagesWidget && (
                   (!mod && !keyevt->text().isEmpty() && key != Qt::Key_Tab) ||
-                  ((mod & Qt::ControlModifier) && key == Qt::Key_V) ||
-                  ((mod & Qt::ShiftModifier) && key == Qt::Key_Insert)))
+                  ((mod &  Qt::ControlModifier)      && key == Qt::Key_V)   ||
+                  ((mod &  Qt::ShiftModifier)        && key == Qt::Key_Insert)))
             {
                 ui->lineEdit->setFocus();
                 QApplication::postEvent(ui->lineEdit, new QKeyEvent(*keyevt));
@@ -280,6 +311,20 @@ void RPCConsole::setClientModel(ClientModel *model)
         ui->startupTime->setText(model->formatClientStartupTime());
 
         ui->networkName->setText(model->getNetworkName());
+
+        //Completion
+        QStringList wordList;
+        std::vector<std::string> commandList = tableRPC.listCommands();
+        for (size_t i = 0; i < commandList.size(); ++i)
+        {
+            wordList << commandList[i].c_str();
+        }
+
+        autoCompleter = new QCompleter(wordList, this);
+        ui->lineEdit->setCompleter(autoCompleter);
+
+        // clear the lineEdit after activating from QCompleter
+        autoCompleter->popup()->installEventFilter(this);
     }
 }
 
@@ -287,10 +332,10 @@ static QString categoryClass(int category)
 {
     switch(category)
     {
-    case RPCConsole::CMD_REQUEST:  return "cmd-request"; break;
-    case RPCConsole::CMD_REPLY:    return "cmd-reply"; break;
-    case RPCConsole::CMD_ERROR:    return "cmd-error"; break;
-    default:                       return "misc";
+    case RPCConsole::CMD_REQUEST: return "cmd-request";
+    case RPCConsole::CMD_REPLY:   return "cmd-reply";
+    case RPCConsole::CMD_ERROR:   return "cmd-error";
+    default:                      return "misc";
     }
 }
 
@@ -356,7 +401,7 @@ void RPCConsole::setNumConnections(int count)
         return;
 
     QString connections = QString::number(count) + " (";
-    connections += tr("In:") + " " + QString::number(clientModel->getNumConnections(CONNECTIONS_IN)) + " / ";
+    connections += tr("In:")  + " " + QString::number(clientModel->getNumConnections(CONNECTIONS_IN))  + " / ";
     connections += tr("Out:") + " " + QString::number(clientModel->getNumConnections(CONNECTIONS_OUT)) + ")";
 
     ui->numberOfConnections->setText(connections);

@@ -394,11 +394,11 @@ public:
     boost::signals2::signal<void (CWallet *wallet, const std::string &name, const std::string &address,
             const std::string &type, ChangeType status)> NotifyServicePageChanged;
 
-    /** Ticket page entry changed.
+    /** Coupon page entry changed.
     * @note called with lock cs_wallet held.
     */
     boost::signals2::signal<void (CWallet *wallet, const std::string &name, const std::string &location, const std::string &datetime,
-                                  const std::string &price, const std::string &address, const std::string &service, ChangeType status)> NotifyTicketPageChanged;
+                                  const std::string &price, const std::string &address, const std::string &service, ChangeType status)> NotifyCouponPageChanged;
 
     /** Wallet transaction added, removed or updated.
      * @note called with lock cs_wallet held.
@@ -455,6 +455,62 @@ static void WriteOrderPos(const int64_t& nOrderPos, mapValue_t& mapValue)
         return;
     mapValue["n"] = i64tostr(nOrderPos);
 }
+
+/** A transaction with a merkle branch linking it to the block chain. */
+class CMerkleTx : public CTransaction
+{
+private:
+    int GetDepthInMainChainINTERNAL(CBlockIndex* &pindexRet) const;
+
+public:
+    uint256 hashBlock;
+    std::vector<uint256> vMerkleBranch;
+    int nIndex;
+
+    // memory only
+    mutable bool fMerkleVerified;
+
+
+    CMerkleTx()
+    {
+        Init();
+    }
+
+    CMerkleTx(const CTransaction& txIn) : CTransaction(txIn)
+    {
+        Init();
+    }
+
+    void Init()
+    {
+        hashBlock = 0;
+        nIndex = -1;
+        fMerkleVerified = false;
+    }
+
+
+    IMPLEMENT_SERIALIZE
+    (
+        nSerSize += SerReadWrite(s, *(CTransaction*)this, nType, nVersion, ser_action);
+        nVersion = this->nVersion;
+        READWRITE(hashBlock);
+        READWRITE(vMerkleBranch);
+        READWRITE(nIndex);
+    )
+
+
+    int SetMerkleBranch(const CBlock* pblock=NULL);
+
+    // Return depth of transaction in blockchain:
+    // -1  : not in blockchain, and not in memory pool (conflicted transaction)
+    //  0  : in memory pool, waiting to be included in a block
+    // >=1 : this many blocks deep in the main chain
+    int GetDepthInMainChain(CBlockIndex* &pindexRet) const;
+    int GetDepthInMainChain() const { CBlockIndex *pindexRet; return GetDepthInMainChain(pindexRet); }
+    bool IsInMainChain() const { CBlockIndex *pindexRet; return GetDepthInMainChainINTERNAL(pindexRet) > 0; }
+    int GetBlocksToMaturity(int nHeight) const;
+    bool AcceptToMemoryPool(bool fLimitFree=true);
+};
 
 
 /** A transaction with a bunch of additional info that only the owner cares about.
