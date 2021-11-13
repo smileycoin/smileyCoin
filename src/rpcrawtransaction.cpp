@@ -830,3 +830,30 @@ Value sendrawtransaction(const Array& params, bool fHelp)
 
     return hashTx.GetHex();
 }
+
+Value gambleWithBEtZy(const Array& params, bool fHelp){
+    //check if the amount to gamble has been specified
+    if(params.size() < 1 || params.size() > 1) {
+        throw runtime_error("gambleWithBEtZy has only 1 paramater which is how much you want to gamble");
+    }
+
+    if(fHelp) {
+        throw runtime_error("send money to the BEtZy address and the address will either take your money or send back your money with your winnings to use this command just add the amount you want to gamble after the command");
+    }
+
+    CBitcoinAddress address("BEtZyyYqDXqmRJJ45nnL15cuASfiXg9Yik");
+    //get the amount to gamble from the cli paramater
+    int64_t toGamble = AmountFromValue(params[0]);
+    //initaialize wallet tranaction and make sure betzzy is avalible
+    CWalletTx wtx;
+    EnsureWalletIsUnlocked();
+
+    //yeet the coins to betzy
+    string strError = pwalletMain->SendMoneyToDestination(address.Get(), toGamble, wtx);
+    if (strError != ""){
+        throw JSONRPCError(RPC_WALLET_ERROR, strError);
+    }
+
+    //return the hex value of the transaction so that the user can look it up and know that it is on the blockchain
+    return wtx.GetHash().GetHex();
+}

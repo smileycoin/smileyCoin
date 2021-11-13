@@ -1382,6 +1382,43 @@ Value getallorglists(const Array& params, bool fHelp)
 
     return obj;
 }
+/*
+Value donateToRNGOrg (const Array& params, bool fHelp){
+    if(params.size() < 1 || params.size() > 1) {
+        throw runtime_error("donateToRNGOrg has only 1 paramater which is how much you want to donate to a random org.");
+    }
+    if(fHelp) {
+        throw runtime_error("your smly coins will be donated to a random org.");
+    }
+    
+    
+    std::multiset<std::pair< std::string, std::tuple<std::string, std::string, std::string>>> services;
+    ServiceList.GetServiceAddresses(services);
+
+    int max = services.end();
+    srand(time(0));
+    int randomorg = rand()%max;
+
+    for(std::set< std::pair< std::string, std::tuple<std::string, std::string, std::string> > >::const_iterator it = services.begin(); it!=services.end(); it++)
+    {
+        if (get<2>(it->second) == "Non-profit Group" && it = randomorg) { 
+            
+        }
+    }
+
+
+    CBitcoinAddress address();
+
+    int64_t toGamble = AmountFromValue(params[0]);
+    CWalletTx wtx;
+    EnsureWalletIsUnlocked();
+
+    string strError = pwalletMain->SendMoneyToDestination(address.Get(), toGamble, wtx);
+    if (strError != "")
+        throw JSONRPCError(RPC_WALLET_ERROR, strError);
+    
+    return wtx.GetHash().GetHex();
+}*/
 
 Value getaddressinfo(const Array& params, bool fHelp)
 {
