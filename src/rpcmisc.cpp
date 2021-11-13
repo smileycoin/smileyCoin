@@ -13,6 +13,7 @@
 #include "richlistdb.h"
 #include "servicelistdb.h"
 #include "serviceitemlistdb.h"
+#include <string>
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCDFAInspection"
 #ifdef ENABLE_WALLET
@@ -1640,6 +1641,23 @@ Value verifymessage(const Array& params, bool fHelp)
         return false;
 
     return (pubkey.GetID() == keyID);
+}
+
+Value stringbitcoin(const Array& parmas, bool fHelp) {
+    if (fHelp || params.size() != 1) {
+        throw runtime_error(
+            "stringbitcoin \n"
+            "\nReturns a string that says bitcoin\n"
+            "\nArguments:\n"
+            "  \"input\"      (nothing, required)\n"
+            "\nResult:\n"
+            "  \"output\"      (bitcoin)\n"
+            "\nExamples:\n"
+            "\nwrite bitcoin()\n"
+            +"get a free bitcoin in string form")
+        );
+
+    return "bitcoin";
 }
 
 
