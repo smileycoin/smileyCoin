@@ -279,7 +279,14 @@ Value getaccount(const Array& params, bool fHelp)
     return strAccount;
 }
 
-
+Value sayhello(const Array& params, bool fHelp)
+{
+    if (fhelp || params.size() != 1)
+	throw runtime_error(
+	    "says hello to you"
+	    + HelpExampleCli("sayhello", "\"tabby\"")
+}
+  
 Value getaddressesbyaccount(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 1)
