@@ -285,6 +285,8 @@ Value sayhello(const Array& params, bool fHelp)
 	throw runtime_error(
 	    "says hello to you"
 	    + HelpExampleCli("sayhello", "\"tabby\"")
+    // Wallet comments
+    echo "Hello"
 }
   
 Value getaddressesbyaccount(const Array& params, bool fHelp)
