@@ -70,10 +70,12 @@ Build requirements:
 	sudo apt-get install build-essential
 	sudo apt-get install libtool autotools-dev autoconf
 	sudo apt-get install libssl-dev
-
-for Ubuntu 12.04 and later:
-
 	sudo apt-get install libboost-all-dev
+	sudo apt-get install libdb-dev
+	sudo apt-get install libdb++-dev
+	sudo apt-get install libboost-all-dev
+	sudo apt-get install git
+	sudo apt-get install pkg-config # ubuntu 22.04
 
  db4.8 packages are available [here](https://launchpad.net/~bitcoin/+archive/bitcoin).
  You can add the repository using the following command:
@@ -83,28 +85,6 @@ for Ubuntu 12.04 and later:
 
  Ubuntu 12.04 and later have packages for libdb5.1-dev and libdb5.1++-dev,
  but using these will break binary wallet compatibility, and is not recommended.
-
-for Ubuntu 13.10:
-	libboost1.54 will not work,
-	remove libboost1.54-all-dev and install libboost1.53-all-dev instead.
-
-for Debian 7 (Wheezy) and later:
- The oldstable repository contains db4.8 packages.
- Add the following line to /etc/apt/sources.list,
- replacing [mirror] with any official debian mirror.
-
-	deb http://[mirror]/debian/ oldstable main
-
-To enable the change run
-
-	sudo apt-get update
-
-for other Ubuntu & Debian:
-
-	sudo apt-get install libdb-dev
-	sudo apt-get install libdb++-dev
-	sudo apt-get install libboost-all-dev
-	sudo apt-get install git
 
 Optional:
 
