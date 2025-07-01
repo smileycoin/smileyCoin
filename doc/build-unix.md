@@ -17,7 +17,7 @@ Dependencies
  Library     | Purpose          | Description
  ------------|------------------|----------------------
  libssl      | SSL Support      | Secure communications
- libdb4.8    | Berkeley DB      | Wallet storage
+ libdb5.3    | Berkeley DB      | Wallet storage
  libboost    | Boost            | C++ Library
  miniupnpc   | UPnP Support     | Optional firewall-jumping support
  qt          | GUI              | GUI toolkit
