@@ -73,6 +73,7 @@ After=network.target
 
 [Service]
 ExecStart=${SMLY_BIN} -datadir=${TARGETDATA} --server -printtoconsole -algo=skein
+ExecStartPost=/usr/bin/timeout 3600 /bin/sh -c 'while ! ${BINDIR}/smileycoin-cli getinfo ; do sleep 1; done'
 User=${TARGETUSER}
 Group=${TARGETGROUP}
 
