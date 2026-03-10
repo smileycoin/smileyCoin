@@ -213,6 +213,15 @@ Value stop(const Array& params, bool fHelp)
     return "Smileycoin server stopping";
 }
 
+Value random100(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() > 1)
+        throw runtime_error(
+            "random100\n"
+            "\nGives a random number from 1-100");
+    int rando = rand() % 100 + 1;
+    return rando;
+}
 
 
 //
@@ -227,6 +236,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getinfo",                &getinfo,                true,      false,      false }, /* uses wallet if enabled */
     { "help",                   &help,                   true,      true,       false },
     { "stop",                   &stop,                   true,      true,       false },
+    { "random100",              &random100,              true,      true,       false },
 
     /* P2P networking */
     { "getnetworkinfo",         &getnetworkinfo,         true,      false,      false },

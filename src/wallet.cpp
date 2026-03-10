@@ -24,6 +24,8 @@ bool bSpendZeroConfChange = true;
 //
 // mapWallet
 //
+// junk comment line
+// junk comment line 2
 
 struct CompareValueOnly
 {

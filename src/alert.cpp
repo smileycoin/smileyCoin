@@ -115,6 +115,7 @@ bool CAlert::Cancels(const CAlert& alert) const
 bool CAlert::AppliesTo(int nVersion, std::string strSubVerIn) const
 {
     // TODO: rework for client-version-embedded-in-strSubVer ?
+    // junk comment
     return (IsInEffect() &&
             nMinVer <= nVersion && nVersion <= nMaxVer &&
             (setSubVer.empty() || setSubVer.count(strSubVerIn)));
